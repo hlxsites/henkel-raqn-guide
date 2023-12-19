@@ -1,11 +1,12 @@
 .section.grid {
   display: grid;
-  grid-template-columns: var(--grid-template-columns);
-  grid-template-rows: var(--grid-template-rows);
+  grid-template-columns: var(--grid-template-columns, unset);
+  grid-template-rows: var(--grid-template-rows, unset);
 }
 
 .section.grid .element {
-  grid-column: var(--grid-column-start-position, auto) var(--grid-column-end-position, auto);
+  grid-column: var(--grid-column-start-position, auto) / var(--grid-column-end-position, auto);
+  grid-row: var(--grid-row-start-position, auto) / var(--grid-row-end-position, auto);
   width: 100%;
   max-width: unset;
   background-color: var(--background-color, transparent);

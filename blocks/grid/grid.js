@@ -12,7 +12,7 @@ export default function decorate(block) {
     if (columnTemplate) {
       variables['grid-template-columns'] = columnTemplate;
     }
-    if (columnTemplate) {
+    if (rowTemplate) {
       variables['grid-template-rows'] = rowTemplate;
     }
     addCssVariables(block, variables);
