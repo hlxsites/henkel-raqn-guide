@@ -1,0 +1,28 @@
+.section.grid {
+  display: grid;
+  grid-template-columns: var(--grid-template-columns);
+  grid-template-rows: var(--grid-template-rows);
+}
+
+.section.grid .element {
+  grid-column: var(--grid-column-start-position, auto) var(--grid-column-end-position, auto);
+  width: 100%;
+  max-width: unset;
+  background-color: var(--background-color, transparent);
+  color: var(--text-color);
+  margin: auto;
+}
+
+.section.grid .element .image-wrapper {
+  margin: 0;
+  padding: 0;
+}
+
+.section.grid .element img {
+  width: 100%;
+}
+
+.section.grid .element p {
+  margin: 0;
+  padding: var(--padding-vertical) var(--padding-horizontal);
+}
