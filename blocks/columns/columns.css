@@ -11,7 +11,8 @@
   .columns > div {
     align-items: center;
     flex-direction: unset;
-    gap: 32px;
+    gap: var(--padding-vertical) var(--padding-horizontal);
+    padding: var(--padding-vertical) var(--padding-horizontal);
   }
 
   .columns > div > div:nth-child(1) {

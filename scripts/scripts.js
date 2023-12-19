@@ -5,6 +5,7 @@ import {
   loadFooter,
   decorateButtons,
   decorateIcons,
+  decorateSection,
   decorateSections,
   decorateBlocks,
   decorateTemplateAndTheme,
@@ -28,6 +29,22 @@ function buildHeroBlock(main) {
     section.append(buildBlock('hero', { elems: [picture, h1] }));
     main.prepend(section);
   }
+}
+
+function buildGrid(main) {
+  const gridElements = main.querySelectorAll('.section[data-grid-position]');
+  gridElements.forEach((e) => {
+    e.classList.remove('section');
+    delete e.dataset.sectionStatus;
+    e.removeAttribute('style');
+  });
+  const grid = document.createElement('div');
+  grid.classList.add('block', 'grid');
+  grid.dataset.blockName = 'grid';
+  grid.dataset.blockStatus = 'initialized';
+  main.insertBefore(grid, gridElements[0]);
+  decorateSection(grid);
+  grid.replaceChildren(...gridElements);
 }
 
 /**
@@ -55,6 +72,14 @@ function buildAutoBlocks(main) {
   }
 }
 
+function decorateImages(main) {
+  main.querySelectorAll('picture').forEach((i) => {
+    if (i.parentElement.tagName === 'P' && i.parentElement.children.length === 1) {
+      i.parentElement.classList.add('image-wrapper');
+    }
+  });
+}
+
 /**
  * Decorates the main element.
  * @param {Element} main The main element
@@ -67,6 +92,8 @@ export function decorateMain(main) {
   buildAutoBlocks(main);
   decorateSections(main);
   decorateBlocks(main);
+  decorateImages(main);
+  buildGrid(main);
 }
 
 /**
