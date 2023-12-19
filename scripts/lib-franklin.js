@@ -179,7 +179,7 @@ export async function decorateIcons(element) {
     if (!ICONS_CACHE[iconName]) {
       ICONS_CACHE[iconName] = true;
       try {
-        const response = await fetch(`${window.hlx.codeBasePath}/icons/${iconName}.svg`);
+        const response = await fetch(`${window.hlx.iconsPath}/${iconName}.svg`);
         if (!response.ok) {
           ICONS_CACHE[iconName] = false;
           return;
@@ -337,7 +337,7 @@ export function addCssVariables(element, variables) {
 
   const style = document.createElement('style');
   style.textContent = `#${element.id} {
-    ${Object.keys(variables).map((k) => `--${k}: ${variables[k]};`).join(' ')}
+    ${Object.keys(variables).map((k) => variables[k] && `--${k}: ${variables[k]};`).join(' ')}
   }`;
 
   element.parentNode.insertBefore(style, element);
@@ -376,14 +376,10 @@ export function decorateSection(section) {
   }
 
   if (section.dataset.textColor || section.dataset.background) {
-    const variables = {};
-    if (section.dataset.textColor) {
-      variables['text-color'] = section.dataset.textColor;
-    }
-    if (section.dataset.background) {
-      variables['background-color'] = section.dataset.background;
-    }
-    addCssVariables(section, variables);
+    addCssVariables(section, {
+      'text-color': section.dataset.textColor,
+      'background-color': section.dataset.background,
+    });
   }
 }
 
@@ -667,11 +663,23 @@ export async function waitForLCP(lcpBlocks) {
  * @param {Element} header header element
  * @returns {Promise}
  */
-export function loadHeader(header) {
-  const headerBlock = buildBlock('header', '');
-  header.append(headerBlock);
-  decorateBlock(headerBlock);
-  return loadBlock(headerBlock);
+export async function loadHeader(header) {
+  const navMeta = getMetadata('header');
+  const navPath = navMeta ? new URL(navMeta).pathname : '/header';
+  const resp = await fetch(`${navPath}.plain.html`);
+
+  addCssVariables(header, {
+    'background-color': getMetadata('header-background'),
+    'header-height': getMetadata('header-height'),
+    'text-color': getMetadata('header-text-color'),
+  });
+
+  if (resp.ok) {
+    const html = await resp.text();
+    header.innerHTML = html;
+    header.dataset.blockName = 'header';
+    await loadBlock(header);
+  }
 }
 
 /**
@@ -695,6 +703,7 @@ export function setup() {
   window.hlx.codeBasePath = '';
   window.hlx.lighthouse = new URLSearchParams(window.location.search).get('lighthouse') === 'on';
   window.hlx.patchBlockConfig = [];
+  window.hlx.iconsPath = '/assets/icons';
 
   const scriptEl = document.querySelector('script[src$="/scripts/scripts.js"]');
   if (scriptEl) {

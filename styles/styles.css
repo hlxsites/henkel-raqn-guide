@@ -37,8 +37,7 @@
   --heading-font-size-s: 20px;
   --heading-font-size-xs: 18px;
 
-  /* nav height */
-  --nav-height: 64px;
+  /* mind the gaps */
   --padding-horizontal: 32px;
   --padding-vertical: 16px;
 
@@ -78,7 +77,13 @@ body.appear {
 }
 
 header {
-  height: var(--nav-height);
+  height: var(--header-height, 120px);
+  background-color: var(--background-color);
+  color: var(--text-color);
+}
+
+header svg {
+  fill: var(--text-color);
 }
 
 h1, h2, h3,
@@ -88,7 +93,6 @@ h4, h5, h6 {
   line-height: 1.25;
   margin-top: 1em;
   margin-bottom: .5em;
-  scroll-margin: calc(var(--nav-height) + 1em);
 }
 
 h1 { font-size: var(--heading-font-size-xxl) }

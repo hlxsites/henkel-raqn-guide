@@ -8,14 +8,10 @@ export default function decorate(block) {
   const columnTemplate = elements.find((e) => e.dataset.gridColumns)?.dataset.gridColumns;
   const rowTemplate = elements.find((e) => e.dataset.gridRows)?.dataset.gridRows;
   if (columnTemplate || rowTemplate) {
-    const variables = {};
-    if (columnTemplate) {
-      variables['grid-template-columns'] = columnTemplate;
-    }
-    if (rowTemplate) {
-      variables['grid-template-rows'] = rowTemplate;
-    }
-    addCssVariables(block, variables);
+    addCssVariables(block, {
+      'grid-template-columns': columnTemplate,
+      'grid-template-rows': rowTemplate,
+    });
   }
 
   elements.forEach((e) => {
