@@ -329,43 +329,70 @@ export function readBlockConfig(block) {
   return config;
 }
 
+export function addCssVariables(element, variables) {
+  if (!element.id) {
+    const id = `gen${crypto.randomUUID().split('-')[0]}`;
+    element.id = id;
+  }
+
+  const style = document.createElement('style');
+  style.textContent = `#${element.id} {
+    ${Object.keys(variables).map((k) => `--${k}: ${variables[k]};`).join(' ')}
+  }`;
+
+  element.parentNode.insertBefore(style, element);
+}
+
+export function decorateSection(section) {
+  const wrappers = [];
+  let defaultContent = false;
+  [...section.children].forEach((e) => {
+    if (e.tagName === 'DIV' || !defaultContent) {
+      const wrapper = document.createElement('div');
+      wrappers.push(wrapper);
+      defaultContent = e.tagName !== 'DIV';
+      if (defaultContent) wrapper.classList.add('default-content-wrapper');
+    }
+    wrappers[wrappers.length - 1].append(e);
+  });
+  wrappers.forEach((wrapper) => section.append(wrapper));
+  section.classList.add('section');
+  section.dataset.sectionStatus = 'initialized';
+  section.style.display = 'none';
+
+  /* process section metadata */
+  const sectionMeta = section.querySelector('div.section-metadata');
+  if (sectionMeta) {
+    const meta = readBlockConfig(sectionMeta);
+    Object.keys(meta).forEach((key) => {
+      if (key === 'style') {
+        const styles = meta.style.split(',').map((style) => toClassName(style.trim()));
+        styles.forEach((style) => section.classList.add(style));
+      } else {
+        section.dataset[toCamelCase(key)] = meta[key];
+      }
+    });
+    sectionMeta.parentNode.remove();
+  }
+
+  if (section.dataset.textColor || section.dataset.background) {
+    const variables = {};
+    if (section.dataset.textColor) {
+      variables['text-color'] = section.dataset.textColor;
+    }
+    if (section.dataset.background) {
+      variables['background-color'] = section.dataset.background;
+    }
+    addCssVariables(section, variables);
+  }
+}
+
 /**
  * Decorates all sections in a container element.
  * @param {Element} main The container element
  */
 export function decorateSections(main) {
-  main.querySelectorAll(':scope > div').forEach((section) => {
-    const wrappers = [];
-    let defaultContent = false;
-    [...section.children].forEach((e) => {
-      if (e.tagName === 'DIV' || !defaultContent) {
-        const wrapper = document.createElement('div');
-        wrappers.push(wrapper);
-        defaultContent = e.tagName !== 'DIV';
-        if (defaultContent) wrapper.classList.add('default-content-wrapper');
-      }
-      wrappers[wrappers.length - 1].append(e);
-    });
-    wrappers.forEach((wrapper) => section.append(wrapper));
-    section.classList.add('section');
-    section.dataset.sectionStatus = 'initialized';
-    section.style.display = 'none';
-
-    /* process section metadata */
-    const sectionMeta = section.querySelector('div.section-metadata');
-    if (sectionMeta) {
-      const meta = readBlockConfig(sectionMeta);
-      Object.keys(meta).forEach((key) => {
-        if (key === 'style') {
-          const styles = meta.style.split(',').map((style) => toClassName(style.trim()));
-          styles.forEach((style) => section.classList.add(style));
-        } else {
-          section.dataset[toCamelCase(key)] = meta[key];
-        }
-      });
-      sectionMeta.parentNode.remove();
-    }
-  });
+  main.querySelectorAll(':scope > div').forEach((section) => decorateSection(section));
 }
 
 /**
