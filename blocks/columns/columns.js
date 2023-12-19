@@ -1,18 +1,22 @@
 export default function decorate(block) {
-  const cols = [...block.firstElementChild.children];
-  block.classList.add(`columns-${cols.length}-cols`);
+  const id = `gen${crypto.randomUUID().split('-')[0]}`;
+  block.id = id;
 
-  // setup image columns
-  [...block.children].forEach((row) => {
-    [...row.children].forEach((col) => {
-      const pic = col.querySelector('picture');
-      if (pic) {
-        const picWrapper = pic.closest('div');
-        if (picWrapper && picWrapper.children.length === 1) {
-          // picture is only content in column
-          picWrapper.classList.add('columns-img-col');
-        }
-      }
-    });
-  });
+  const columns = block.querySelectorAll(':scope > div > div');
+  const columnCount = columns.length;
+  // following line regex matches partition sizes separated by dashes like 1-2-3
+  const columnPartionRegex = /^\d{1,}(?:-\d{1,})*$/;
+  const columnPartions = [...block.classList].find((c) => columnPartionRegex.test(c))?.split('-') || [];
+
+  let variables = '';
+  for (let i = 0; i < columnCount; i += 1) {
+    const partition = columnPartions.length > i ? columnPartions[i] : 1;
+    variables += `--column${i}-flex: ${partition};`;
+  }
+
+  const style = document.createElement('style');
+  style.textContent = `#${id} {
+    ${variables}
+  }`;
+  block.parentNode.insertBefore(style, block);
 }
