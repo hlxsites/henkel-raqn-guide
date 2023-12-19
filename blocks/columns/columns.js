@@ -1,18 +1,18 @@
-export default function decorate(block) {
-  const cols = [...block.firstElementChild.children];
-  block.classList.add(`columns-${cols.length}-cols`);
+import {
+  addCssVariables,
+} from '../../scripts/lib-franklin.js';
 
-  // setup image columns
-  [...block.children].forEach((row) => {
-    [...row.children].forEach((col) => {
-      const pic = col.querySelector('picture');
-      if (pic) {
-        const picWrapper = pic.closest('div');
-        if (picWrapper && picWrapper.children.length === 1) {
-          // picture is only content in column
-          picWrapper.classList.add('columns-img-col');
-        }
-      }
-    });
-  });
+export default function decorate(block) {
+  const columns = block.querySelectorAll(':scope > div > div');
+  const columnCount = columns.length;
+  // following line regex matches partition sizes separated by dashes like 1-2-3
+  const columnPartionRegex = /^\d{1,}(?:-\d{1,})*$/;
+  const columnPartions = [...block.classList].find((c) => columnPartionRegex.test(c))?.split('-') || [];
+
+  const variables = {};
+  for (let i = 0; i < columnCount; i += 1) {
+    const partition = columnPartions.length > i ? columnPartions[i] : 1;
+    variables[`column${i}-flex`] = partition;
+  }
+  addCssVariables(block, variables);
 }

@@ -1,4 +1,3 @@
-// import { getMetadata, decorateIcons } from '../../scripts/lib-franklin.js';
 
 import { ComponentBase } from "../../scripts/component-base.js";
 
