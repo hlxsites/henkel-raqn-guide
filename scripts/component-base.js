@@ -1,6 +1,5 @@
 import { init } from "./init.js";
 
-
 export class ComponentBase extends HTMLElement {
     external = false;
     constructor() {
@@ -11,11 +10,12 @@ export class ComponentBase extends HTMLElement {
         if (this.external) {
             await this.load(this.external);
         }
+        this.connected();
         this.render();
     }
 
-    async load() {
-        const resp = await fetch(`${this.external}.plain.html`, window.location.pathname.endsWith(this.external) ? { cache: 'reload' } : {});
+    async load(block) {
+        const resp = await fetch(`${block}.plain.html`, window.location.pathname.endsWith(block) ? { cache: 'reload' } : {});
 
         if (resp.ok) {
             const html = await resp.text();
@@ -25,8 +25,12 @@ export class ComponentBase extends HTMLElement {
         }
     }
 
-    render() {
+    connected() {
+        console.log('connected', this);
+    }
 
+    render() {
+        console.log('render', this);
     }
 }
 

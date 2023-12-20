@@ -2,6 +2,7 @@
 
 export class ComponentLoader {
     constructor(blockName, element) {
+        console.log('ComponentLoader', blockName, element);
         window.raqnComponents = window.raqnComponents || {};
         this.block = element;
         this.blockName = blockName;
@@ -48,6 +49,7 @@ export class ComponentLoader {
                 } else {
                     acc[key] = values.join('-');
                 }
+                console.log(acc, key, values);
                 return acc;
             }, {});
     }
@@ -87,12 +89,16 @@ export class ComponentLoader {
                         }
                         const element = document.createElement(elementName);
                         element.innerHTML = this.block.innerHTML;
+                        this.block.replaceWith(element);
+                        console.log('decorate', this.params);
                         Object.keys(this.params).forEach((key) => {
                             // @TODO sanitize
                             const value = Array.isArray(this.params[key]) ? this.params[key].join(' ') : this.params[key];
                             element.setAttribute(key, value);
+                            console.log(key, value);
                         });
-                        this.block.replaceWith(element);
+                        console.log('decorate', element);
+                        
                     } else if (mod.default) {
                         await mod.default(this.block);
                     }

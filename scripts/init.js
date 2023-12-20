@@ -11,6 +11,7 @@ export function retriveDataFrom(blocks) {
         let blockName = tagName;
         if (!config.elementBlocks.includes(tagName)) {
             blockName = element.classList[0];
+        } else {
             element = document.createElement('div');
             block.append(element);
         }
@@ -21,7 +22,7 @@ export function retriveDataFrom(blocks) {
     });
 }
 
-export function init(element = document) {
+export async function init(element = document) {
     document.body.style.display = 'none';
     let blocks = Array.from(element.querySelectorAll('[class]'));
     if (element === document) {
