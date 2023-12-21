@@ -2,7 +2,6 @@
 
 export class ComponentLoader {
     constructor(blockName, element) {
-        console.log('ComponentLoader', blockName, element);
         window.raqnComponents = window.raqnComponents || {};
         this.block = element;
         this.blockName = blockName;
@@ -36,7 +35,6 @@ export class ComponentLoader {
     setParams() {
         this.params = Array.from(this.block.classList)
             .filter((c) => {
-                console.log(c,this.blockName,  c !== this.blockName && c !== 'block');
                 return c !== this.blockName && c !== 'block';
             })
             .reduce((acc, c) => {
@@ -49,7 +47,6 @@ export class ComponentLoader {
                 } else {
                     acc[key] = values.join('-');
                 }
-                console.log(acc, key, values);
                 return acc;
             }, {});
     }
@@ -86,18 +83,17 @@ export class ComponentLoader {
                             const Contructor = mod.default
                             customElements.define(elementName, Contructor);
                             window.raqnComponents[name] = Contructor;
+                            console.log(elementName, Contructor);
                         }
+                        
                         const element = document.createElement(elementName);
                         element.innerHTML = this.block.innerHTML;
-                        this.block.replaceWith(element);
-                        console.log('decorate', this.params);
                         Object.keys(this.params).forEach((key) => {
                             // @TODO sanitize
                             const value = Array.isArray(this.params[key]) ? this.params[key].join(' ') : this.params[key];
                             element.setAttribute(key, value);
-                            console.log(key, value);
                         });
-                        console.log('decorate', element);
+                        this.block.replaceWith(element);
                         
                     } else if (mod.default) {
                         await mod.default(this.block);

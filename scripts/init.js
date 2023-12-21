@@ -23,8 +23,8 @@ export function retriveDataFrom(blocks) {
 }
 
 export async function init(element = document) {
-    document.body.style.display = 'none';
-    let blocks = Array.from(element.querySelectorAll('[class]'));
+    let blocks = Array.from(element.querySelectorAll('[class]:not([class^=raqn]'));
+    console.log(blocks);
     if (element === document) {
         const header = element.querySelector('header');
         const footer = element.querySelector('footer');
@@ -33,11 +33,10 @@ export async function init(element = document) {
     
     const data = retriveDataFrom(blocks);
     Promise.all(data.map(({blockName, element}) => {
+        console.log(blockName, element);
         const loader = new ComponentLoader(blockName, element);
         return loader.decorate();
-    })).then(() => {
-        document.body.style.display = 'block';
-    });
+    }))
 }
 
 window.loaderData = config;

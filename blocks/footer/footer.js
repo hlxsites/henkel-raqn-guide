@@ -5,15 +5,13 @@ import { readBlockConfig, decorateIcons, getMetadata } from '../../scripts/lib-f
  * @param {Element} block The footer block element
  */
 export default async function decorate(block) {
-  console.log('decorating footer', block);
+
   const cfg = readBlockConfig(block);
   const meta = getMetadata('footer');
-  console.log('footer config', cfg, meta);
   block.textContent = '';
 
   // fetch footer content
   const footerPath = cfg.footer || '/footer';
-  console.log(`fetching footer from ${footerPath}`);
   const resp = await fetch(`${footerPath}.plain.html`, window.location.pathname.endsWith('/footer') ? { cache: 'reload' } : {});
 
   if (resp.ok) {
