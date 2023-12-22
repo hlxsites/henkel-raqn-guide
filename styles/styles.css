@@ -39,9 +39,14 @@ a {
 
 picture,
 img {
+  
   display: block;
   max-width: 100%;
   height: auto;
+}
+
+header {
+  height: var(--raqn-header-height, 180px);
 }
 
 @keyframes placeholder {

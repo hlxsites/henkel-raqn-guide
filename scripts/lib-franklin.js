@@ -329,6 +329,20 @@ export function readBlockConfig(block) {
   return config;
 }
 
+export function addCssVariables(element, variables) {
+  if (!element.id) {
+    const id = `gen${crypto.randomUUID().split('-')[0]}`;
+    element.id = id;
+  }
+
+  const style = document.createElement('style');
+  style.textContent = `#${element.id} {
+    ${Object.keys(variables).map((k) => variables[k] && `--${k}: ${variables[k]};`).join(' ')}
+  }`;
+
+  element.parentNode.insertBefore(style, element);
+}
+
 export function decorateSection(section) {
   const wrappers = [];
   let defaultContent = false;

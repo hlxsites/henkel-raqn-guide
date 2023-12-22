@@ -1,88 +1,99 @@
 import { ComponentBase } from "../../scripts/component-base.js";
 
 export default class Icon extends ComponentBase {
-    constructor() {
-        super();
-        this.setupSprite();
-    }
+  constructor() {
+    super();
+    this.setupSprite();
+  }
 
-    setupSprite() {
-        this.svgSprite = document.getElementById('franklin-svg-sprite');
-        if (!this.svgSprite) {
-            this.svgSprite = document.createElement('div');
-            this.svgSprite.id ="franklin-svg-sprite";
-            document.body.append(this.svgSprite);
-        }
+  setupSprite() {
+    this.svgSprite = document.getElementById("franklin-svg-sprite");
+    if (!this.svgSprite) {
+      this.svgSprite = document.createElement("div");
+      this.svgSprite.id = "franklin-svg-sprite";
+      document.body.append(this.svgSprite);
     }
-    get cache() {
-        window.ICONS_CACHE = window.ICONS_CACHE || {};
-        return window.ICONS_CACHE;
-    }
+  }
+  get cache() {
+    window.ICONS_CACHE = window.ICONS_CACHE || {};
+    return window.ICONS_CACHE;
+  }
 
-    get iconUrl() {
-        return `assets/icons/${this.iconName}.svg`;
-    }
-    
-    async connected() {
-        this.iconName = this.getAttribute('icon');
-        if (!this.cache[this.iconName]) {
-            this.cache[this.iconName] = {
-                loading: new Promise(async (resolve, reject) => {
-                    resolve(await this.load(this.iconUrl));
-                })
-            }
-            
-        } else {
-            await this.cache[this.iconName].loading;
-            this.innerHTML = this.template();
-        }
-        this.classList.add('loaded');
-    }
+  get iconUrl() {
+    return `assets/icons/${this.iconName}.svg`;
+  }
 
-    template() {
-        const {viewBox} = this.cache[this.iconName];
-        const attributes = Object.keys({viewBox}).map((k) => this.cache[this.iconName][k] ? `${k}="${this.cache[this.iconName][k]}"` : '').join(' ');
-        return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ${attributes}><use xlink:href="#icons-sprite-${this.iconName}"/></svg>`;
+  async connected() {
+    this.iconName = this.getAttribute("icon");
+    if (!this.cache[this.iconName]) {
+      this.cache[this.iconName] = {
+        loading: new Promise(async (resolve, reject) => {
+          resolve(await this.load(this.iconUrl));
+        }),
+      };
+    } else {
+      await this.cache[this.iconName].loading;
+      this.innerHTML = this.template();
     }
+    this.classList.add("loaded");
+  }
 
-    async processExternal(response) {
-        if (response.ok) {
-            const {iconName} = this;
-            this.svg = await response.text();
+  template() {
+    const { viewBox } = this.cache[this.iconName];
+    const attributes = Object.keys({ viewBox })
+      .map((k) =>
+        this.cache[this.iconName][k]
+          ? `${k}="${this.cache[this.iconName][k]}"`
+          : ""
+      )
+      .join(" ");
+    return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ${attributes}><use xlink:href="#icons-sprite-${this.iconName}"/></svg>`;
+  }
 
-            if (this.svg.match(/(<style | class=|url\(#| xlink:href="#)/)) {
-            ICONS_CACHE[iconName] = {
-                styled: true,
-                html: this.svg
-                // rescope ids and references to avoid clashes across icons;
-                .replaceAll(/ id="([^"]+)"/g, (_, id) => ` id="${iconName}-${id}"`)
-                .replaceAll(/="url\(#([^)]+)\)"/g, (_, id) => `="url(#${iconName}-${id})"`)
-                .replaceAll(/ xlink:href="#([^"]+)"/g, (_, id) => ` xlink:href="#${iconName}-${id}"`),
-            };
-            } else {
-                const dummy = document.createElement('div');
-                dummy.innerHTML = this.svg; 
-                const svg = dummy.querySelector('svg');
-                const innerHTML = svg.innerHTML;
-                console.log('processExternal', svg);
-                const width = svg.getAttribute('width');
-                const height = svg.getAttribute('height');
-                const viewBox = svg.getAttribute('viewBox');
+  async processExternal(response) {
+    if (response.ok) {
+      const { iconName } = this;
+      this.svg = await response.text();
 
-                console.log('processExternal', width, height, viewBox);
-                
-                svg.innerHTML = `<defs><g id="icons-sprite-${iconName}" viewBox="${viewBox}" width="${width}" height="${height}">${innerHTML}</g></defs>`;
-                this.cache[iconName].svg = svg;
-                this.cache[iconName].width = width;
-                this.cache[iconName].height = height;
-                this.cache[iconName].viewBox = viewBox;
-            }
-            this.svgSprite.append(this.cache[iconName].svg);
-            this.innerHTML = this.template();
-        } else {
-            this.cache[this.iconName] = false;
-        }
+      if (this.svg.match(/(<style | class=|url\(#| xlink:href="#)/)) {
+        ICONS_CACHE[iconName] = {
+          styled: true,
+          html: this.svg
+            // rescope ids and references to avoid clashes across icons;
+            .replaceAll(/ id="([^"]+)"/g, (_, id) => ` id="${iconName}-${id}"`)
+            .replaceAll(
+              /="url\(#([^)]+)\)"/g,
+              (_, id) => `="url(#${iconName}-${id})"`
+            )
+            .replaceAll(
+              / xlink:href="#([^"]+)"/g,
+              (_, id) => ` xlink:href="#${iconName}-${id}"`
+            ),
+        };
+      } else {
+        const dummy = document.createElement("div");
+        dummy.innerHTML = this.svg;
+        const svg = dummy.querySelector("svg");
+        const innerHTML = svg.innerHTML;
+        console.log("processExternal", svg);
+        const width = svg.getAttribute("width");
+        const height = svg.getAttribute("height");
+        const viewBox = svg.getAttribute("viewBox");
+
+        console.log("processExternal", width, height, viewBox);
+
+        svg.innerHTML = `<defs><g id="icons-sprite-${iconName}" viewBox="${viewBox}" width="${width}" height="${height}">${innerHTML}</g></defs>`;
+        this.cache[iconName].svg = svg;
+        this.cache[iconName].width = width;
+        this.cache[iconName].height = height;
+        this.cache[iconName].viewBox = viewBox;
+      }
+      this.svgSprite.append(this.cache[iconName].svg);
+      this.innerHTML = this.template();
+    } else {
+      this.cache[this.iconName] = false;
     }
+  }
 }
 // /**
 //  * Replace icons with inline SVG and prefix with codeBasePath.

@@ -64,7 +64,6 @@ async function loadFonts() {
  * @param {Element} main The container element
  */
 function buildAutoBlocks(main) {
-  console.log('building auto blocks', main);
   try {
     buildHeroBlock(main);
   } catch (error) {
@@ -138,6 +137,7 @@ async function loadLazy(doc) {
 
   loadFooter(doc.querySelector('footer'));
 
+  loadCSS(`${window.hlx.codeBasePath}/styles/lazy-styles.css`);
   loadFonts();
 
   sampleRUM('lazy');
