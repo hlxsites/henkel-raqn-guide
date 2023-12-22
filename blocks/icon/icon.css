@@ -1,0 +1,25 @@
+raqn-icon {
+    display: inline-flex;
+    font-size: 1em;
+    line-height: 1em;
+    min-width: var(--scope-icon-size, 1em);
+    min-height: var(--scope-icon-size, 1em);
+    text-align: center;
+    text-transform: none;
+    vertical-align: middle;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+raqn-icon:not(.loaded) {
+    animation: placeholder ease-in-out 1s infinite;
+}
+
+raqn-icon svg {
+    display: inline-block;
+    max-height: 100%;
+    max-width: 100%;
+    fill: currentColor;
+    overflow: hidden;
+    vertical-align: middle;
+}

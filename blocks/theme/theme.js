@@ -2,7 +2,8 @@ import { ComponentBase } from "../../scripts/component-base.js";
 
 export default class Theme extends ComponentBase {
     external = 'theme.json';
-    allowedVariables = ['color', 'background', 'margin', 'font-size','font-weight', 'font-family'];
+    allowedVariables = ['color', 'background', 'margin', 'font-size','font-weight', 'font-family', 'icon-size', 'max-width'];
+    defaultScope = ['color', 'background', 'margin', 'icon-size', 'max-width'];
     headingVariables = ['font-size','font-weight', 'font-family'];
 
     createVariables() {
@@ -10,7 +11,6 @@ export default class Theme extends ComponentBase {
         const excludeFromVars = ['tag', 'name', 'description'];
         const keys = Object.keys(data[0]).filter(key => this.allowedVariables.includes(key));
         this.tags = data.map(item => {
-            console.log(item);
             if (item['font-tag']) {
                 return `
                 ${item['font-tag']} {${keys.map(key => {
@@ -28,7 +28,7 @@ export default class Theme extends ComponentBase {
         data.reduce((acc, item, index) => {
             keys.forEach(key => {
                 if (item[key]) {
-                    acc[`${key}-${index}`] = {
+                    acc[`${key}-${index + 1}`] = {
                         value: item[key],
                         scope: key
                     };
@@ -39,19 +39,21 @@ export default class Theme extends ComponentBase {
     }
 
     styles() {
-        console.log('render', this);    
-        console.log('Theme', this.tags);
         this.innerHTML = `
         <style>
         body {
-            ${Object.keys(this.variables).map((key,i) => `--raqn-${key}: ${this.variables[key].value};`).join('\n')}
+            ${Object.keys(this.variables).map((key,i) => {
+                const { scope, value } = this.variables[key];
+                return `
+                ${key.indexOf(1) > -1 && this.defaultScope.includes(scope) ? `--scope-${scope}: ${value};` : ''}
+                --raqn-${key}: ${value};`
+
+            }).join('\n')}
         }
         ${Object.keys(this.variables).map((key,i) => `.${key} { --scope-${this.variables[key].scope}: ${this.variables[key].value}; }`).join('\n')}
 
         ${this.tags}
-        </style>
-        `
-
+        </style>`
         document.body.style.display = 'block';
     }
 

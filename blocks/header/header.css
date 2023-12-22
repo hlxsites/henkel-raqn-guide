@@ -1,19 +1,4 @@
-header a:any-link {
-  color: inherit;
-}
-
-header p,
-header .section.grid .element p {
-  margin: 0;
-  padding: 0;
-}
-
-a.button:any-link {
-  background-color: transparent;
-  color: inherit;
-  font-weight: normal;
-}
-
-a.button:any-link .icon {
-  vertical-align: middle;
+raqn-header {
+  margin: var(--scope-margin, 20px);
+  max-width: var(--scope-max-width, 100%);
 }

@@ -1,8 +1,6 @@
 import { ComponentLoader } from './component-loader.js';
+import { config } from './config.js';
 
-export const config = {
-    elementBlocks: ['header', 'footer'],
-};
 
 export function retriveDataFrom(blocks) {
     return blocks.map((block) => {
@@ -24,7 +22,7 @@ export function retriveDataFrom(blocks) {
 
 export async function init(element = document) {
     let blocks = Array.from(element.querySelectorAll('[class]:not([class^=raqn]'));
-    console.log(blocks);
+
     if (element === document) {
         const header = element.querySelector('header');
         const footer = element.querySelector('footer');
@@ -32,12 +30,18 @@ export async function init(element = document) {
     } 
     
     const data = retriveDataFrom(blocks);
-    Promise.all(data.map(({blockName, element}) => {
-        console.log(blockName, element);
+    const prio = data.slice(0,2);
+    const rest = data.slice(2);
+    Promise.all(prio.map(({blockName, element}) => {
         const loader = new ComponentLoader(blockName, element);
         return loader.decorate();
     }))
+    setTimeout(() => {
+        Promise.all(rest.map(({blockName, element}) => {
+            const loader = new ComponentLoader(blockName, element);
+            return loader.decorate();
+        }))
+    })
 }
 
-window.loaderData = config;
 init();

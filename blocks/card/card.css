@@ -1,0 +1,5 @@
+raqn-card {
+    background-color: var(--scope-background, red);
+    display: grid;
+    grid-template-columns: var(--card-columns, 1fr);
+}

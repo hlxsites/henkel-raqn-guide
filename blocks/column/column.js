@@ -1,6 +1,8 @@
 import { ComponentBase } from "../../scripts/component-base.js";
 
 export default class Column extends ComponentBase {
+  
+  static observedAttributes = ["position", "size"];
 
   connected() {
     this.calculateGridTemplateColumns();
@@ -15,15 +17,14 @@ export default class Column extends ComponentBase {
         this.parentElement.classList.add('raqn-grid');
         let parentGridTemplateColumns = parent.style.getPropertyValue('--grid-template-columns');
         if (!parentGridTemplateColumns) {
-            console.log(children);
+            // we have no grid template columns yet
             parentGridTemplateColumns = children.map((child,index) => {
-                console.log(child, index, this.position);
                 if (this.position == index + 1) {
                     return this.size || 'auto';
                 }
                 return 'auto';
             }).join(' ');
-            console.log(parentGridTemplateColumns);
+            // set the new grid template columns
             parent.style.setProperty('--grid-template-columns', parentGridTemplateColumns);
         } else {
             const position = this.position
@@ -37,18 +38,15 @@ export default class Column extends ComponentBase {
                 const isBeforePrio = (i + 1) <= prio;
                 // we have a non standard value for this position and we are at the position
                 if (!hasValue && isPosition) {
-                    console.log('At position', position,'change ',size, 'for ', this.size);
-                }
-                // we have a value for this position and we are at the position
-                if (!hasValue && isPosition) {
                     return this.size || 'auto';
                 }
+                // we have a non standard value for this position and we are at a position before the prio
                 if (hasValue && isPosition && isBeforePrio) {
                     return this.size || size;
                 }
                 return size;
             }).join(' ');
-            console.log(parentGridTemplateColumns);
+            // set the new grid template columns
             parent.style.setProperty('--grid-template-columns', parentGridTemplateColumns);
         }
         this.style.gridColumn = this.position;

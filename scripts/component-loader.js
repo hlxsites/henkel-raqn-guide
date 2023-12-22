@@ -1,6 +1,7 @@
-
+import { config } from "./config.js";
 
 export class ComponentLoader {
+
     constructor(blockName, element) {
         window.raqnComponents = window.raqnComponents || {};
         this.block = element;
@@ -33,13 +34,28 @@ export class ComponentLoader {
      * Parse extra params from classList
      */
     setParams() {
-        this.params = Array.from(this.block.classList)
+        const breakpoints = Object.keys(config.breakpoints);
+        const mediaParams = {};
+        this.params = {...Array.from(this.block.classList)
             .filter((c) => {
                 return c !== this.blockName && c !== 'block';
             })
             .reduce((acc, c) => {
+                console.log(c);
                 const values = c.split('-');
-                const key = values.shift();
+                let key = values.shift();
+                console.log(`(max-width: ${config.breakpoints[key]}px)`,matchMedia(`(mix-width: ${config.breakpoints[key]}px)`).matches)
+                console.log(key, breakpoints.includes(key), matchMedia(`(min-width: ${config.breakpoints[key]}px)`).matches);
+                if (breakpoints.includes(key)) {
+                    if (!matchMedia(`(min-width: ${config.breakpoints[key]}px)`).matches) {
+                        return acc;
+                    }
+                    key = values.shift();
+                    mediaParams[key] = mediaParams[key] || [];
+                    mediaParams[key].push(values.join('-'));
+                    return acc;
+                }
+
                 if (acc[key] && Array.isArray(acc[key])) {
                     acc[key].push(values.join('-'));
                 } else if (acc[key]) {
@@ -48,7 +64,7 @@ export class ComponentLoader {
                     acc[key] = values.join('-');
                 }
                 return acc;
-            }, {});
+            }, {}),...mediaParams};
     }
 
     /**
@@ -83,11 +99,10 @@ export class ComponentLoader {
                             const Contructor = mod.default
                             customElements.define(elementName, Contructor);
                             window.raqnComponents[name] = Contructor;
-                            console.log(elementName, Contructor);
                         }
-                        
                         const element = document.createElement(elementName);
-                        element.innerHTML = this.block.innerHTML;
+                        element.append(...this.block.children);
+                        console.log(this.params)
                         Object.keys(this.params).forEach((key) => {
                             // @TODO sanitize
                             const value = Array.isArray(this.params[key]) ? this.params[key].join(' ') : this.params[key];

@@ -1,5 +1,37 @@
-.navigation ul {
+raqn-navigation {
+    margin: var(--scope-margin);
+}
+
+raqn-navigation ul {
     list-style: none;
     display: flex;
-    gap: var(--padding-horizontal);
+}
+
+raqn-navigation ul li {
+    position: relative;
+}
+
+raqn-navigation ul li a {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--scope-color, #000);
+    padding: var(--padding-vertical, 20px) var(--padding-horizontal,20px);
+    border-radius: var(--border-radius);
+    transition: background-color 0.2s ease-in-out;
+}
+
+raqn-navigation ul li:hover > ul {
+    display: block
+}
+
+raqn-navigation ul ul {
+    /* display: none; */
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background-color: var(--scope-background, #fff);
+    padding: var(--padding-vertical) var(--padding-horizontal);
+    border-radius: var(--border-radius);
+    box-shadow: var(--box-shadow);
 }
