@@ -1,13 +1,7 @@
 import { init } from "./init.js";
 
 export class ComponentBase extends HTMLElement {
-  static breakpoints = {
-    S: 0,
-    M: 768,
-    L: 1024,
-    XL: 1280,
-    XXL: 1920,
-  };
+  static breakpoints = { S: 0, M: 768, L: 1024, XL: 1280, XXL: 1920 };
   attributes = {};
   external = false;
   uuid = `gen${crypto.randomUUID().split("-")[0]}`;
@@ -43,11 +37,6 @@ export class ComponentBase extends HTMLElement {
     }
   }
 
-  connected() {
-    // console.log('connected', this);
-  }
-
-  render() {
-    // console.log('render', this);
-  }
+  connected() {}
+  render() {}
 }

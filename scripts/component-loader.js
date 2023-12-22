@@ -41,18 +41,8 @@ export class ComponentLoader {
           return c !== this.blockName && c !== "block";
         })
         .reduce((acc, c) => {
-          console.log(c);
           const values = c.split("-");
           let key = values.shift();
-          console.log(
-            `(max-width: ${config.breakpoints[key]}px)`,
-            matchMedia(`(mix-width: ${config.breakpoints[key]}px)`).matches
-          );
-          console.log(
-            key,
-            breakpoints.includes(key),
-            matchMedia(`(min-width: ${config.breakpoints[key]}px)`).matches
-          );
           if (breakpoints.includes(key)) {
             if (
               !matchMedia(`(min-width: ${config.breakpoints[key]}px)`).matches
@@ -116,7 +106,6 @@ export class ComponentLoader {
                 }
                 const element = document.createElement(elementName);
                 element.append(...this.block.children);
-                console.log(this.params);
                 Object.keys(this.params).forEach((key) => {
                   // @TODO sanitize
                   const value = Array.isArray(this.params[key])
