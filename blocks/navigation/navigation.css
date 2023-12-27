@@ -21,10 +21,6 @@ raqn-navigation ul li a {
   transition: background-color 0.2s ease-in-out;
 }
 
-raqn-navigation ul li:hover > ul {
-  display: block;
-}
-
 raqn-navigation ul ul {
   display: none;
   position: absolute;
@@ -34,4 +30,8 @@ raqn-navigation ul ul {
   padding: var(--padding-vertical) var(--padding-horizontal);
   border-radius: var(--border-radius);
   box-shadow: var(--box-shadow);
+}
+
+raqn-navigation ul li:hover > ul {
+  display: block;
 }

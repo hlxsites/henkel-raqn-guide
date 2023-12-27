@@ -1,5 +1,5 @@
 export const config = {
-  elementBlocks: ["header", "footer"],
+  elementBlocks: ['header', 'footer'],
   breakpoints: {
     s: 0,
     m: 768,

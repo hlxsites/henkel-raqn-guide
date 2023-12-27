@@ -19,7 +19,7 @@ raqn-icon svg {
   display: inline-block;
   max-height: 100%;
   max-width: 100%;
-  fill: currentColor;
+  fill: currentcolor;
   overflow: hidden;
   vertical-align: middle;
 }

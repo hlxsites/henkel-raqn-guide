@@ -1,6 +1,6 @@
-import { config } from "./libs.js";
+import { config } from './libs.js';
 
-export class ComponentLoader {
+export default class ComponentLoader {
   constructor(blockName, element) {
     window.raqnComponents = window.raqnComponents || {};
     this.block = element;
@@ -17,8 +17,8 @@ export class ComponentLoader {
   async loadCSS(href) {
     return new Promise((resolve, reject) => {
       if (!document.querySelector(`head > link[href="${href}"]`)) {
-        const link = document.createElement("link");
-        link.rel = "stylesheet";
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
         link.href = href;
         link.onload = resolve;
         link.onerror = reject;
@@ -37,11 +37,9 @@ export class ComponentLoader {
     const mediaParams = {};
     this.params = {
       ...Array.from(this.block.classList)
-        .filter((c) => {
-          return c !== this.blockName && c !== "block";
-        })
+        .filter((c) => c !== this.blockName && c !== 'block')
         .reduce((acc, c) => {
-          const values = c.split("-");
+          const values = c.split('-');
           let key = values.shift();
           if (breakpoints.includes(key)) {
             if (
@@ -51,16 +49,16 @@ export class ComponentLoader {
             }
             key = values.shift();
             mediaParams[key] = mediaParams[key] || [];
-            mediaParams[key].push(values.join("-"));
+            mediaParams[key].push(values.join('-'));
             return acc;
           }
 
           if (acc[key] && Array.isArray(acc[key])) {
-            acc[key].push(values.join("-"));
+            acc[key].push(values.join('-'));
           } else if (acc[key]) {
-            acc[key] = [acc[key], values.join("-")];
+            acc[key] = [acc[key], values.join('-')];
           } else {
-            acc[key] = values.join("-");
+            acc[key] = values.join('-');
           }
           return acc;
         }, {}),
@@ -82,8 +80,8 @@ export class ComponentLoader {
 
   async decorate() {
     const status = this.block.dataset.blockStatus;
-    if (status !== "loading" && status !== "loaded") {
-      this.block.dataset.blockStatus = "loading";
+    if (status !== 'loading' && status !== 'loaded') {
+      this.block.dataset.blockStatus = 'loading';
       try {
         const cssLoaded = this.loadCSS(this.cssPath);
         const decorationComplete = new Promise((resolve) => {
@@ -93,13 +91,12 @@ export class ComponentLoader {
               if (
                 mod.default &&
                 mod.default.name &&
-                mod.default.name !== "decorate"
+                mod.default.name !== 'decorate'
               ) {
-                const name = mod.default.name;
+                const { name } = mod.default;
                 const elementName = `raqn-${name.toLowerCase()}`;
                 // define the custom element if it doesn't exist
                 if (!window.raqnComponents[name]) {
-                  const elementName = `raqn-${name.toLowerCase()}`;
                   const Contructor = mod.default;
                   customElements.define(elementName, Contructor);
                   window.raqnComponents[name] = Contructor;
@@ -109,7 +106,7 @@ export class ComponentLoader {
                 Object.keys(this.params).forEach((key) => {
                   // @TODO sanitize
                   const value = Array.isArray(this.params[key])
-                    ? this.params[key].join(" ")
+                    ? this.params[key].join(' ')
                     : this.params[key];
                   element.setAttribute(key, value);
                 });
@@ -131,5 +128,6 @@ export class ComponentLoader {
         console.log(`failed to load block ${this.blockName}`, error);
       }
     }
+    return Promise.resolve();
   }
 }

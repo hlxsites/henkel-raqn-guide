@@ -1,5 +1,5 @@
-import { ComponentLoader } from "./component-loader.js";
-import { config, debounce } from "./libs.js";
+import ComponentLoader from './component-loader.js';
+import { config, debounce } from './libs.js';
 
 export function retriveDataFrom(blocks) {
   return blocks.map((block) => {
@@ -7,9 +7,9 @@ export function retriveDataFrom(blocks) {
     const tagName = element.tagName.toLowerCase();
     let blockName = tagName;
     if (!config.elementBlocks.includes(tagName)) {
-      blockName = element.classList[0];
+      [blockName] = Array.from(element.classList);
     } else {
-      element = document.createElement("div");
+      element = document.createElement('div');
       block.append(element);
     }
     return {
@@ -21,12 +21,12 @@ export function retriveDataFrom(blocks) {
 
 export async function init(element = document) {
   let blocks = Array.from(
-    element.querySelectorAll("[class]:not([class^=raqn]")
+    element.querySelectorAll('[class]:not([class^=raqn]'),
   );
 
   if (element === document) {
-    const header = element.querySelector("header");
-    const footer = element.querySelector("footer");
+    const header = element.querySelector('header');
+    const footer = element.querySelector('footer');
     blocks = [header, ...blocks, footer];
   }
 
@@ -34,25 +34,25 @@ export async function init(element = document) {
   const prio = data.slice(0, 2);
   const rest = data.slice(2);
   Promise.all(
-    prio.map(({ blockName, element }) => {
-      const loader = new ComponentLoader(blockName, element);
+    prio.map(({ blockName, el }) => {
+      const loader = new ComponentLoader(blockName, el);
       return loader.decorate();
-    })
+    }),
   );
   setTimeout(() => {
     Promise.all(
-      rest.map(({ blockName, element }) => {
-        const loader = new ComponentLoader(blockName, element);
+      rest.map(({ blockName, el }) => {
+        const loader = new ComponentLoader(blockName, el);
         return loader.decorate();
-      })
+      }),
     );
   });
 
   window.addEventListener(
-    "resize",
+    'resize',
     debounce(() => {
-      location.reload();
-    }, 300)
+      window.location.reload();
+    }, 300),
   );
 }
 

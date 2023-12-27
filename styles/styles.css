@@ -1,5 +1,3 @@
-
-
 @font-face {
   font-family: roboto-fallback;
   size-adjust: 100.06%;
@@ -39,7 +37,6 @@ a {
 
 picture,
 img {
-  
   display: block;
   max-width: 100%;
   height: auto;
@@ -51,21 +48,24 @@ header {
 
 @keyframes placeholder {
   0% {
-      background-color: var(--placeholder-primary, #fff);
+    background-color: var(--placeholder-primary, #fff);
   }
+
   50% {
-      background-color: var(--placeholder-secondary, #ccc);
+    background-color: var(--placeholder-secondary, #ccc);
   }
+
   100% {
-      background-color: var(--placeholder-primary, #fff);
+    background-color: var(--placeholder-primary, #fff);
   }
 }
 
-@keyframes fadeIn {
+@keyframes fade-in {
   0% {
-      opacity: 0%;
+    opacity: 0;
   }
+
   100% {
-      opacity: 100%;
+    opacity: 1;
   }
 }

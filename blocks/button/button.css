@@ -6,20 +6,22 @@ raqn-button {
     border: 1px solid transparent;
     overflow: hidden;
 }
+
 raqn-button:hover {
     background-color: var(--scope-background-hover, #000);
     color: var(--scope-color-hover, #fff);
-    border-color: currentColor;
+    border-color: currentcolor;
 }
 
 raqn-button a {
-    color: currentColor;
+    color: currentcolor;
     padding: 10px 20px;
     text-decoration: none;
 }
+
 raqn-button a:hover,
 raqn-button a:visited,
 raqn-button a:active {
-    color: currentColor;
+    color: currentcolor;
     text-decoration: none;
 }
