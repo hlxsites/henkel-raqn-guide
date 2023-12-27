@@ -3,6 +3,7 @@ import { config } from './libs.js';
 export default class ComponentLoader {
   constructor(blockName, element) {
     window.raqnComponents = window.raqnComponents || {};
+    console.log('raqnComponents', blockName, element);
     this.block = element;
     this.blockName = blockName;
     this.setBlockPaths();

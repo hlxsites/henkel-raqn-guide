@@ -13,7 +13,6 @@ export default class ComponentBase extends HTMLElement {
 
   constructor() {
     super();
-    this.attributes = {};
     this.external = false;
     this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
   }
