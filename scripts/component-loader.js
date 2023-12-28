@@ -2,13 +2,15 @@ import { config } from './libs.js';
 
 export default class ComponentLoader {
   constructor(blockName, element) {
+    console.log('blockName', blockName, element);
     window.raqnComponents = window.raqnComponents || {};
-    console.log('raqnComponents', blockName, element);
-    this.block = element;
     this.blockName = blockName;
     this.setBlockPaths();
-    this.setParams();
-    this.content = this.block.children;
+    this.block = element;
+    if (this.block) {
+      this.setParams();
+      this.content = this.block.children;
+    }
   }
 
   /**
@@ -65,6 +67,8 @@ export default class ComponentLoader {
         }, {}),
       ...mediaParams,
     };
+    console.log('params', this.params);
+    console.log('mediaParams', mediaParams);
   }
 
   /**
@@ -77,58 +81,70 @@ export default class ComponentLoader {
   setBlockPaths() {
     this.cssPath = `/blocks/${this.blockName}/${this.blockName}.css`;
     this.jsPath = `/blocks/${this.blockName}/${this.blockName}.js`;
+    console.log('cssPath', this.cssPath);
+    console.log('jsPath', this.jsPath);
+  }
+
+  setupElement() {
+    const elementName = `raqn-${this.blockName.toLowerCase()}`;
+    const element = document.createElement(elementName);
+    element.append(...this.block.children);
+    Object.keys(this.params).forEach((key) => {
+      // @TODO sanitize
+      const value = Array.isArray(this.params[key])
+        ? this.params[key].join(' ')
+        : this.params[key];
+      element.setAttribute(key, value);
+    });
+    this.block.replaceWith(element);
+  }
+
+  async loadWebComponent() {
+    return new Promise((resolve, reject) => {
+      (async () => {
+        try {
+          const mod = await import(this.jsPath);
+          if (
+            mod.default &&
+            mod.default.name &&
+            mod.default.name !== 'decorate'
+          ) {
+            const { name } = mod.default;
+            const elementName = `raqn-${name.toLowerCase()}`;
+            // define the custom element if it doesn't exist
+            if (!window.raqnComponents[name]) {
+              const Contructor = mod.default;
+              customElements.define(elementName, Contructor);
+              window.raqnComponents[name] = Contructor;
+            }
+            if (this.block) {
+              this.setupElement();
+            }
+          } else if (mod.default) {
+            await mod.default(this.block);
+          }
+        } catch (error) {
+          // eslint-disable-next-line no-console
+          console.log(`failed to load module for ${this.blockName}`, error);
+          return reject(error);
+        }
+        return resolve();
+      })();
+    });
   }
 
   async decorate() {
-    const status = this.block.dataset.blockStatus;
-    if (status !== 'loading' && status !== 'loaded') {
-      this.block.dataset.blockStatus = 'loading';
-      try {
-        const cssLoaded = this.loadCSS(this.cssPath);
-        const decorationComplete = new Promise((resolve) => {
-          (async () => {
-            try {
-              const mod = await import(this.jsPath);
-              if (
-                mod.default &&
-                mod.default.name &&
-                mod.default.name !== 'decorate'
-              ) {
-                const { name } = mod.default;
-                const elementName = `raqn-${name.toLowerCase()}`;
-                // define the custom element if it doesn't exist
-                if (!window.raqnComponents[name]) {
-                  const Contructor = mod.default;
-                  customElements.define(elementName, Contructor);
-                  window.raqnComponents[name] = Contructor;
-                }
-                const element = document.createElement(elementName);
-                element.append(...this.block.children);
-                Object.keys(this.params).forEach((key) => {
-                  // @TODO sanitize
-                  const value = Array.isArray(this.params[key])
-                    ? this.params[key].join(' ')
-                    : this.params[key];
-                  element.setAttribute(key, value);
-                });
-                this.block.replaceWith(element);
-              } else if (mod.default) {
-                await mod.default(this.block);
-              }
-            } catch (error) {
-              // eslint-disable-next-line no-console
-              console.log(`failed to load module for ${this.blockName}`, error);
-            }
-            resolve();
-          })();
-        });
-
-        return await Promise.all([cssLoaded, decorationComplete]);
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.log(`failed to load block ${this.blockName}`, error);
-      }
+    if (window.raqnComponents[this.blockName]) {
+      return this.setupElement();
     }
-    return Promise.resolve();
+    try {
+      const cssLoaded = this.loadCSS(this.cssPath);
+      const decorationComplete = this.loadWebComponent();
+      return Promise.all([cssLoaded, decorationComplete]);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.log(`failed to load module for ${this.blockName}`, error);
+      return Promise.resolve();
+    }
   }
 }

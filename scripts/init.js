@@ -19,6 +19,20 @@ export function retriveDataFrom(blocks) {
   });
 }
 
+function lcpPriority() {
+  const lcp = document.querySelector('meta[name="lcp"]');
+  if (!lcp) {
+    return window.raqnLCP || [];
+  }
+  window.raqnLCP =
+    window.raqnLCP ||
+    lcp
+      .getAttribute('content')
+      .split(',')
+      .map((name) => ({ name }));
+  return window.raqnLCP;
+}
+
 export async function init(node = document) {
   let blocks = Array.from(node.querySelectorAll('[class]:not([class^=raqn]'));
 
@@ -29,14 +43,19 @@ export async function init(node = document) {
   }
 
   const data = retriveDataFrom(blocks);
+  const lcp = window.raqnLCP;
   const prio = data.slice(0, 2);
   const rest = data.slice(2);
-  Promise.all(
-    prio.map(({ name, el }) => {
+  Promise.all([
+    ...lcp.map(({ name, el }) => {
       const loader = new ComponentLoader(name, el);
       return loader.decorate();
     }),
-  );
+    ...prio.map(({ name, el }) => {
+      const loader = new ComponentLoader(name, el);
+      return loader.decorate();
+    }),
+  ]);
   setTimeout(() => {
     Promise.all(
       rest.map(({ name, el }) => {
@@ -53,5 +72,7 @@ export async function init(node = document) {
     }, 300),
   );
 }
-
+// mechanism of retrieving lang to be used in the app
+document.documentElement.lang = document.documentElement.lang || 'en';
+lcpPriority();
 init();
