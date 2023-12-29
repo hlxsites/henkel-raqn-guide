@@ -10,6 +10,9 @@ export default class Card extends ComponentBase {
   }
 
   setupColumns(columns) {
+    if (!columns) {
+      return;
+    }
     this.columns = parseInt(columns, 10);
     this.area = Array.from(Array(parseInt(this.columns, 10)))
       .map(() => '1fr')

@@ -9,14 +9,18 @@ export const config = {
   },
 };
 
-export function getBreakPoint() {
+export function getBreakPoints() {
+  window.raqnBreakpoints = window.raqnBreakpoints || {};
   const breakpoints = Object.keys(config.breakpoints);
-  const currentBreakpoint = breakpoints
-    .filter(
-      (bp) => matchMedia(`(min-width: ${config.breakpoints[bp]}px)`).matches,
-    )
-    .pop();
-  return currentBreakpoint;
+  window.raqnBreakpoints = breakpoints.filter(
+    (bp) => matchMedia(`(min-width: ${config.breakpoints[bp]}px)`).matches,
+  );
+  return window.raqnBreakpoints;
+}
+
+export function getBreakPoint() {
+  const b = getBreakPoints();
+  return b[b.length - 1];
 }
 
 export const debounce = (func, wait, immediate) => {

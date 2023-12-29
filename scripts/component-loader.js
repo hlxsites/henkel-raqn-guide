@@ -1,4 +1,4 @@
-import { getBreakPoint } from './libs.js';
+import { config, getBreakPoint, getBreakPoints } from './libs.js';
 
 export default class ComponentLoader {
   constructor(blockName, element) {
@@ -42,12 +42,20 @@ export default class ComponentLoader {
         .reduce((acc, c) => {
           const values = c.split('-');
           let key = values.shift();
-          const breakpoints = getBreakPoint();
-          if (breakpoints === key) {
+          const breakpoint = getBreakPoint();
+          if (breakpoint === key) {
             key = values.shift();
             mediaParams[key] = values.join('-');
             return acc;
           }
+
+          console.log(this.block, 'key', key, key, config.breakpoints[key]);
+
+          if (config.breakpoints[key] !== undefined) {
+            return acc;
+          }
+
+          console.log(this.block, 'key', key, 'values', values);
 
           if (acc[key] && Array.isArray(acc[key])) {
             acc[key].push(values.join('-'));
