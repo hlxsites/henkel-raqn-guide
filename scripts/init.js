@@ -1,5 +1,5 @@
 import ComponentLoader from './component-loader.js';
-import { config, debounce } from './libs.js';
+import { config, debounce, getBreakPoint } from './libs.js';
 
 export function retriveDataFrom(blocks) {
   return blocks.map((block) => {
@@ -64,12 +64,16 @@ export async function init(node = document) {
       }),
     );
   });
-
+  // reload on breakpoint change
+  window.raqnBreakpoint = getBreakPoint();
   window.addEventListener(
     'resize',
     debounce(() => {
-      window.location.reload();
-    }, 300),
+      // only on width changes
+      if (window.raqnBreakpoint !== getBreakPoint()) {
+        window.location.reload();
+      }
+    }, 100),
   );
 }
 // mechanism of retrieving lang to be used in the app

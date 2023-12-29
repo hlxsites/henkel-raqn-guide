@@ -1,8 +1,7 @@
-import { config } from './libs.js';
+import { getBreakPoint } from './libs.js';
 
 export default class ComponentLoader {
   constructor(blockName, element) {
-    console.log('blockName', blockName, element);
     window.raqnComponents = window.raqnComponents || {};
     this.blockName = blockName;
     this.setBlockPaths();
@@ -36,7 +35,6 @@ export default class ComponentLoader {
    * Parse extra params from classList
    */
   setParams() {
-    const breakpoints = Object.keys(config.breakpoints);
     const mediaParams = {};
     this.params = {
       ...Array.from(this.block.classList)
@@ -44,15 +42,10 @@ export default class ComponentLoader {
         .reduce((acc, c) => {
           const values = c.split('-');
           let key = values.shift();
-          if (breakpoints.includes(key)) {
-            if (
-              !matchMedia(`(min-width: ${config.breakpoints[key]}px)`).matches
-            ) {
-              return acc;
-            }
+          const breakpoints = getBreakPoint();
+          if (breakpoints === key) {
             key = values.shift();
-            mediaParams[key] = mediaParams[key] || [];
-            mediaParams[key].push(values.join('-'));
+            mediaParams[key] = values.join('-');
             return acc;
           }
 
@@ -67,8 +60,6 @@ export default class ComponentLoader {
         }, {}),
       ...mediaParams,
     };
-    console.log('params', this.params);
-    console.log('mediaParams', mediaParams);
   }
 
   /**
@@ -81,8 +72,6 @@ export default class ComponentLoader {
   setBlockPaths() {
     this.cssPath = `/blocks/${this.blockName}/${this.blockName}.css`;
     this.jsPath = `/blocks/${this.blockName}/${this.blockName}.js`;
-    console.log('cssPath', this.cssPath);
-    console.log('jsPath', this.jsPath);
   }
 
   setupElement() {

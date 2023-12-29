@@ -9,6 +9,16 @@ export const config = {
   },
 };
 
+export function getBreakPoint() {
+  const breakpoints = Object.keys(config.breakpoints);
+  const currentBreakpoint = breakpoints
+    .filter(
+      (bp) => matchMedia(`(min-width: ${config.breakpoints[bp]}px)`).matches,
+    )
+    .pop();
+  return currentBreakpoint;
+}
+
 export const debounce = (func, wait, immediate) => {
   let timeout;
   return (...args) => {
