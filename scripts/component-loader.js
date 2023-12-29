@@ -49,13 +49,9 @@ export default class ComponentLoader {
             return acc;
           }
 
-          console.log(this.block, 'key', key, key, config.breakpoints[key]);
-
           if (config.breakpoints[key] !== undefined) {
             return acc;
           }
-
-          console.log(this.block, 'key', key, 'values', values);
 
           if (acc[key] && Array.isArray(acc[key])) {
             acc[key].push(values.join('-'));
