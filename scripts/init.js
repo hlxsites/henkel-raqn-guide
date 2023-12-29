@@ -1,5 +1,5 @@
 import ComponentLoader from './component-loader.js';
-import { config, debounce, getBreakPoint } from './libs.js';
+import { config, debounce, eagerImage, getBreakPoint } from './libs.js';
 
 export function retriveDataFrom(blocks) {
   return blocks.map((block) => {
@@ -32,6 +32,8 @@ function lcpPriority() {
       .map((name) => ({ name }));
   return window.raqnLCP;
 }
+
+eagerImage(document, 2);
 
 export async function init(node = document) {
   let blocks = Array.from(node.querySelectorAll('[class]:not([class^=raqn]'));
