@@ -1,12 +1,17 @@
 import ComponentBase from '../../scripts/component-base.js';
+import { eagerImage } from '../../scripts/libs.js';
 
 export default class Card extends ComponentBase {
   static get observedAttributes() {
-    return ['columns', 'ratio'];
+    return ['columns', 'ratio', 'eager'];
   }
 
   connected() {
+    this.eager = parseInt(this.getAttribute('eager') || 0, 10);
     this.setupColumns(this.getAttribute('columns'));
+    if (this.eager) {
+      eagerImage(this, this.eager);
+    }
   }
 
   setupColumns(columns) {

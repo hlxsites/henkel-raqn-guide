@@ -40,3 +40,10 @@ export const debounce = (func, wait, immediate) => {
     }
   };
 };
+
+export const eagerImage = (block, length = 1) => {
+  const imgs = Array.from(block.querySelectorAll('img')).slice(0, length);
+  imgs.forEach((img) => {
+    img.setAttribute('loading', 'eager');
+  });
+};
