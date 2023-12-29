@@ -1,4 +1,3 @@
 raqn-header {
-  margin: var(--scope-margin, 20px);
   max-width: var(--scope-max-width, 100%);
 }

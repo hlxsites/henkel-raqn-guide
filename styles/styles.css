@@ -43,7 +43,7 @@ img {
 }
 
 header {
-  height: var(--raqn-header-height, 180px);
+  min-height: var(--raqn-header-height, 160px);
 }
 
 @keyframes placeholder {

@@ -1,4 +1,4 @@
-import { config, getBreakPoint, getBreakPoints } from './libs.js';
+import { config, getBreakPoint } from './libs.js';
 
 export default class ComponentLoader {
   constructor(blockName, element) {

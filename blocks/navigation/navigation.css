@@ -21,7 +21,7 @@ raqn-navigation ul li a {
   transition: background-color 0.2s ease-in-out;
 }
 
-raqn-navigation ul ul {
+raqn-navigation div > div > ul > li > ul {
   display: none;
   position: absolute;
   top: 100%;
@@ -32,6 +32,6 @@ raqn-navigation ul ul {
   box-shadow: var(--box-shadow);
 }
 
-raqn-navigation ul li:hover > ul {
+raqn-navigation div > div > ul > li:hover > ul {
   display: block;
 }

@@ -42,6 +42,7 @@ export const debounce = (func, wait, immediate) => {
 };
 
 export const eagerImage = (block, length = 1) => {
+  console.log(block, block.querySelectorAll('img'));
   const imgs = Array.from(block.querySelectorAll('img')).slice(0, length);
   imgs.forEach((img) => {
     img.setAttribute('loading', 'eager');
