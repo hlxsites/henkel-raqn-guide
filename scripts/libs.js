@@ -51,5 +51,6 @@ export const eagerImage = (block, length = 1) => {
   const imgs = Array.from(block.querySelectorAll('img')).slice(0, length);
   imgs.forEach((img) => {
     img.setAttribute('loading', 'eager');
+    document.head.append(`<link rel="preload" as="image" href="${img.src}">`);
   });
 };
