@@ -87,7 +87,6 @@ export default class Theme extends ComponentBase {
           .join('\n')}
 
         ${this.tags}</style>`;
-    console.log(this.variables);
     document.body.style.display = 'block';
   }
 
