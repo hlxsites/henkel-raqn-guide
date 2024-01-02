@@ -14,33 +14,40 @@ This simply resume into 2 things
 1 - docs into HTML
 2 - Excel / spreadsheets into JSON
 
+That way we have a clean simple way to generate HTML and JSON based on documents and document trees
+
 ### Docs into HTML - Server side render
 
 A simple doc file with a Example text will be rendered into something like
 
-```html
+```HTML
 <!doctype html>
 <html>
   <head>
     <title>Name of the document</title>
     <link
       rel="canonical"
-      href="https://main--henkel-raqn-guide--hlxsites.hlx.page/untitled-document" />
+      href="https://main--henkel-raqn-guide--hlxsites.hlx.page/untitled-document"
+    />
     <meta property="og:title" content="Name of the document" />
     <meta
       property="og:url"
-      content="https://main--henkel-raqn-guide--hlxsites.hlx.page/untitled-document" />
+      content="https://main--henkel-raqn-guide--hlxsites.hlx.page/untitled-document"
+    />
     <meta
       property="og:image"
-      content="https://main--henkel-raqn-guide--hlxsites.hlx.page/default-meta-image.png?width=1200&#x26;format=pjpg&#x26;optimize=medium" />
+      content="https://main--henkel-raqn-guide--hlxsites.hlx.page/default-meta-image.png?width=1200&#x26;format=pjpg&#x26;optimize=medium"
+    />
     <meta
       property="og:image:secure_url"
-      content="https://main--henkel-raqn-guide--hlxsites.hlx.page/default-meta-image.png?width=1200&#x26;format=pjpg&#x26;optimize=medium" />
+      content="https://main--henkel-raqn-guide--hlxsites.hlx.page/default-meta-image.png?width=1200&#x26;format=pjpg&#x26;optimize=medium"
+    />
     <meta name="twitter:card" content="summary_large_image" />
     <meta name="twitter:title" content="Name of the document" />
     <meta
       name="twitter:image"
-      content="https://main--henkel-raqn-guide--hlxsites.hlx.page/default-meta-image.png?width=1200&#x26;format=pjpg&#x26;optimize=medium" />
+      content="https://main--henkel-raqn-guide--hlxsites.hlx.page/default-meta-image.png?width=1200&#x26;format=pjpg&#x26;optimize=medium"
+    />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="/scripts/lib-franklin.js" type="module"></script>
     <script src="/scripts/scripts.js" type="module"></script>
@@ -65,7 +72,7 @@ Here's a example document
 
 This will be transform into this apart from the HTML exampled above:
 
-```html
+```HTML
 <div>
   <p>Normal text</p>
   <h1 id="title">Title</h1>
@@ -89,9 +96,7 @@ This will be transform into this apart from the HTML exampled above:
     </div>
   </div>
   <p>
-    <a href="https://www.w3schools.com/html/html_links.asp"
-      >This is a link example</a
-    >
+    <a href="https://www.w3schools.com/html/html_links.asp">This is a link example</a>
   </p>
 </div>
 ```
@@ -109,7 +114,36 @@ So we can resume the server side render into this simple rules:
 9 - Breaklines are <p>
 10 - Links most of the time, are wrapped into <p> tags then a <a>
 
-That way we have a clean simple way to generate HTML and JSON based on documents and document trees
+### SpreadSheets into JSON
+
+It also render any SpreadSheets into a simple JSON format
+![Sheet example](assets/sheet-example.png)
+
+```json
+{
+  "total": 3,
+  "offset": 0,
+  "limit": 3,
+  "data": [
+    {
+      "propertyName1": "value 2A",
+      "propertyName2": "value 2B",
+      "propertyName3": "value 2C"
+    },
+    {
+      "propertyName1": "value 3A",
+      "propertyName2": "value 3B",
+      "propertyName3": "value 3C"
+    },
+    {
+      "propertyName1": "value 4A",
+      "propertyName2": "",
+      "propertyName3": "value 4C"
+    }
+  ],
+  ":type": "sheet"
+}
+```
 
 With some OOB exceptions are also included like
 
