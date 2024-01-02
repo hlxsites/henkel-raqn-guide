@@ -62,7 +62,7 @@ export async function init(node = document) {
   ]);
   setTimeout(() => {
     Promise.all(
-      ...rest.map(({ name, el }) => setTimeout(() => start({ name, el }))),
+      rest.map(({ name, el }) => setTimeout(() => start({ name, el }))),
     );
   });
   // reload on breakpoint change
