@@ -51,7 +51,7 @@ A simple doc file with a Example text will be rendered into something like
 It renders the Docs into HTML like the example:
 
 Here's a example document
-![Example doc](assets/doc-example.png)
+![Example doc](docs/assets/doc-example.png)
 
 This will be transform into this apart from the HTML exampled above:
 
