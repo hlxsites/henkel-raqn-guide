@@ -6,7 +6,7 @@ export default class Header extends ComponentBase {
 
   async processExternal(response) {
     await super.processExternal(response);
-    console.log(this);
+    this.parentElement.style.display = 'flex';
     eagerImage(this, 1);
   }
 }
