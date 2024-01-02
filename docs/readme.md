@@ -114,6 +114,8 @@ So we can resume the server side render into this simple rules:
 9. Breaklines are `<p>`
 10. Links most of the time, are wrapped into `<p>` tags then a `<a>`
 
+those are briefly the main examples
+
 ### SpreadSheets into JSON
 
 It also render any SpreadSheets into a simple JSON format
