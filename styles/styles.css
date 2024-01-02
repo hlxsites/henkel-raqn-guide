@@ -11,6 +11,10 @@
   }
 }
 
+img {
+  object-fit: cover;
+}
+
 body {
   display: none;
   background-color: var(--scope-background, #fff);
