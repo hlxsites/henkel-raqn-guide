@@ -70,8 +70,8 @@ This will be transform into this apart from the HTML exampled above:
   <p>Normal text</p>
   <h1 id="title">Title</h1>
   <h3 id="sub-title">Sub title</h3>
-  <h2 id="heading-2-asdkjasdlkja-asldkaslkdjasdlkasjd-alksdj-alksd-aslk">
-    Heading 2 asdkjasdlkja asldkaslkdjasdlkasjd alksdj alksd aslk
+  <h2 id="heading-2-more-content-to-example">
+    Heading 2 more content to example
   </h2>
   <h3 id="heading-3">Heading 3</h3>
   <h4 id="heading-4">Heading 4</h4>
@@ -101,7 +101,7 @@ So we can resume the server side render into this simple rules:
 1 - Title formating are H1
 2 - Sub title formating are h3
 3 - All other headings follows the proper name - element correlation
-4 - All headings will be attached a ID based on it's content
+4 - All headings will be attached a ID based on it's content (example in the "asdkjasdlkja..." content)
 5 - Tables will render one and only header as a classname, lowercase dash separated
 6 - Tables rows will create one div per column
 7 - Tables will be only rendered as <table> when inside another table
