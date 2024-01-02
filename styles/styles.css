@@ -32,8 +32,11 @@ body {
 }
 
 header {
-  opacity: 0;
   min-height: var(--scope-header-height, 64px);
+
+  > div {
+    display: none;
+  }
 }
 
 main > * {
