@@ -103,16 +103,16 @@ This will be transform into this apart from the HTML exampled above:
 
 So we can resume the server side render into this simple rules:
 
-1 - Title formating are H1
-2 - Sub title formating are h3
-3 - All other headings follows the proper name - element correlation
-4 - All headings will be attached a ID based on it's content (example in the "asdkjasdlkja..." content)
-5 - Tables will render one and only header as a classname, lowercase dash separated
-6 - Tables rows will create one div per column
-7 - Tables will be only rendered as <table> when inside another table
-8 - You can wrapp a div by adding a --- into the document
-9 - Breaklines are <p>
-10 - Links most of the time, are wrapped into <p> tags then a <a>
+1. Title formating are H1
+2. Sub title formating are h3
+3. All other headings follows the proper name - element correlation
+4. All headings will be attached a ID based on it's content (example in the "asdkjasdlkja..." content)
+5. Tables will render one and only header as a classname, lowercase dash separated
+6. Tables rows will create one div per column
+7. Tables will be only rendered as <table> when inside another table
+8. You can wrapp a div by adding a --- into the document
+9. Breaklines are <p>
+10. Links most of the time, are wrapped into <p> tags then a <a>
 
 ### SpreadSheets into JSON
 
@@ -157,8 +157,9 @@ Requirements
 - blocking resources before render
 
 Boiler plate approach
-1 - Performance
-2 - Decoration by feature
-3 - Manualy defining priority
-4 - Eager and defered
-5 - Semantical content used as component functional content (metadata)
+
+1. Performance
+2. Decoration by feature
+3. Manualy defining priority
+4. Eager and defered
+5. Semantical content used as component functional content (metadata)
