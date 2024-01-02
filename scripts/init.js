@@ -56,10 +56,12 @@ export async function init(node = document) {
     const loader = new ComponentLoader(name, el);
     return loader.decorate();
   };
-  Promise.all([...lcp.map(({ name, el }) => start({ name, el }))]);
+  Promise.all([
+    ...lcp.map(({ name, el }) => start({ name, el })),
+    ...prio.map(({ name, el }) => start({ name, el })),
+  ]);
   setTimeout(() => {
     Promise.all(
-      ...prio.map(({ name, el }) => start({ name, el })),
       ...rest.map(({ name, el }) => setTimeout(() => start({ name, el }))),
     );
   });
