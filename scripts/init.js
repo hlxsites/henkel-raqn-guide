@@ -52,22 +52,15 @@ export async function init(node = document) {
   const lcp = window.raqnLCP;
   const prio = data.slice(0, 2);
   const rest = data.slice(2);
-  Promise.all([
-    ...lcp.map(({ name, el }) => {
-      const loader = new ComponentLoader(name, el);
-      return loader.decorate();
-    }),
-    ...prio.map(({ name, el }) => {
-      const loader = new ComponentLoader(name, el);
-      return loader.decorate();
-    }),
-  ]);
+  const start = ({ name, el }) => {
+    const loader = new ComponentLoader(name, el);
+    return loader.decorate();
+  };
+  Promise.all([...lcp.map(({ name, el }) => start({ name, el }))]);
   setTimeout(() => {
     Promise.all(
-      rest.map(({ name, el }) => {
-        const loader = new ComponentLoader(name, el);
-        return loader.decorate();
-      }),
+      ...prio.map(({ name, el }) => start({ name, el })),
+      ...rest.map(({ name, el }) => setTimeout(() => start({ name, el }))),
     );
   });
   // reload on breakpoint change
