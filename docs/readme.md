@@ -18,23 +18,33 @@ This simply resume into 2 things
 
 A simple doc file with a Example text will be rendered into something like
 
-```
-<!DOCTYPE html>
+```html
+<!doctype html>
 <html>
   <head>
-    <title>Name of the document </title>
-    <link rel="canonical" href="https://main--henkel-raqn-guide--hlxsites.hlx.page/untitled-document">
-    <meta property="og:title" content="Name of the document">
-    <meta property="og:url" content="https://main--henkel-raqn-guide--hlxsites.hlx.page/untitled-document">
-    <meta property="og:image" content="https://main--henkel-raqn-guide--hlxsites.hlx.page/default-meta-image.png?width=1200&#x26;format=pjpg&#x26;optimize=medium">
-    <meta property="og:image:secure_url" content="https://main--henkel-raqn-guide--hlxsites.hlx.page/default-meta-image.png?width=1200&#x26;format=pjpg&#x26;optimize=medium">
-    <meta name="twitter:card" content="summary_large_image">
-    <meta name="twitter:title" content="Name of the document">
-    <meta name="twitter:image" content="https://main--henkel-raqn-guide--hlxsites.hlx.page/default-meta-image.png?width=1200&#x26;format=pjpg&#x26;optimize=medium">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Name of the document</title>
+    <link
+      rel="canonical"
+      href="https://main--henkel-raqn-guide--hlxsites.hlx.page/untitled-document" />
+    <meta property="og:title" content="Name of the document" />
+    <meta
+      property="og:url"
+      content="https://main--henkel-raqn-guide--hlxsites.hlx.page/untitled-document" />
+    <meta
+      property="og:image"
+      content="https://main--henkel-raqn-guide--hlxsites.hlx.page/default-meta-image.png?width=1200&#x26;format=pjpg&#x26;optimize=medium" />
+    <meta
+      property="og:image:secure_url"
+      content="https://main--henkel-raqn-guide--hlxsites.hlx.page/default-meta-image.png?width=1200&#x26;format=pjpg&#x26;optimize=medium" />
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:title" content="Name of the document" />
+    <meta
+      name="twitter:image"
+      content="https://main--henkel-raqn-guide--hlxsites.hlx.page/default-meta-image.png?width=1200&#x26;format=pjpg&#x26;optimize=medium" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="/scripts/lib-franklin.js" type="module"></script>
     <script src="/scripts/scripts.js" type="module"></script>
-    <link rel="stylesheet" href="/styles/styles.css">
+    <link rel="stylesheet" href="/styles/styles.css" />
   </head>
   <body>
     <header></header>
@@ -55,29 +65,35 @@ Here's a example document
 
 This will be transform into this apart from the HTML exampled above:
 
-```
-      <div>
-        <p>Normal text</p>
-        <h1 id="title">Title</h1>
-        <h3 id="sub-title">Sub title</h3>
-        <h2 id="heading-2-asdkjasdlkja-asldkaslkdjasdlkasjd-alksdj-alksd-aslk">Heading 2 asdkjasdlkja asldkaslkdjasdlkasjd alksdj alksd aslk</h2>
-        <h3 id="heading-3">Heading 3</h3>
-        <h4 id="heading-4">Heading 4</h4>
-        <h5 id="heading-5">Heading 5</h5>
-        <h6 id="heading-6">Heading 6</h6>
-        <div class="table-heading-1">
-          <div>
-            <div>Table row 1 col 1</div>
-            <div>Table row 1 col 2</div>
-            <div>Table row 1 col3</div>
-          </div>
-          <div>
-            <div>Table row 2 col 1</div>
-            <div>Table row 2 col 2-3</div>
-          </div>
-        </div>
-        <p><a href="https://www.w3schools.com/html/html_links.asp">This is a link example</a></p>
-      </div>
+```html
+<div>
+  <p>Normal text</p>
+  <h1 id="title">Title</h1>
+  <h3 id="sub-title">Sub title</h3>
+  <h2 id="heading-2-asdkjasdlkja-asldkaslkdjasdlkasjd-alksdj-alksd-aslk">
+    Heading 2 asdkjasdlkja asldkaslkdjasdlkasjd alksdj alksd aslk
+  </h2>
+  <h3 id="heading-3">Heading 3</h3>
+  <h4 id="heading-4">Heading 4</h4>
+  <h5 id="heading-5">Heading 5</h5>
+  <h6 id="heading-6">Heading 6</h6>
+  <div class="table-heading-1">
+    <div>
+      <div>Table row 1 col 1</div>
+      <div>Table row 1 col 2</div>
+      <div>Table row 1 col3</div>
+    </div>
+    <div>
+      <div>Table row 2 col 1</div>
+      <div>Table row 2 col 2-3</div>
+    </div>
+  </div>
+  <p>
+    <a href="https://www.w3schools.com/html/html_links.asp"
+      >This is a link example</a
+    >
+  </p>
+</div>
 ```
 
 So we can resume the server side render into this simple rules:
