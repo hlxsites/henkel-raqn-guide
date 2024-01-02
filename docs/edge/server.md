@@ -1,4 +1,4 @@
-# Edge Delivery
+# Edge Delivery Server Rendering
 
 To introduce we're going to breafly talk about the current Edge Delivery Boilerplate / Out of the box (OOB) ways of doing and reasoning what we improve
 
