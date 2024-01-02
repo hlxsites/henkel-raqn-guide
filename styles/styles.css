@@ -17,6 +17,7 @@ body {
 main > * {
   max-width: var(--scope-max-width, 100%);
   margin: 0 auto;
+  font-family: custom;
 }
 
 a {

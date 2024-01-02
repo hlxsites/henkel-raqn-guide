@@ -25,6 +25,18 @@ export default class Theme extends ComponentBase {
     this.headingVariables = ['font-size', 'font-weight', 'font-family'];
   }
 
+  fontTagsTemplate(item, keys) {
+    return `${item['font-tag']} {${keys
+      .map((key) => {
+        if (this.headingVariables.includes(key) && item[key]) {
+          return `
+          ${key}: var(--scope-${key},${item[key]});`;
+        }
+        return '';
+      })
+      .join('')}}\n`;
+  }
+
   createVariables() {
     const { data } = this.themeJson;
     const keys = Object.keys(data[0]).filter((key) =>
@@ -33,15 +45,7 @@ export default class Theme extends ComponentBase {
     this.tags = data
       .map((item) => {
         if (item['font-tag']) {
-          return `${item['font-tag']} {${keys
-            .map((key) => {
-              if (this.headingVariables.includes(key) && item[key]) {
-                return `
-                ${key}: var(--scope-${key},${item[key]});`;
-              }
-              return '';
-            })
-            .join('')}}\n`;
+          return this.fontTagsTemplate(item, keys);
         }
         return '';
       })

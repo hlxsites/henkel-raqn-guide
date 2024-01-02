@@ -20,6 +20,12 @@ export function retriveDataFrom(blocks) {
 }
 
 function lcpPriority() {
+  const eagerImages = document.querySelector('meta[name="lcp"]');
+  if (eagerImages) {
+    const length = parseInt(eagerImages.getAttribute('content'), 10);
+    eagerImage(document, length);
+  }
+
   const lcp = document.querySelector('meta[name="lcp"]');
   if (!lcp) {
     return window.raqnLCP || [];
@@ -32,8 +38,6 @@ function lcpPriority() {
       .map((name) => ({ name }));
   return window.raqnLCP;
 }
-
-eagerImage(document, 2);
 
 export async function init(node = document) {
   let blocks = Array.from(node.querySelectorAll('[class]:not([class^=raqn]'));

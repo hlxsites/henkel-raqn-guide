@@ -1,37 +1,85 @@
 raqn-navigation {
   margin: var(--scope-margin);
-}
+  width: 100%;
+  display: grid;
 
-raqn-navigation ul {
-  list-style: none;
-  display: flex;
-}
+  /* mobile */
+  & > div div {
+    ul,
+    p {
+      display: none;
+    }
+  }
 
-raqn-navigation ul li {
-  position: relative;
-}
+  div {
+    display: flex;
+  }
 
-raqn-navigation ul li a {
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-  color: var(--scope-color, #000);
-  padding: var(--padding-vertical, 20px) var(--padding-horizontal, 20px);
-  border-radius: var(--border-radius);
-  transition: background-color 0.2s ease-in-out;
-}
+  button {
+    display: inline-flex;
+    justify-self: end;
+    align-items: center;
+    justify-content: center;
+    background-color: var(--scope-background, #fff);
+    color: var(--scope-color, #000);
+    border: none;
+    border-radius: var(--border-radius);
+    padding: var(--padding-vertical, 20px) var(--padding-horizontal, 20px);
+    transition: background-color 0.2s ease-in-out;
+  }
 
-raqn-navigation div > div > ul > li > ul {
-  display: none;
-  position: absolute;
-  top: 100%;
-  left: 0;
-  background-color: var(--scope-background, #fff);
-  padding: var(--padding-vertical) var(--padding-horizontal);
-  border-radius: var(--border-radius);
-  box-shadow: var(--box-shadow);
-}
+  /* desktop */
+  &:not([compact='true']) > div > div {
+    ul {
+      list-style: none;
+      display: flex;
+    }
 
-raqn-navigation div > div > ul > li:hover > ul {
-  display: block;
+    & > p {
+      display: inline-flex;
+    }
+
+    ul li {
+      position: relative;
+    }
+
+    ul li a {
+      display: inline-flex;
+      align-items: center;
+      text-decoration: none;
+      color: var(--scope-color, #000);
+      padding: var(--padding-vertical, 20px) var(--padding-horizontal, 20px);
+      border-radius: var(--border-radius);
+      transition: background-color 0.2s ease-in-out;
+    }
+
+    ul > li > ul {
+      display: block;
+      padding: 0;
+    }
+
+    ul > li > ul {
+      /* display: none; */
+      position: absolute;
+      top: 100%;
+      left: 0;
+      background-color: var(--scope-background, #fff);
+      padding: var(--padding-vertical) var(--padding-horizontal);
+      border-radius: var(--border-radius);
+      box-shadow: var(--box-shadow);
+    }
+
+    ul > li > ul::after {
+      /* display: none; */
+      content: ' ';
+      position: absolute;
+      height: 100%;
+      width: 100vw;
+      inset-inline-start: 0;
+    }
+
+    ul > li:hover > ul {
+      display: block;
+    }
+  }
 }
