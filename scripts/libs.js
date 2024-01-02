@@ -52,7 +52,7 @@ export const eagerImage = (block, length = 1) => {
   imgs.forEach((img) => {
     const width = img.getAttribute('width');
     const height = img.getAttribute('height');
-    const ratio = Math.floor((width / height) * 10) / 10;
+    const ratio = Math.floor((width / height) * 100) / 100;
     img.style.aspectRatio = ratio;
     img.setAttribute('loading', 'eager');
   });
