@@ -55,6 +55,5 @@ export const eagerImage = (block, length = 1) => {
     const ratio = Math.floor((width / height) * 10) / 10;
     img.style.aspectRatio = ratio;
     img.setAttribute('loading', 'eager');
-    document.head.append(`<link rel="preload" as="image" href="${img.src}">`);
   });
 };
