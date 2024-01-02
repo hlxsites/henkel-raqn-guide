@@ -7,6 +7,7 @@ export const config = {
     xl: 1280,
     xxl: 1920,
   },
+  joinParams: ['class'],
   fontWeights: {
     regular: 400,
     medium: 500,

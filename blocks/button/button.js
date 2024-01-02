@@ -1,7 +1,7 @@
-import ComponentBase from '../../scripts/component-base.js';
+import Column from '../column/column.js';
 
-export default class Button extends ComponentBase {
-  connected() {
+export default class Button extends Column {
+  render() {
     this.setAttribute('role', 'button');
     this.setAttribute('tabindex', '0');
   }

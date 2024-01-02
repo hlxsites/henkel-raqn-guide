@@ -2,6 +2,7 @@ raqn-navigation {
   margin: var(--scope-margin);
   width: 100%;
   display: grid;
+  justify-content: center;
 
   /* mobile */
   & > div div {
@@ -9,6 +10,15 @@ raqn-navigation {
     p {
       display: none;
     }
+  }
+
+  ul li a {
+    display: inline-flex;
+    align-items: center;
+    text-decoration: none;
+    color: var(--scope-color, #000);
+    border-radius: var(--border-radius);
+    transition: background-color 0.2s ease-in-out;
   }
 
   div {
@@ -24,8 +34,33 @@ raqn-navigation {
     color: var(--scope-color, #000);
     border: none;
     border-radius: var(--border-radius);
-    padding: var(--padding-vertical, 20px) var(--padding-horizontal, 20px);
+    padding: var(--padding-vertical, 10px) var(--padding-horizontal, 10px);
     transition: background-color 0.2s ease-in-out;
+  }
+
+  &.active {
+    button {
+      background-color: var(--scope-background-hover, #000);
+      color: var(--scope-color-hover, #fff);
+    }
+
+    & > div > div > ul {
+      position: fixed;
+      display: block;
+      list-style: none;
+      max-width: 0;
+      background-color: var(--scope-background, #fff);
+      min-width: var(--scope-max-width, 100%);
+      inset-inline-start: calc((100vw - var(--scope-max-width)) / 2);
+      inset-block-start: var(--scope-header-height, 64px);
+      min-height: 100%;
+      margin: 0 auto;
+      padding: 0;
+
+      li {
+        padding-block: 1.2em;
+      }
+    }
   }
 
   /* desktop */
@@ -44,22 +79,12 @@ raqn-navigation {
     }
 
     ul li a {
-      display: inline-flex;
-      align-items: center;
-      text-decoration: none;
-      color: var(--scope-color, #000);
       padding: var(--padding-vertical, 20px) var(--padding-horizontal, 20px);
-      border-radius: var(--border-radius);
-      transition: background-color 0.2s ease-in-out;
     }
 
-    ul > li > ul {
-      display: block;
+    & > ul > li > ul {
+      display: none;
       padding: 0;
-    }
-
-    ul > li > ul {
-      /* display: none; */
       position: absolute;
       top: 100%;
       left: 0;
@@ -69,6 +94,10 @@ raqn-navigation {
       box-shadow: var(--box-shadow);
     }
 
+    & > ul > li:hover > ul {
+      display: block;
+    }
+
     ul > li > ul::after {
       /* display: none; */
       content: ' ';
@@ -76,10 +105,6 @@ raqn-navigation {
       height: 100%;
       width: 100vw;
       inset-inline-start: 0;
-    }
-
-    ul > li:hover > ul {
-      display: block;
     }
   }
 }

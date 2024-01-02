@@ -12,7 +12,10 @@ export default class Column extends ComponentBase {
   calculateGridTemplateColumns() {
     this.position = parseInt(this.getAttribute('position'), 10);
     this.size = this.getAttribute('size');
-    console.log('calculateGridTemplateColumns', this.position, this.size);
+    this.justify = this.getAttribute('justify') || 'stretch';
+    if (this.justify) {
+      this.style.justifyContent = this.justify;
+    }
     if (this.position) {
       const parent = this.parentElement;
       const children = Array.from(parent.children);

@@ -1,8 +1,14 @@
 @font-face {
-  font-family: roboto-fallback;
+  font-family: roboto-regular;
   size-adjust: 100.06%;
   ascent-override: 95%;
   src: local('Arial');
+}
+
+@media screen and (max-width: 768px) {
+  body {
+    --scope-max-width: 100vw;
+  }
 }
 
 body {
@@ -12,6 +18,12 @@ body {
   padding: 0;
   margin: 0;
   width: 100%;
+
+  --scope-header-height: 64px;
+
+  @media screen and (min-width: 768px) {
+    --scope-header-height: 160px;
+  }
 }
 
 main > * {
@@ -44,7 +56,12 @@ img {
 }
 
 header {
-  min-height: var(--raqn-header-height, 160px);
+  min-height: var(--scope-header-height, 64px);
+}
+
+.hide {
+  display: none;
+  pointer-events: none;
 }
 
 @keyframes placeholder {
