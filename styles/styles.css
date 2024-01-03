@@ -32,23 +32,24 @@ body {
 }
 
 header {
+  --scope-background: var(--raqn-header-background-1, #fff);
+  --scope-color: var(--raqn-header-color-1, #000);
+
   min-height: var(--scope-header-height, 64px);
   display: grid;
   background-color: var(--raqn-header-background-1, #fff);
-  --scope-background: var(--raqn-header-background-1, #fff);
-  --scope-color: var(--raqn-header-color-1, #000);
 }
 
 main > * {
   max-width: var(--scope-max-width, 100%);
   margin: 0 auto;
-  font-family: custom;
 }
 
 .full-width {
+  --scope-outer-gap: calc((var(--scope-max-width) - 100vw) / 2);
+
   display: grid;
   width: 100vw;
-  --scope-outer-gap: calc((var(--scope-max-width) - 100vw) / 2);
   margin-inline-start: var(--scope-outer-gap);
   padding-inline: calc(-1 * var(--scope-outer-gap));
   box-sizing: border-box;
