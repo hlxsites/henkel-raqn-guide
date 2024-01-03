@@ -1,4 +1,5 @@
 import ComponentBase from '../../scripts/component-base.js';
+import { config } from '../../scripts/libs.js';
 
 export default class Theme extends ComponentBase {
   constructor() {
@@ -23,9 +24,32 @@ export default class Theme extends ComponentBase {
       'background',
       'margin',
       'icon-size',
+      'font-family',
       'max-width',
     ];
     this.headingVariables = ['font-size', 'font-weight', 'font-family'];
+  }
+
+  fontFaceTemplate(item) {
+    const { 'font-face': fontFace } = item;
+
+    if (fontFace.indexOf('-') > -1) {
+      const [name, ...rest] = fontFace.split('-');
+      const params = rest.pop().split('.');
+      const format = params.pop();
+      const lastBit = params.pop();
+      const fontWeight = config.fontWeights[lastBit] || 'regular';
+      const fontStyle = lastBit === 'italic' ? lastBit : 'normal';
+      return `
+@font-face {
+  font-family: ${name};
+  font-weight: ${fontWeight};
+  font-style: ${fontStyle};
+  src: url('/fonts/${fontFace}') format(${format});
+}
+`;
+    }
+    return '';
   }
 
   fontTagsTemplate(item, keys) {
@@ -33,7 +57,9 @@ export default class Theme extends ComponentBase {
       .map((key) => {
         if (this.headingVariables.includes(key) && item[key]) {
           return `
-          ${key}: var(--scope-${key},${item[key]});`;
+          ${key}: var(--scope-${key}, ${
+            item[key].indexOf(',') > -1 ? `'${item[key]}'` : item[key]
+          });`;
         }
         return '';
       })
@@ -47,10 +73,14 @@ export default class Theme extends ComponentBase {
     );
     this.tags = data
       .map((item) => {
-        if (item['font-tag']) {
-          return this.fontTagsTemplate(item, keys);
+        let tags = '';
+        if (item['font-face']) {
+          tags += this.fontFaceTemplate(item);
         }
-        return '';
+        if (item['font-tag']) {
+          tags += this.fontTagsTemplate(item, keys);
+        }
+        return tags;
       })
       .join('')
       .trim();
@@ -69,7 +99,8 @@ export default class Theme extends ComponentBase {
   }
 
   styles() {
-    this.innerHTML = `<style> body {
+    const style = document.createElement('style');
+    style.innerHTML = `body {
             ${Object.keys(this.variables)
               .map((key) => {
                 const { scope, value } = this.variables[key];
@@ -89,7 +120,8 @@ export default class Theme extends ComponentBase {
           )
           .join('\n')}
 
-        ${this.tags}</style>`;
+        ${this.tags}`;
+    document.head.appendChild(style);
     document.body.style.display = 'block';
   }
 
