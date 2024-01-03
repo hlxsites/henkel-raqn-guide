@@ -11,10 +11,6 @@ raqn-icon {
   -moz-osx-font-smoothing: grayscale;
 }
 
-raqn-icon:not(.loaded) {
-  animation: placeholder ease-in-out 1s infinite;
-}
-
 raqn-icon svg {
   display: inline-block;
   max-height: 100%;

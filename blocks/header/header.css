@@ -1,3 +1,6 @@
 raqn-header {
-  max-width: var(--scope-max-width, 100%);
+  display: grid;
+  max-width: var(--scope-max-width, 90vw);
+  margin: 0 auto;
+  align-items: center;
 }

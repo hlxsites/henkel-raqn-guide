@@ -6,7 +6,6 @@ export default class Header extends ComponentBase {
 
   async processExternal(response) {
     await super.processExternal(response);
-    this.parentElement.style.opacity = 1;
     eagerImage(this, 1);
   }
 }

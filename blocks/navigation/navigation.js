@@ -18,11 +18,44 @@ export default class Navigation extends Column {
   }
 
   render() {
+    this.list = this.querySelector('ul');
+    this.nav = document.createElement('nav');
+    this.nav.append(this.list);
+    this.setAttribute('role', 'navigation');
     this.compact = this.getAttribute('compact') === 'true' || false;
     this.icon = this.getAttribute('icon') || 'menu';
-    console.log('render', this.compact, this.getAttribute('compact'));
     if (this.compact) {
-      this.appendChild(this.createButton());
+      this.nav.append(this.createButton());
+    }
+    this.firstChild.replaceWith(this.nav);
+    this.setupClasses(this.list);
+    this.addEventListener('click', (e) => this.activate(e));
+  }
+
+  setupClasses(ul, level = 1) {
+    const children = Array.from(ul.children);
+    children.forEach((child) => {
+      child.classList.add(`level-${level}`);
+      const hasChildren = child.querySelector('ul');
+      if (hasChildren) {
+        const anchor = child.querySelector('a');
+        const icon = document.createElement('raqn-icon');
+        icon.setAttribute('icon', 'chevron-right');
+        anchor.append(icon);
+        child.classList.add('has-children');
+        this.setupClasses(hasChildren, level + 1);
+      }
+    });
+  }
+
+  activate(e) {
+    if (e.target.tagName.toLowerCase() === 'a') {
+      const current = e.target.closest('li');
+      if (this.active && this.active !== current) {
+        this.active.classList.remove('active');
+      }
+      this.active = current;
+      this.active.classList.toggle('active');
     }
   }
 }

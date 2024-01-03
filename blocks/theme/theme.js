@@ -13,6 +13,9 @@ export default class Theme extends ComponentBase {
       'font-family',
       'icon-size',
       'max-width',
+      'header-height',
+      'header-background',
+      'header-color',
       'gap',
     ];
     this.defaultScope = [
