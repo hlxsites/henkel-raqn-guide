@@ -27,6 +27,7 @@ body {
 header {
   --scope-background: var(--raqn-header-background-default, #fff);
   --scope-color: var(--raqn-header-color-default, #000);
+
   min-height: var(--scope-header-height, 64px);
   display: grid;
   background-color: var(--raqn-header-background-default, #fff);
