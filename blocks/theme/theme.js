@@ -5,34 +5,11 @@ export default class Theme extends ComponentBase {
   constructor() {
     super();
     this.external = '/theme.json';
-    this.allowedVariables = [
-      'color',
-      'background',
-      'margin',
-      'font-size',
-      'font-weight',
-      'font-family',
-      'icon-size',
-      'max-width',
-      'header-height',
-      'header-background',
-      'header-color',
-      'gap',
-    ];
-    this.defaultScope = [
-      'color',
-      'background',
-      'margin',
-      'icon-size',
-      'font-family',
-      'max-width',
-    ];
-    this.headingVariables = ['font-size', 'font-weight', 'font-family'];
+
+    this.applyToTag = ['font-size', 'font-weight', 'font-family'];
   }
 
-  fontFaceTemplate(item) {
-    const { 'font-face': fontFace } = item;
-
+  fontFaceTemplate(fontFace) {
     if (fontFace.indexOf('-') > -1) {
       const [name, ...rest] = fontFace.split('-');
       const params = rest.pop().split('.');
@@ -68,59 +45,73 @@ export default class Theme extends ComponentBase {
 
   createVariables() {
     const { data } = this.themeJson;
-    const keys = Object.keys(data[0]).filter((key) =>
-      this.allowedVariables.includes(key),
+    const k = Object.keys;
+    const keys = data.map((item) => item.key);
+    const t = data.reduce(
+      (ac, item, i) =>
+        keys.reduce((acc, key) => {
+          delete item.key;
+          const ind = keys.indexOf(key);
+          if (i === ind) {
+            acc[key] = item;
+          }
+          return acc;
+        }, ac),
+      {},
     );
-    this.tags = data
-      .map((item) => {
-        let tags = '';
-        if (item['font-face']) {
-          tags += this.fontFaceTemplate(item);
-        }
-        if (item['font-tag']) {
-          tags += this.fontTagsTemplate(item, keys);
-        }
-        return tags;
+
+    this.tags = k(t.tag)
+      .map((index) => {
+        const tag = t.tag[index];
+        const values = this.applyToTag.reduce((acc, key) => {
+          if (t[key][index]) {
+            if (acc[tag]) {
+              acc[tag][key] = t[key][index];
+            } else {
+              acc[tag] = { [key]: t[key][index] };
+            }
+          }
+          return acc;
+        }, {});
+        return k(values).map((value) => {
+          const val = values[value];
+          return `${tag} {\n${k(val)
+            .map((v) => `${v}: ${val[v]};`)
+            .join('\n')}\n}`;
+        });
       })
-      .join('')
-      .trim();
-    this.variables = {};
-    data.reduce((acc, item, index) => {
-      keys.forEach((key) => {
-        if (item[key]) {
-          acc[`${key}-${index + 1}`] = {
-            value: item[key],
-            scope: key,
-          };
-        }
-      });
-      return acc;
-    }, this.variables);
+      .join('\n\n');
+    this.fontFace = '';
+    this.atomic = '';
+    this.variables = k(t)
+      .map((key) => {
+        const rows = k(t[key]);
+        return rows
+          .map((row) => {
+            const value = t[key][row];
+            let variable = '';
+            if (value) {
+              if (key === 'font-face') {
+                this.fontFace += this.fontFaceTemplate(value);
+              } else {
+                variable = `\n--raqn-${key}-${row}: ${value};\n`;
+                if (row === 'default') {
+                  variable += `\n--scope-${key}: ${value};\n`;
+                }
+
+                this.atomic += `\n.${key}-${row} {\n--scope-${key}: var(--raqn-${key}-${row}, ${value}); \n}\n`;
+              }
+            }
+            return variable;
+          })
+          .join('');
+      })
+      .join('');
   }
 
   styles() {
     const style = document.createElement('style');
-    style.innerHTML = `body {
-            ${Object.keys(this.variables)
-              .map((key) => {
-                const { scope, value } = this.variables[key];
-                return `${
-                  key.indexOf(1) > -1 && this.defaultScope.includes(scope)
-                    ? `--scope-${scope}: ${value};`
-                    : ''
-                }
-                --raqn-${key}: ${value};`;
-              })
-              .join('\n')}
-        }
-        ${Object.keys(this.variables)
-          .map(
-            (key) => `.${key} {
-                --scope-${this.variables[key].scope}: ${this.variables[key].value};\n}`,
-          )
-          .join('\n')}
-
-        ${this.tags}`;
+    style.innerHTML = `${this.fontFace}\n\nbody {\n${this.variables}\n}\n\n${this.tags}\n\n${this.atomic}`;
     document.head.appendChild(style);
     document.body.style.display = 'block';
   }

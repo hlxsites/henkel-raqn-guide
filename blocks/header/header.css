@@ -3,4 +3,6 @@ raqn-header {
   max-width: var(--scope-max-width, 90vw);
   margin: 0 auto;
   align-items: center;
+  border-block-end: var(--scope-border-color, #000) solid
+    var(--scope-border-width, 1px);
 }
