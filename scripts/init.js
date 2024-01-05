@@ -40,7 +40,7 @@ function lcpPriority() {
 }
 
 export async function init(node = document) {
-  let blocks = Array.from(node.querySelectorAll('[class]:not([class^=raqn]'));
+  let blocks = Array.from(node.querySelectorAll('[class]:not([class^=style]'));
 
   if (node === document) {
     const header = node.querySelector('header');

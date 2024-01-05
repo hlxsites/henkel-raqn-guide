@@ -1,12 +1,15 @@
 import ComponentBase from '../../scripts/component-base.js';
 import { config } from '../../scripts/libs.js';
+// minify alias
+const k = Object.keys;
 
 export default class Theme extends ComponentBase {
   constructor() {
     super();
     this.external = '/theme.json';
-
-    this.applyToTag = ['font-size', 'font-weight', 'font-family'];
+    this.toTags = ['font-size', 'font-weight', 'font-family'];
+    this.fontFace = '';
+    this.atomic = '';
   }
 
   fontFaceTemplate(fontFace) {
@@ -17,36 +20,52 @@ export default class Theme extends ComponentBase {
       const lastBit = params.pop();
       const fontWeight = config.fontWeights[lastBit] || 'regular';
       const fontStyle = lastBit === 'italic' ? lastBit : 'normal';
-      return `
-@font-face {
-  font-family: ${name};
-  font-weight: ${fontWeight};
-  font-display: swap;
-  font-style: ${fontStyle};
-  src: url('/fonts/${fontFace}') format(${format});
-}
-`;
+      // eslint-disable-next-line max-len
+      return `\n@font-face {\nfont-family: ${name};\nfont-weight: ${fontWeight};\nfont-display: swap;\nfont-style: ${fontStyle};\nsrc: url('/fonts/${fontFace}') format(${format});\n}\n`;
     }
     return '';
   }
 
-  fontTagsTemplate(item, keys) {
-    return `${item['font-tag']} {${keys
-      .map((key) => {
-        if (this.headingVariables.includes(key) && item[key]) {
-          return `
-          ${key}: var(--scope-${key}, ${
-            item[key].indexOf(',') > -1 ? `'${item[key]}'` : item[key]
-          });`;
+  fontTags(t, index) {
+    const tag = t.tag[index];
+    const values = this.toTags.reduce((acc, key) => {
+      if (t[key][index]) {
+        if (acc[tag]) {
+          acc[tag][key] = t[key][index];
+        } else {
+          acc[tag] = { [key]: t[key][index] };
         }
-        return '';
-      })
-      .join('')}}\n`;
+      }
+      return acc;
+    }, {});
+    return k(values).map((value) => {
+      const val = values[value];
+      return `${tag} {\n${k(val)
+        .map((v) => `${v}: ${val[v]};`)
+        .join('\n')}\n}`;
+    });
   }
 
-  createVariables() {
+  renderVariables(key, row, t) {
+    const value = t[key][row];
+    let variable = '';
+    if (value) {
+      if (key === 'font-face') {
+        this.fontFace += this.fontFaceTemplate(value);
+      } else {
+        variable = `\n--raqn-${key}-${row}: ${value};\n`;
+        if (row === 'default') {
+          variable += `\n--scope-${key}: ${value};\n`;
+        }
+
+        this.atomic += `\n.${key}-${row} {\n--scope-${key}: var(--raqn-${key}-${row}, ${value}); \n}\n`;
+      }
+    }
+    return variable;
+  }
+
+  readValue() {
     const { data } = this.themeJson;
-    const k = Object.keys;
     const keys = data.map((item) => item.key);
     const t = data.reduce(
       (ac, item, i) =>
@@ -62,50 +81,13 @@ export default class Theme extends ComponentBase {
     );
 
     this.tags = k(t.tag)
-      .map((index) => {
-        const tag = t.tag[index];
-        const values = this.applyToTag.reduce((acc, key) => {
-          if (t[key][index]) {
-            if (acc[tag]) {
-              acc[tag][key] = t[key][index];
-            } else {
-              acc[tag] = { [key]: t[key][index] };
-            }
-          }
-          return acc;
-        }, {});
-        return k(values).map((value) => {
-          const val = values[value];
-          return `${tag} {\n${k(val)
-            .map((v) => `${v}: ${val[v]};`)
-            .join('\n')}\n}`;
-        });
-      })
+      .map((index) => this.fontTags(t, index))
       .join('\n\n');
-    this.fontFace = '';
-    this.atomic = '';
+
     this.variables = k(t)
       .map((key) => {
         const rows = k(t[key]);
-        return rows
-          .map((row) => {
-            const value = t[key][row];
-            let variable = '';
-            if (value) {
-              if (key === 'font-face') {
-                this.fontFace += this.fontFaceTemplate(value);
-              } else {
-                variable = `\n--raqn-${key}-${row}: ${value};\n`;
-                if (row === 'default') {
-                  variable += `\n--scope-${key}: ${value};\n`;
-                }
-
-                this.atomic += `\n.${key}-${row} {\n--scope-${key}: var(--raqn-${key}-${row}, ${value}); \n}\n`;
-              }
-            }
-            return variable;
-          })
-          .join('');
+        return rows.map((row) => this.renderVariables(key, row, t)).join('');
       })
       .join('');
   }
@@ -120,7 +102,7 @@ export default class Theme extends ComponentBase {
   async processExternal(response) {
     if (response.ok) {
       this.themeJson = await response.json();
-      this.createVariables();
+      this.readValue();
       this.styles();
     }
   }
