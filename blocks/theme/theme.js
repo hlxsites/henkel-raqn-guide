@@ -21,6 +21,7 @@ export default class Theme extends ComponentBase {
 @font-face {
   font-family: ${name};
   font-weight: ${fontWeight};
+  font-display: swap;
   font-style: ${fontStyle};
   src: url('/fonts/${fontFace}') format(${format});
 }
