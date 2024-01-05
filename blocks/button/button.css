@@ -1,0 +1,32 @@
+raqn-button {
+  width: 100%;
+  display: grid;
+
+  & > div {
+    background-color: var(--scope-accent-background, #000);
+    color: var(--scope-accent-color, #fff);
+    text-transform: none;
+    border-radius: 20px;
+    border: 1px solid transparent;
+    overflow: hidden;
+
+    &:hover {
+      background-color: var(--scope-accent-background-hover, #fff);
+      color: var(--scope-accent-color-hover, #fff);
+      border-color: currentcolor;
+    }
+  }
+}
+
+raqn-button a {
+  color: currentcolor;
+  padding: 10px 20px;
+  text-decoration: none;
+}
+
+raqn-button a:hover,
+raqn-button a:visited,
+raqn-button a:active {
+  color: currentcolor;
+  text-decoration: none;
+}
