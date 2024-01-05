@@ -52,6 +52,7 @@ main div > div {
   background-color: var(--scope-background, #fff);
   color: var(--scope-color, #000);
   margin: var(--scope-margin, 0 auto);
+  padding: var(--scope-padding, 0);
 }
 
 a {
