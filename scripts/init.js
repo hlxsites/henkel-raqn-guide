@@ -1,5 +1,16 @@
 import ComponentLoader from './component-loader.js';
-import { config, debounce, eagerImage, getBreakPoint } from './libs.js';
+import { config, debounce, getBreakPoint } from './libs.js';
+
+export const eagerImage = (block, length = 1) => {
+  const imgs = Array.from(block.querySelectorAll('img')).slice(0, length);
+  imgs.forEach((img) => {
+    const width = img.getAttribute('width');
+    const height = img.getAttribute('height');
+    const ratio = Math.floor((width / height) * 100) / 100;
+    img.style.aspectRatio = ratio;
+    img.setAttribute('loading', 'eager');
+  });
+};
 
 export function retriveDataFrom(blocks) {
   return blocks.map((block) => {
