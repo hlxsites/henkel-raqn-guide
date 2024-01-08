@@ -313,6 +313,15 @@ main > * {
   box-sizing: border-box;
 }
 
+.raqn-grid {
+  width: var(--scope-max-width, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: var(--grid-template-columns, 1fr);
+  align-items: center;
+  justify-items: start;
+}
+
 main > div > div {
   background-color: var(--scope-background, #fff);
   color: var(--scope-color, #000);
