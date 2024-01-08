@@ -76,7 +76,7 @@ export async function init(node = document) {
     Promise.all(
       rest.map(({ name, el }) => setTimeout(() => start({ name, el }))),
     );
-  });
+  }, 100);
   // reload on breakpoint change
   window.raqnBreakpoint = getBreakPoint();
   window.addEventListener(
