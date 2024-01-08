@@ -1,34 +1,32 @@
-export function breakpoints() {
-  return {
-    S: 0,
-    M: 768,
-    L: 1024,
-    XL: 1280,
-    XXL: 1920,
-  };
-}
-
-export function getBreakPoint() {
-  const b = breakpoints();
-  return b[b.length - 1];
-}
+export const breakpoints = {
+  S: 0,
+  M: 768,
+  L: 1024,
+  XL: 1280,
+  XXL: 1920,
+};
 
 export function getBreakPoints() {
   window.raqnBreakpoints = window.raqnBreakpoints || {};
-  const breakpoint = Object.keys(breakpoints());
-  window.raqnBreakpoints = breakpoints.filter(
-    (bp) => matchMedia(`(min-width: ${breakpoint()[bp]}px)`).matches,
+  const breakpoint = Object.keys(breakpoints);
+  console.log('breakpoint', breakpoint);
+  window.raqnBreakpoints = breakpoint.filter(
+    (bp) => matchMedia(`(min-width: ${breakpoints[bp]}px)`).matches,
   );
   return window.raqnBreakpoints;
+}
+
+export function getBreakPoint() {
+  const b = getBreakPoints();
+  console.log('b', b);
+  return b[b.length - 1];
 }
 
 export default class ComponentBase {
   constructor(block) {
     this.block = block;
     this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
-    console.log('contructor', this);
     this.setParams();
-    console.log('params', this.params);
     Object.keys(this.params).forEach((key) => {
       // @TODO sanitize
       const value = Array.isArray(this.params[key])
@@ -49,13 +47,14 @@ export default class ComponentBase {
           const values = c.split('-');
           let key = values.shift();
           const breakpoint = getBreakPoint();
+          console.log('breakpoint', breakpoint);
           if (breakpoint === key) {
             key = values.shift();
             mediaParams[key] = values.join('-');
             return acc;
           }
 
-          if (breakpoints()[key] !== undefined) {
+          if (breakpoints[key] !== undefined) {
             return acc;
           }
 
