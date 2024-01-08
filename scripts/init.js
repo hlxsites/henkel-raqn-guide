@@ -3,13 +3,13 @@ import { config, debounce, getBreakPoint } from './libs.js';
 
 export const eagerImage = (block, length = 1) => {
   const imgs = Array.from(block.querySelectorAll('img')).slice(0, length);
-  return imgs.map((img) => {
+  console.log('eager', imgs, length);
+  imgs.forEach((img) => {
     const width = img.getAttribute('width');
     const height = img.getAttribute('height');
     const ratio = Math.floor((width / height) * 100) / 100;
     img.style.aspectRatio = ratio;
     img.setAttribute('loading', 'eager');
-    return img;
   });
 };
 
@@ -32,7 +32,7 @@ export function retriveDataFrom(blocks) {
 }
 
 function lcpPriority() {
-  const eagerImages = document.querySelector('meta[name="lcp"]');
+  const eagerImages = document.querySelector('meta[name="eager"]');
   if (eagerImages) {
     const length = parseInt(eagerImages.getAttribute('content'), 10);
     eagerImage(document.body, length);
