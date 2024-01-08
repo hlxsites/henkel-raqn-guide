@@ -1,8 +1,12 @@
 raqn-button {
   width: 100%;
   display: grid;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  justify-items: var(--scope-justify, start);
 
-  & > div {
+  & > * {
     background-color: var(--scope-accent-background, #000);
     color: var(--scope-accent-color, #fff);
     text-transform: none;
@@ -19,7 +23,7 @@ raqn-button {
 }
 
 raqn-button a {
-  color: currentcolor;
+  color: var(--scope-accent-color, currentcolor);
   padding: 10px 20px;
   text-decoration: none;
 }

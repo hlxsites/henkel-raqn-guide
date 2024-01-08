@@ -7,7 +7,8 @@ export default class Theme extends ComponentBase {
   constructor() {
     super();
     this.external = '/theme.json';
-    this.toTags = ['font-size', 'font-weight', 'font-family'];
+    this.skip = ['tag', 'font-face'];
+    this.toTags = ['font-size', 'font-weight', 'font-family', 'line-height'];
     this.fontFace = '';
     this.atomic = '';
   }
@@ -85,6 +86,7 @@ export default class Theme extends ComponentBase {
       .join('\n\n');
 
     this.variables = k(t)
+      .filter((key) => !this.skip.includes(key))
       .map((key) => {
         const rows = k(t[key]);
         return rows.map((row) => this.renderVariables(key, row, t)).join('');

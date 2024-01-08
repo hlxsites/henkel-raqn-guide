@@ -78,6 +78,7 @@ raqn-navigation {
   &:not([compact='true']) > nav {
     a {
       line-height: var(--scope-icon-size, 24px);
+      /* font-size: inherit; */
     }
 
     ul {
@@ -135,6 +136,17 @@ raqn-navigation {
       & > li {
         opacity: 1;
       }
+    }
+
+    .level-2,
+    .level-2 > ul {
+      display: inline-flex;
+      flex-direction: column;
+    }
+
+    .level-2 > ul {
+      list-style: none;
+      padding: 0;
     }
   }
 }
