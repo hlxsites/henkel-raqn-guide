@@ -1,4 +1,4 @@
-raqn-header {
+[data-block-name='header'] {
   display: grid;
   max-width: var(--scope-max-width, 90vw);
   margin: 0 auto;

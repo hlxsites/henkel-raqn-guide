@@ -1,6 +1,6 @@
 import ComponentBase from '../../scripts/component-base.js';
 
-export default class Column extends ComponentBase {
+export class Column extends ComponentBase {
   static observedAttributes() {
     return ['position', 'size'];
   }
@@ -10,16 +10,16 @@ export default class Column extends ComponentBase {
   }
 
   calculateGridTemplateColumns() {
-    this.position = parseInt(this.getAttribute('position'), 10);
-    this.size = this.getAttribute('size');
-    this.justify = this.getAttribute('justify') || 'stretch';
+    this.position = parseInt(this.block.getAttribute('position'), 10);
+    this.size = this.block.getAttribute('size');
+    this.justify = this.block.getAttribute('justify') || 'stretch';
     if (this.justify) {
-      this.style.justifyContent = this.justify;
+      this.block.style.justifyContent = this.justify;
     }
     if (this.position) {
-      const parent = this.parentElement;
+      const parent = this.block.parentElement;
       const children = Array.from(parent.children);
-      this.parentElement.classList.add('raqn-grid');
+      this.block.parentElement.classList.add('raqn-grid');
       let parentGridTemplateColumns = parent.style.getPropertyValue(
         '--grid-template-columns',
       );
@@ -67,8 +67,12 @@ export default class Column extends ComponentBase {
           parentGridTemplateColumns,
         );
       }
-      this.style.gridColumn = this.position;
-      this.style.gridRow = 1;
+      this.block.style.gridColumn = this.position;
+      this.block.style.gridRow = 1;
     }
   }
+}
+
+export default async function col(block) {
+  await new Column(block);
 }

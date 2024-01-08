@@ -1,6 +1,6 @@
 /* block specific CSS goes here */
 
-raqn-hero {
+.hero {
   --raqn-background-color: var(--scope-background, transparent);
   --raqn-color: var(--scope-color, transparent);
   --raqn-grid-template-columns: 0.6fr 0.4fr;

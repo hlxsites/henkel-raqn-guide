@@ -2,9 +2,10 @@ raqn-icon {
   display: inline-flex;
   font-size: 1em;
   line-height: 1em;
+  text-align: center;
   min-width: var(--scope-icon-size, 1em);
   min-height: var(--scope-icon-size, 1em);
-  text-align: center;
+  justify-content: var(--scope-icon-align, start);
   text-transform: none;
   vertical-align: middle;
   -webkit-font-smoothing: antialiased;
@@ -13,8 +14,8 @@ raqn-icon {
 
 raqn-icon svg {
   display: inline-block;
-  max-height: 100%;
-  max-width: 100%;
+  max-width: var(--scope-icon-size, 1em);
+  max-height: var(--scope-icon-size, 1em);
   fill: currentcolor;
   overflow: hidden;
   vertical-align: middle;

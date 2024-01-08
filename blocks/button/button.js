@@ -1,8 +1,12 @@
-import Column from '../column/column.js';
+import { Column } from '../column/column.js';
 
-export default class Button extends Column {
+class Button extends Column {
   render() {
-    this.setAttribute('role', 'button');
-    this.setAttribute('tabindex', '0');
+    this.block.setAttribute('role', 'button');
+    this.block.setAttribute('tabindex', '0');
   }
+}
+
+export default async function button(block) {
+  await new Button(block);
 }

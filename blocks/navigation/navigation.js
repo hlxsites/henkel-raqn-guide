@@ -1,6 +1,6 @@
-import Column from '../column/column.js';
+import { Column } from '../column/column.js';
 
-export default class Navigation extends Column {
+export class Navigation extends Column {
   createButton() {
     const button = document.createElement('button');
     button.setAttribute('aria-label', 'Menu');
@@ -11,25 +11,25 @@ export default class Navigation extends Column {
     button.setAttribute('tabindex', '0');
     button.innerHTML = `<raqn-icon icon=menu></raqn-icon>`;
     button.addEventListener('click', () => {
-      this.classList.toggle('active');
+      this.block.classList.toggle('active');
       button.setAttribute('aria-expanded', this.classList.contains('active'));
     });
     return button;
   }
 
   render() {
-    this.list = this.querySelector('ul');
+    this.list = this.block.querySelector('ul');
     this.nav = document.createElement('nav');
     this.nav.append(this.list);
-    this.setAttribute('role', 'navigation');
-    this.compact = this.getAttribute('compact') === 'true' || false;
-    this.icon = this.getAttribute('icon') || 'menu';
+    this.block.setAttribute('role', 'navigation');
+    this.compact = true;
+    this.icon = this.block.getAttribute('icon') || 'menu';
     if (this.compact) {
       this.nav.append(this.createButton());
     }
-    this.firstChild.replaceWith(this.nav);
+    this.block.firstChild.replaceWith(this.nav);
     this.setupClasses(this.list);
-    this.addEventListener('click', (e) => this.activate(e));
+    this.block.addEventListener('click', (e) => this.activate(e));
   }
 
   setupClasses(ul, level = 1) {
@@ -58,4 +58,8 @@ export default class Navigation extends Column {
       this.active.classList.toggle('active');
     }
   }
+}
+
+export default async function (block) {
+  await new Navigation(block);
 }

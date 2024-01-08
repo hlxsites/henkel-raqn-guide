@@ -1,11 +1,19 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { eagerImage } from '../../scripts/libs.js';
+import { loadBlocks } from '../../scripts/lib-franklin.js';
+import { decorateMain } from '../../scripts/scripts.js';
 
-export default class Header extends ComponentBase {
-  external = '/header.plain.html';
+class Header extends ComponentBase {
+  get external() {
+    return '/header.plain.html';
+  }
 
   async processExternal(response) {
     await super.processExternal(response);
-    eagerImage(this, 1);
+    decorateMain(this.block);
+    loadBlocks(this.block);
   }
+}
+
+export default async function (block) {
+  return new Header(block);
 }
