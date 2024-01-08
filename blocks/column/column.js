@@ -74,6 +74,5 @@ export class Column extends ComponentBase {
 }
 
 export default async function col(block) {
-  console.log('block', block);
   await new Column(block);
 }

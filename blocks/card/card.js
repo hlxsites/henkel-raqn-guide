@@ -42,6 +42,5 @@ class Card extends ComponentBase {
 }
 
 export default async function card(block) {
-  console.log('block', block);
   await new Card(block);
 }

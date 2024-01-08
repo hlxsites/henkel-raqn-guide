@@ -12,6 +12,5 @@
 // }
 
 export default async function (block) {
-  console.log('block', block);
   // await new Header(block).decorate();
 }

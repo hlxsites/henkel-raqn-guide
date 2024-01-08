@@ -158,6 +158,5 @@ class Theme extends ComponentBase {
 }
 
 export default async function theme(block) {
-  console.log('theme', block);
   await new Theme(block);
 }

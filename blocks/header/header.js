@@ -8,7 +8,6 @@ class Header extends ComponentBase {
   }
 
   async processExternal(response) {
-    console.log('header', response);
     await super.processExternal(response);
     decorateMain(this.block);
     loadBlocks(this.block);
@@ -16,6 +15,5 @@ class Header extends ComponentBase {
 }
 
 export default async function (block) {
-  console.log('hader', block);
   return new Header(block);
 }

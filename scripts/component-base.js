@@ -9,7 +9,6 @@ export const breakpoints = {
 export function getBreakPoints() {
   window.raqnBreakpoints = window.raqnBreakpoints || {};
   const breakpoint = Object.keys(breakpoints);
-  console.log('breakpoint', breakpoint);
   window.raqnBreakpoints = breakpoint.filter(
     (bp) => matchMedia(`(min-width: ${breakpoints[bp]}px)`).matches,
   );
@@ -18,7 +17,6 @@ export function getBreakPoints() {
 
 export function getBreakPoint() {
   const b = getBreakPoints();
-  console.log('b', b);
   return b[b.length - 1];
 }
 
@@ -39,7 +37,6 @@ export default class ComponentBase {
 
   setParams() {
     const mediaParams = {};
-    console.log('setParams', this.block.classList);
     this.params = {
       ...Array.from(this.block.classList)
         .filter((c) => c !== this.blockName && c !== 'block')
@@ -47,7 +44,6 @@ export default class ComponentBase {
           const values = c.split('-');
           let key = values.shift();
           const breakpoint = getBreakPoint();
-          console.log('breakpoint', breakpoint);
           if (breakpoint === key) {
             key = values.shift();
             mediaParams[key] = values.join('-');
@@ -72,7 +68,6 @@ export default class ComponentBase {
   }
 
   async connectedCallback() {
-    console.log('connectedCallback', this);
     this.block.setAttribute('id', this.uuid);
     if (this.external) {
       await this.load(this.external);
@@ -93,7 +88,6 @@ export default class ComponentBase {
     if (response.ok) {
       const html = await response.text();
       this.block.innerHTML = html;
-      console.log('html', html);
     }
     return response;
   }

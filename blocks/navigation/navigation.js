@@ -18,7 +18,6 @@ export class Navigation extends Column {
   }
 
   render() {
-    console.log('this.block', this.block);
     this.list = this.block.querySelector('ul');
     this.nav = document.createElement('nav');
     this.nav.append(this.list);

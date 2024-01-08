@@ -8,6 +8,5 @@ class Button extends Column {
 }
 
 export default async function button(block) {
-  console.log('block', block);
   await new Button(block);
 }
