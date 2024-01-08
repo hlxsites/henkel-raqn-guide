@@ -1,7 +1,5 @@
-Please always provide the [GitHub issue(s)](../issues) your PR is for, as well as test URLs where your change can be observed (before and after):
-
-Fix #<gh-issue-id>
+Please provide the [GitHub issue(s)](../issues) or short description what the PR does, as well as test URLs where your change can be observed (before and after):
 
 Test URLs:
-- Before: https://main--{repo}--{owner}.hlx.page/
-- After: https://<branch>--{repo}--{owner}.hlx.page/
+- Before: https://main--henkel-raqn-guide--hlxsites.hlx.page/
+- After: https://<branch>--henkel-raqn-guide--hlxsites.hlx.page/
