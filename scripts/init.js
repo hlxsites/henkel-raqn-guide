@@ -32,31 +32,27 @@ export function retriveDataFrom(blocks) {
 }
 
 function lcpPriority() {
-  if (!window.raqnLCP) {
-    const eagerImages = document.querySelector('meta[name="lcp"]');
-    if (eagerImages) {
-      const length = parseInt(eagerImages.getAttribute('content'), 10);
-      eagerImage(document.body, length);
-    }
-
-    const lcp = document.querySelector('meta[name="lcp"]');
-    if (!lcp) {
-      return window.raqnLCP || [];
-    }
-    window.raqnLCP =
-      window.raqnLCP ||
-      lcp
-        .getAttribute('content')
-        .split(',')
-        .map((name) => ({ name }));
+  const eagerImages = document.querySelector('meta[name="lcp"]');
+  if (eagerImages) {
+    const length = parseInt(eagerImages.getAttribute('content'), 10);
+    eagerImage(document.body, length);
   }
+
+  const lcp = document.querySelector('meta[name="lcp"]');
+  if (!lcp) {
+    return window.raqnLCP || [];
+  }
+  window.raqnLCP =
+    window.raqnLCP ||
+    lcp
+      .getAttribute('content')
+      .split(',')
+      .map((name) => ({ name }));
   return window.raqnLCP;
 }
 
 export async function init(node = document) {
   let blocks = Array.from(node.querySelectorAll('[class]:not([class^=style]'));
-  const imgs = lcpPriority();
-  console.log(imgs);
 
   if (node === document) {
     const header = node.querySelector('header');
@@ -95,4 +91,5 @@ export async function init(node = document) {
 }
 // mechanism of retrieving lang to be used in the app
 document.documentElement.lang = document.documentElement.lang || 'en';
+lcpPriority();
 init();
