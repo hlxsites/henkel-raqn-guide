@@ -148,7 +148,6 @@ pre {
 
 main pre {
   background-color: var(--overlay-background-color);
-  padding: 1em;
   border-radius: 0.25em;
   overflow-x: auto;
   white-space: pre;
@@ -321,7 +320,6 @@ main > div > div {
 
 main > div > div > div {
   max-width: var(--scope-max-width, 100%);
-  margin: var(--scope-margin, 0 auto);
 }
 
 a {
