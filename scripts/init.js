@@ -23,7 +23,7 @@ function lcpPriority() {
   const eagerImages = document.querySelector('meta[name="lcp"]');
   if (eagerImages) {
     const length = parseInt(eagerImages.getAttribute('content'), 10);
-    eagerImage(document, length);
+    eagerImage(document.body, length);
   }
 
   const lcp = document.querySelector('meta[name="lcp"]');
