@@ -1,27 +1,27 @@
-raqn-card {
-  background-color: var(--scope-background, red);
+[data-block-name='card'] {
+  background-color: var(--scope-background, transparent);
   display: grid;
   position: relative;
   grid-template-columns: var(--card-columns, 1fr);
   gap: var(--scope-gap, 20px);
   padding: var(--scope-padding, 20px 0);
 }
-raqn-card a {
+[data-block-name='card'] a {
   font-size: var(--raqn-font-size-3, 1.2em);
   font-weight: bold;
 }
-raqn-card:not(.inner-background) > div {
+[data-block-name='card']:not(.inner-background) > div {
   background-color: var(--scope-background, #fff);
   color: var(--scope-color, #000);
 }
-raqn-card > picture {
+[data-block-name='card'] > picture {
   grid-column: span var(--card-columns, 1fr);
 }
-raqn-card > div {
+[data-block-name='card'] > div {
   position: relative;
 }
 
-raqn-card > div div:last-child > a {
+[data-block-name='card'] > div div:last-child > a {
   position: absolute;
   inset-inline-start: 0;
   inset-block-start: 0;
@@ -30,7 +30,7 @@ raqn-card > div div:last-child > a {
   cursor: pointer;
   text-indent: -10000px;
 }
-raqn-card raqn-icon {
+[data-block-name='card'] raqn-icon {
   width: 100%;
   display: flex;
 }

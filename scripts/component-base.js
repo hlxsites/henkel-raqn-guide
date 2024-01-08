@@ -1,6 +1,7 @@
-import { init } from './init.js';
+import { loadBlocks } from './lib-franklin.js';
+import { decorateMain } from './scripts.js';
 
-export default class ComponentBase extends HTMLElement {
+export default class ComponentBase {
   static get breakpoints() {
     return {
       S: 0,
@@ -11,14 +12,16 @@ export default class ComponentBase extends HTMLElement {
     };
   }
 
-  constructor() {
-    super();
-    this.external = false;
+  constructor(block) {
+    this.block = block;
     this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
+    console.log('contructor', this);
+    this.connectedCallback();
   }
 
   async connectedCallback() {
-    this.setAttribute('id', this.uuid);
+    console.log('connectedCallback', this);
+    this.block.setAttribute('id', this.uuid);
     if (this.external) {
       await this.load(this.external);
     }
@@ -37,8 +40,8 @@ export default class ComponentBase extends HTMLElement {
   async processExternal(response) {
     if (response.ok) {
       const html = await response.text();
-      this.innerHTML = html;
-      return init(this);
+      this.block.innerHTML = html;
+      console.log('html', html);
     }
     return response;
   }

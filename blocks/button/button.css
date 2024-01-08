@@ -1,4 +1,4 @@
-raqn-button {
+[data-block-name='button'] {
   width: 100%;
   display: grid;
   align-content: center;
@@ -22,15 +22,15 @@ raqn-button {
   }
 }
 
-raqn-button a {
+[data-block-name='button'] a {
   color: var(--scope-accent-color, currentcolor);
   padding: 10px 20px;
   text-decoration: none;
 }
 
-raqn-button a:hover,
-raqn-button a:visited,
-raqn-button a:active {
+[data-block-name='button'] a:hover,
+[data-block-name='button'] a:visited,
+[data-block-name='button'] a:active {
   color: currentcolor;
   text-decoration: none;
 }

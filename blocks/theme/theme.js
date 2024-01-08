@@ -1,16 +1,63 @@
+/* eslint-disable no-underscore-dangle */
 import ComponentBase from '../../scripts/component-base.js';
-import { config } from '../../scripts/libs.js';
+
 // minify alias
 const k = Object.keys;
 
-export default class Theme extends ComponentBase {
-  constructor() {
-    super();
-    this.external = '/theme.json';
-    this.skip = ['tag', 'font-face'];
-    this.toTags = ['font-size', 'font-weight', 'font-family', 'line-height'];
-    this.fontFace = '';
-    this.atomic = '';
+const config = {
+  elementBlocks: ['header', 'footer'],
+  breakpoints: {
+    s: 0,
+    m: 768,
+    l: 1024,
+    xl: 1280,
+    xxl: 1920,
+  },
+  joinParams: ['class'],
+  fontWeights: {
+    regular: 400,
+    medium: 500,
+    bold: 700,
+  },
+};
+
+class Theme extends ComponentBase {
+  get external() {
+    return '/theme.json';
+  }
+
+  get skip() {
+    return this._skip || ['tag', 'font-face'];
+  }
+
+  set skip(val) {
+    this._skip = val;
+  }
+
+  get toTags() {
+    return (
+      this._toTags || ['font-size', 'font-weight', 'font-family', 'line-height']
+    );
+  }
+
+  set toTags(val) {
+    this._toTags = val;
+  }
+
+  get fontFace() {
+    return this._fontFace || '';
+  }
+
+  set fontFace(val) {
+    this._fontFace = val;
+  }
+
+  get atomic() {
+    return this._atomic || '';
+  }
+
+  set atomic(val) {
+    this._atomic = val;
   }
 
   fontFaceTemplate(fontFace) {
@@ -108,4 +155,9 @@ export default class Theme extends ComponentBase {
       this.styles();
     }
   }
+}
+
+export default async function theme(block) {
+  console.log('theme', block);
+  await new Theme(block);
 }
