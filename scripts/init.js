@@ -23,7 +23,7 @@ export function getInfos(blocks) {
 function lcpPriority() {
   const eagerImages = document.querySelector('meta[name="eager"]');
   if (eagerImages) {
-    const length = parseInt(eagerImages.getAttribute('content'), 10);
+    const length = parseInt(eagerImages.content, 10);
     eagerImage(document.body, length);
   }
 
@@ -32,11 +32,7 @@ function lcpPriority() {
     return window.raqnLCP || [];
   }
   window.raqnLCP =
-    window.raqnLCP ||
-    lcp
-      .getAttribute('content')
-      .split(',')
-      .map((name) => ({ name }));
+    window.raqnLCP || lcp.content.split(',').map((name) => ({ name }));
   return window.raqnLCP;
 }
 
@@ -65,7 +61,7 @@ export async function init(node = document) {
   ]);
 
   // timeout for the rest to proper prioritize in case of stalled loading
-  rest.map(({ name, el }) => setTimeout(() => start({ name, el })), 10);
+  rest.map(({ name, el }) => setTimeout(() => start({ name, el })), 100);
 
   // reload on breakpoint change to reset params and variables
   window.raqnBreakpoint = getBreakPoint();
