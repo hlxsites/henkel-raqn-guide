@@ -66,9 +66,10 @@ export async function init(node = document) {
     const loader = new ComponentLoader(name, el);
     return loader.decorate();
   };
-  await Promise.all([...lcp.map(({ name, el }) => start({ name, el }))]);
 
-  await Promise.all(
+  Promise.all([...lcp.map(({ name, el }) => start({ name, el }))]);
+
+  window.addEventListener('load', () =>
     data.map(({ name, el }) => setTimeout(() => start({ name, el }))),
   );
 
