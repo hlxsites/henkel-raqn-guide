@@ -55,7 +55,7 @@ export async function init(node = document) {
   };
 
   // start with lcp and priority
-  Promise.all([
+  await Promise.all([
     ...lcp.map(({ name, el }) => start({ name, el })),
     ...priority.map(({ name, el }) => start({ name, el })),
   ]);
