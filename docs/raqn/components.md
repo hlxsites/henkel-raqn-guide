@@ -173,8 +173,8 @@ For setting a param only to a specific viewport just prefix with the viewport ke
 
 So let's set the order param to apply only on S (0 to 767) viewport
 
-![Hero Mobile param](../assets/hero-order-param-0.png)
+![Mobile param](../assets/hero-mobile-param.png)
 
 Now the param is only set at S viewports
 
-![Alt text](../assets/hero-mobile-param-preview.png)
+![Mobile param preview](../assets/hero-mobile-param-preview.png)
