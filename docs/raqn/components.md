@@ -90,6 +90,7 @@ export default class Hero extends ComponentBase {
     this.classList.add('full-width');
     this.setAttribute('role', 'banner');
     // setup a css variable
+    this.style.setProperty('--hero-hero-order', this.getAttribute('order'));
   }
 }
 ```
@@ -147,3 +148,15 @@ raqn-hero {
 Now we should have something like
 (Apart from theme definitions (see [theme](theme.md)))
 ![Hero 1](../assets/hero.png)
+
+### block changing the params
+
+![Hero param 1](../assets/hero-param.png)
+
+These change will:
+1 - Set the param to 1
+2 - Setting the variable order to css
+
+them we'll see changes like:
+
+![Hero applyed](../assets/hero-param-1.png)
