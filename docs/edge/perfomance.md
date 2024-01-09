@@ -32,6 +32,7 @@ The bad:
 The ugly
 
 1. Queue / Priorization with async await code
+2. Icons as inicial decoration script
 
 # Good
 
