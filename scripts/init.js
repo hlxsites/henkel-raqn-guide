@@ -64,20 +64,22 @@ export async function init(node = document) {
 
   const data = retriveDataFrom(blocks);
   const lcp = window.raqnLCP;
+  const priority = data.filter(({ name }) => lcp.includes(name));
+  const rest = data.filter(({ name }) => !lcp.includes(name));
   const start = ({ name, el }) => {
     const loader = new ComponentLoader(name, el);
     return loader.decorate();
   };
 
-  Promise.all([...lcp.map(({ name, el }) => start({ name, el }))]);
+  Promise.all([...lcp.map(({ name, el }) => start({ name, el })), ...priority]);
 
   if (!loaded) {
     window.addEventListener('load', () => {
       loaded = true;
-      return data.map(({ name, el }) => setTimeout(() => start({ name, el })));
+      return rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
     });
   } else {
-    data.map(({ name, el }) => setTimeout(() => start({ name, el })));
+    rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
   }
 
   // reload on breakpoint change
