@@ -1,16 +1,6 @@
 import { init } from './init.js';
 
 export default class ComponentBase extends HTMLElement {
-  static get breakpoints() {
-    return {
-      S: 0,
-      M: 768,
-      L: 1024,
-      XL: 1280,
-      XXL: 1920,
-    };
-  }
-
   constructor() {
     super();
     this.external = false;
@@ -23,7 +13,7 @@ export default class ComponentBase extends HTMLElement {
       await this.load(this.external);
     }
     this.connected();
-    this.render();
+    this.ready();
   }
 
   async load(block) {
@@ -45,5 +35,5 @@ export default class ComponentBase extends HTMLElement {
 
   connected() {}
 
-  render() {}
+  ready() {}
 }

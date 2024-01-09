@@ -1,23 +1,23 @@
 /* block specific CSS goes here */
 
 raqn-hero {
-  --raqn-background-color: var(--scope-background, transparent);
-  --raqn-color: var(--scope-color, transparent);
-  --raqn-grid-template-columns: 0.6fr 0.4fr;
+  --hero-background-color: var(--scope-background, black);
+  --hero-color: var(--scope-color, white);
+  --hero-grid-template-columns: 0.6fr 0.4fr;
+  --hero-hero-order: 0;
+  --hero-padding-block: 40px;
 
-  background-color: var(--raqn-background-color);
-  color: var(--raqn-color);
+  background-color: var(--hero-background-color);
+  color: var(--hero-color);
   align-items: center;
+  grid-template-columns: var(--hero-grid-template-columns, 1fr);
+  padding-block: var(--hero-padding-block);
 
   @media screen and (max-width: 768px) {
-    --raqn-grid-template-columns: 1fr;
+    --hero-grid-template-columns: 1fr;
   }
 
-  grid-template-columns: var(--raqn-grid-template-columns, 1fr);
-
-  @media screen and (min-width: 768px) {
-    & > div:first-child {
-      max-width: 30vw;
-    }
+  & > div:first-child {
+    order: var(--hero-hero-order);
   }
 }

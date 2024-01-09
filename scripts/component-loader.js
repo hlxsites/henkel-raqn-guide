@@ -12,10 +12,6 @@ export default class ComponentLoader {
     }
   }
 
-  /**
-   * Loads a CSS file.
-   * @param {string} href URL to the CSS file
-   */
   async loadCSS(href) {
     return new Promise((resolve, reject) => {
       if (!document.querySelector(`head > link[href="${href}"]`)) {
@@ -31,9 +27,6 @@ export default class ComponentLoader {
     });
   }
 
-  /**
-   * Parse extra params from classList
-   */
   setParams() {
     const mediaParams = {};
     this.params = {
@@ -66,13 +59,6 @@ export default class ComponentLoader {
     };
   }
 
-  /**
-   * Set the configuration for the given block, and also passes
-   * the config through all custom patching helpers added to the project.
-   *
-   * @param {Element} block The block element
-   * @returns {Object} The block config (blockName, cssPath and jsPath)
-   */
   setBlockPaths() {
     this.cssPath = `/blocks/${this.blockName}/${this.blockName}.css`;
     this.jsPath = `/blocks/${this.blockName}/${this.blockName}.js`;
@@ -83,7 +69,6 @@ export default class ComponentLoader {
     const element = document.createElement(elementName);
     element.append(...this.block.children);
     Object.keys(this.params).forEach((key) => {
-      // @TODO sanitize
       const value = Array.isArray(this.params[key])
         ? this.params[key].join(' ')
         : this.params[key];
