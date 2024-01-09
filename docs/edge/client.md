@@ -61,7 +61,7 @@ Here is some examples:
 (Example HEADER)[https://github.com/adobe/aem-boilerplate/blob/main/blocks/header/header.js]
 
 Advances:
-1 - Simple to add events etcs
+1 - Simple
 2 - Functional approch good for testing
 3 - usign modules allow importing from other libraries
 
@@ -69,5 +69,6 @@ Disavantages
 1 - Blocks need to be executed manually in every element
 2 - Any new dom needs be decorated manually
 3 - Limited reusability of a "component"
-4 - Too opniated, easy allows bad code
-5 - no clear life cicle of a block
+4 - Too opniated allows to free style coding / no code best practices enforcing
+5 - No clear life cicle of a block
+6 - Uses semantical data as parameters and passing options
