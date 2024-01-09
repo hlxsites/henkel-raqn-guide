@@ -68,15 +68,15 @@ export async function init(node = document) {
     const loader = new ComponentLoader(name, el);
     return loader.decorate();
   };
-  Promise.all([
+  await Promise.all([
     ...lcp.map(({ name, el }) => start({ name, el })),
     ...prio.map(({ name, el }) => start({ name, el })),
   ]);
-  setTimeout(() => {
-    Promise.all(
-      rest.map(({ name, el }) => setTimeout(() => start({ name, el }))),
-    );
-  }, 100);
+
+  await Promise.all(
+    rest.map(({ name, el }) => setTimeout(() => start({ name, el }))),
+  );
+
   // reload on breakpoint change
   window.raqnBreakpoint = getBreakPoint();
   window.addEventListener(
