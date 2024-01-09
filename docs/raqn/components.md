@@ -32,8 +32,9 @@ That will:
 
 1. Try to load a hero component or block
 2. Will check if the loaded default has a name and not fn named decorate
-3. If not it will create a custom element based on the name of the component
-4. if is a decorate function keep as EDS
+3. Read and create element attributes based on class names
+4. If not it will create a custom element based on the name of the component
+5. if is a decorate function keep as EDS
 
 ## Base Custom Element Component
 
@@ -51,7 +52,8 @@ That will
    6. Add a ready life cicle to setup things everythings is ready.
 3. Keep all other custom element features
 
-(component-base)[../../scripts/component-base.js]
+here:
+[component-base](../../scripts/component-base.js)
 
 ## Custom element
 
