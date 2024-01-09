@@ -61,7 +61,7 @@ export async function init(node = document) {
   ]);
 
   // timeout for the rest to proper prioritize in case of stalled loading
-  rest.map(({ name, el }) => setTimeout(() => start({ name, el })), 100);
+  rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
 
   // reload on breakpoint change to reset params and variables
   window.raqnBreakpoint = getBreakPoint();
