@@ -170,3 +170,11 @@ For setting a param only to a specific viewport just prefix with the viewport ke
 3. **l**: 1024 to 1279,
 4. **xl**: 1280 to 1919,
 5. **xxl**: 1920,
+
+So let's set the order param to apply only on S (0 to 767) viewport
+
+![Hero Mobile param](../assets/hero-order-param-0.png)
+
+Now the param is only set at S viewports
+
+![Alt text](../assets/hero-mobile-param-preview.png)
