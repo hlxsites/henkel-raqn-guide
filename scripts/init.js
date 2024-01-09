@@ -1,6 +1,8 @@
 import ComponentLoader from './component-loader.js';
 import { config, debounce, getBreakPoint } from './libs.js';
 
+export let loaded = false;
+
 export const eagerImage = (block, length = 1) => {
   const imgs = Array.from(block.querySelectorAll('img')).slice(0, length);
   console.log('eager', imgs, length);
@@ -69,9 +71,10 @@ export async function init(node = document) {
 
   Promise.all([...lcp.map(({ name, el }) => start({ name, el }))]);
 
-  window.addEventListener('load', () =>
-    data.map(({ name, el }) => setTimeout(() => start({ name, el }))),
-  );
+  window.addEventListener('load', () => {
+    loaded = true;
+    return data.map(({ name, el }) => setTimeout(() => start({ name, el })));
+  });
 
   // reload on breakpoint change
   window.raqnBreakpoint = getBreakPoint();
