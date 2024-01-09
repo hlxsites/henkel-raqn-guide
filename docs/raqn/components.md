@@ -26,7 +26,7 @@ Component setup params and custom elements
 Let's check a example
 
 Document example
-![Hero](assets/hero-example.png)
+![Hero](../assets/hero-example.png)
 
 That will:
 
@@ -51,7 +51,7 @@ That will
    6. Add a ready life cicle to setup things everythings is ready.
 3. Keep all other custom element features
 
-(component-base)[assets/component-base.js]
+(component-base)[../../scripts/component-base.js]
 
 ## Custom element
 
