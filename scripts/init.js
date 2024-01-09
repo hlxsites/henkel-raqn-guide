@@ -71,13 +71,6 @@ export async function init(node = document) {
     return loader.decorate();
   };
 
-  window.addEventListener('load', () => {
-    if (!loaded) {
-      loaded = true;
-      rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
-    }
-  });
-
   // start with lcp and priority
   Promise.all([
     ...lcp.map(({ name, el }) => start({ name, el })),
