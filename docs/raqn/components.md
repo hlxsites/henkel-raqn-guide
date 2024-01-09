@@ -23,12 +23,10 @@ It allows:
 
 Component setup params and custom elements
 
-Let's check a example
-
 Document example
 ![Hero](../assets/hero-example.png)
 
-That will:
+Then with the example our component loader will:
 
 1. Try to load a hero component or block
 2. Will check if the loaded default has a name and not fn named decorate
