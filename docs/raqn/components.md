@@ -53,10 +53,6 @@ That will
 here:
 [component-base](../../scripts/component-base.js)
 
-## Custom element
-
-Let's first
-
 With component loader that will be rendered as:
 
 ```html
@@ -75,3 +71,79 @@ With component loader that will be rendered as:
   </div>
 </raqn-hero>
 ```
+
+## Custom element example
+
+So let's bring that custom element to life
+
+Let's check this simple example
+
+```javascript
+import ComponentBase from '../../scripts/component-base.js';
+
+export default class Hero extends ComponentBase {
+  static observedAttributes = ['order'];
+
+  ready() {
+    this.order = this.getAttribute('order');
+    // add some extra classes
+    this.classList.add('full-width');
+    this.setAttribute('role', 'banner');
+    // setup a css variable
+  }
+}
+```
+
+this example:
+1 - Use the ready callback when the custom element is defined and added to the page.
+2 - Setup some classe, attribute and set a css variable.
+
+### Passing attributes to your component
+
+Let's the use the document to pass the param
+
+![Order](../assets/hero-order-param-0.png)
+
+Then with this change you will pass a param to your component
+
+```html
+<raqn-hero order="0" id="gen58aa7c0c" class="full-width" role="banner">
+  <div>
+    <picture>
+      <!-- ... -->
+    </picture>
+  </div>
+  <div>
+    <!-- ... -->
+  </div>
+</raqn-hero>
+```
+
+So let's add a little style at hero.css
+
+```css
+/* block specific CSS goes here */
+raqn-hero {
+  --hero-background-color: var(--scope-background, black);
+  --hero-color: var(--scope-color, white);
+  --hero-grid-template-columns: 0.6fr 0.4fr;
+  --hero-hero-order: 0;
+
+  background-color: var(--hero-background-color);
+  color: var(--hero-color);
+  align-items: center;
+  grid-template-columns: var(--hero-grid-template-columns, 1fr);
+
+  @media screen and (max-width: 768px) {
+    --hero-grid-template-columns: 1fr;
+  }
+
+  & > div:first-child {
+    order: var(--hero-hero-order);
+  }
+}
+```
+
+Now we should have something like
+(Apart from theme definitions (see [theme](theme.md)))
+![Hero 1](../assets/hero.png)

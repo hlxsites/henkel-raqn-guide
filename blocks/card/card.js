@@ -1,5 +1,5 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { eagerImage } from '../../scripts/init.js';
+import { eagerImage } from '../../scripts/libs.js';
 
 export default class Card extends ComponentBase {
   static get observedAttributes() {
