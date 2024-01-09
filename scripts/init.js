@@ -71,17 +71,19 @@ export async function init(node = document) {
     return loader.decorate();
   };
 
+  window.addEventListener('load', () => {
+    if (!loaded) {
+      loaded = true;
+      rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
+    }
+  });
+
   await Promise.all([
     ...lcp.map(({ name, el }) => start({ name, el })),
     ...priority.map(({ name, el }) => start({ name, el })),
   ]);
 
-  if (!loaded) {
-    window.addEventListener('load', () => {
-      loaded = true;
-      return rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
-    });
-  } else {
+  if (loaded) {
     rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
   }
 
