@@ -160,3 +160,13 @@ These change will:
 them we'll see changes like:
 
 ![Hero applyed](../assets/hero-param-1.png)
+
+## Setting Param only to a viewport
+
+For setting a param only to a specific viewport just prefix with the viewport key
+
+1. **s**: 0 to 767,
+2. **m**: 768 to 1023,
+3. **l**: 1024 to 1279,
+4. **xl**: 1280 to 1919,
+5. **xxl**: 1920,
