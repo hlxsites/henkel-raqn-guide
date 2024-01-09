@@ -73,7 +73,7 @@ export async function init(node = document) {
 
   await Promise.all([
     ...lcp.map(({ name, el }) => start({ name, el })),
-    ...priority,
+    ...priority.map(({ name, el }) => start({ name, el })),
   ]);
 
   if (!loaded) {
@@ -82,7 +82,7 @@ export async function init(node = document) {
       return rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
     });
   } else {
-    await rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
+    rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
   }
 
   // reload on breakpoint change
