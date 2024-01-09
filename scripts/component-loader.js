@@ -69,7 +69,6 @@ export default class ComponentLoader {
     const element = document.createElement(elementName);
     element.append(...this.block.children);
     Object.keys(this.params).forEach((key) => {
-      // @TODO sanitize
       const value = Array.isArray(this.params[key])
         ? this.params[key].join(' ')
         : this.params[key];
