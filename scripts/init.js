@@ -71,10 +71,14 @@ export async function init(node = document) {
 
   Promise.all([...lcp.map(({ name, el }) => start({ name, el }))]);
 
-  window.addEventListener('load', () => {
-    loaded = true;
-    return data.map(({ name, el }) => setTimeout(() => start({ name, el })));
-  });
+  if (!loaded) {
+    window.addEventListener('load', () => {
+      loaded = true;
+      return data.map(({ name, el }) => setTimeout(() => start({ name, el })));
+    });
+  } else {
+    data.map(({ name, el }) => setTimeout(() => start({ name, el })));
+  }
 
   // reload on breakpoint change
   window.raqnBreakpoint = getBreakPoint();
