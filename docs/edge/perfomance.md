@@ -22,7 +22,6 @@ The good:
 2. Proper Eager first LCP image.
 3. Deliver minimal for LCP
 4. Font fallback plugin
-5. SEO
 
 The bad:
 
@@ -54,14 +53,41 @@ Kepping it as good as it were preloaded.
 
 They offer a plugin to proper check and setup custom fonts to avoid CLS [font fallback plugin](https://www.aem.live/developer/font-fallback)
 
-```
+# Bad
 
-```
+## header
 
-```
-They force
-```
+although they enforce that header is not LCP, that definetly is the case in several henkel sites where logo is the main LCP or header impacts CLS. So a non priorized header can easily impact CLS and some cases even LCP
 
-```
- most of the times, does impact LCP and specially CLS if not proper setup
-```
+## Some assets could be preloaded.
+
+In some cases preload some assets would offer advantages on LCP and FP
+
+## fixed code required to configure LCP_BLOCKS
+
+That also can be a issue if you have diferent blocks on diferent pages
+
+# the ugly
+
+Well althould is actually a well performing script, it's relying a lot on async await.
+Async function if you await became basicly syncronous code.
+So the queue will always offer a step by step loading and reduce the concurrency and increase the time to load some assets.
+That actually can lead to longer load times in bad connections since
+
+## This repo on OOB script on regular wifi network no CDN
+
+![OOB script on regular wifi network no CDN](../assets/franklin-regular-network.png)
+
+## This repo on OOB script on slow 3G
+
+![OOB script on regular wifi network no CDN](../assets/franklin-slow3g-network.png)
+get's clear the async await / queue impact
+
+## At netcentric.biz
+
+![Netcentric.biz](../assets/netcentricbiz.png)
+
+## At aem.live
+
+![Netcentric.biz](../assets/aemlive1.png)
+![Netcentric.biz](../assets/aemlive2.png)
