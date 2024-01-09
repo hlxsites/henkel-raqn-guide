@@ -69,10 +69,11 @@ That also can be a issue if you have diferent blocks on diferent pages
 
 # the ugly
 
-Well althould is actually a well performing script, it's relying a lot on async await.
-Async function if you await became basicly syncronous code.
-So the queue will always offer a step by step loading and reduce the concurrency and increase the time to load some assets.
-That actually can lead to longer load times in bad connections since
+Well althould is actually a well performing script, it's relying a lot on queue and async await.
+
+- Async function if you actually await became basicly syncronous code.
+
+Queue will always offer a step by step loading and reduce the concurrency increasing the time to load overrall and can lead to longer load times.
 
 ## This repo on OOB script on regular wifi network no CDN
 
