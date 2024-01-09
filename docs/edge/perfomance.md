@@ -18,10 +18,11 @@ Edge defines as 3 fases
 
 The good:
 
-1. LCP Blocks
-2. Proper Eager first LCP image.
-3. Deliver minimal for LCP
-4. Font fallback plugin
+1. Good backend perfomance
+2. LCP Blocks
+3. Proper Eager first LCP image.
+4. Deliver minimal for LCP
+5. Font fallback plugin
 
 The bad:
 
@@ -35,6 +36,18 @@ The ugly
 2. Icons as inicial decoration script
 
 # Good
+
+## Good backend perfomnce
+
+Very good backend perfomance OOB and very small footprint under CDN.
+This seems the most impacting perfomance, at CDN in several sites, content and assets can reach amazing speed.
+
+### Production sites with server response under 40ms
+
+Examples
+
+- [https://www.netcentric.biz/](https://www.netcentric.biz/)
+- [https://www.aem.live/home](https://www.aem.live/home)
 
 ## LCP blocks
 
@@ -92,4 +105,7 @@ get's clear the async await / queue impact
 ## At aem.live
 
 ![Netcentric.biz](../assets/aemlive1.png)
+
+# Here anothe issue due to icons loaded before since they are defined at incial script
+
 ![Netcentric.biz](../assets/aemlive2.png)
