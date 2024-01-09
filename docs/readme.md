@@ -11,7 +11,6 @@ Summary
    3. [EDS - Perfomance](edge/perfomance.md)
 
 2. RAQN POC
-   1. Reasoning
-   2. Component loader
-   3. Custom elements
-   4. Defining Priority Components
+   1. [Reasoning](raqn/reasoning.md)
+   2. [Component base development](raqn/components.md)
+   3. Defining Priority Components
