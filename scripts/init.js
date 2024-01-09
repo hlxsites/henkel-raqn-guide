@@ -71,19 +71,19 @@ export async function init(node = document) {
     return loader.decorate();
   };
 
-  Promise.all([
+  await Promise.all([
     ...lcp.map(({ name, el }) => start({ name, el })),
     ...priority.map(({ name, el }) => start({ name, el })),
   ]);
 
-  // if (!loaded) {
-  //   window.addEventListener('load', () => {
-  //     loaded = true;
-  //     return rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
-  //   });
-  // } else {
-  rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
-  // }
+  if (!loaded) {
+    window.addEventListener('load', () => {
+      loaded = true;
+      return rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
+    });
+  } else {
+    rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
+  }
 
   // reload on breakpoint change
   window.raqnBreakpoint = getBreakPoint();
