@@ -71,7 +71,10 @@ export async function init(node = document) {
     return loader.decorate();
   };
 
-  Promise.all([...lcp.map(({ name, el }) => start({ name, el })), ...priority]);
+  await Promise.all([
+    ...lcp.map(({ name, el }) => start({ name, el })),
+    ...priority,
+  ]);
 
   if (!loaded) {
     window.addEventListener('load', () => {
@@ -79,7 +82,7 @@ export async function init(node = document) {
       return rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
     });
   } else {
-    rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
+    await rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
   }
 
   // reload on breakpoint change
