@@ -62,19 +62,14 @@ export async function init(node = document) {
 
   const data = retriveDataFrom(blocks);
   const lcp = window.raqnLCP;
-  const prio = data.slice(0, 2);
-  const rest = data.slice(2);
   const start = ({ name, el }) => {
     const loader = new ComponentLoader(name, el);
     return loader.decorate();
   };
-  await Promise.all([
-    ...lcp.map(({ name, el }) => start({ name, el })),
-    ...prio.map(({ name, el }) => start({ name, el })),
-  ]);
+  await Promise.all([...lcp.map(({ name, el }) => start({ name, el }))]);
 
   await Promise.all(
-    rest.map(({ name, el }) => setTimeout(() => start({ name, el }))),
+    data.map(({ name, el }) => setTimeout(() => start({ name, el }))),
   );
 
   // reload on breakpoint change
