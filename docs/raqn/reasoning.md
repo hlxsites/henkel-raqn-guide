@@ -13,9 +13,10 @@ For proof of concept we are recreating https://guide.raqn.io/ in EDS
 We want to be able to add features as reusable components instead of a composition of functions.
 
 That allows us to:
-1 - Have a clear component life cicle
-2 - Enforce good code practices
-3 - Easy Reusability
+
+1. Have a clear component life cicle
+2. Enforce good code practices
+3. Easy Reusability
 
 ## Authoring Theme Capabilityes
 
@@ -33,8 +34,9 @@ this means same code can:
 
 As the same concept of themeing we want to be able to setup same code base with diferent params related to perfomance.
 
-not all websites have the same set of components order / layout definitions therefore we need to be able to change components and elements priorization _without development_ to be able to still get 100% perfomance.
+not all websites have the same set of components order / layout definitions therefore we need to be able to change components and elements priorization **without development** to be able to still get 100% perfomance.
 
 Those are the minimal requirements
-1 - Allow to setup what components are LCP
-2 - Allow to setup what images are eager loaded
+
+1. Allow to setup what components are LCP
+2. Allow to setup what images are eager loaded

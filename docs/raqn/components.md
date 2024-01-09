@@ -1,4 +1,4 @@
-# Component Base
+# Component Base Development with custom elements
 
 We want to be able to add features as reusable components instead of a composition of functions.
 
@@ -149,7 +149,7 @@ Now we should have something like
 (Apart from theme definitions (see [theme](theme.md)))
 ![Hero 1](../assets/hero.png)
 
-### block changing the params
+### Changing the params by document
 
 ![Hero param 1](../assets/hero-param.png)
 
@@ -160,6 +160,8 @@ These change will:
 them we'll see changes like:
 
 ![Hero applyed](../assets/hero-param-1.png)
+
+A param is set to all viewports
 
 ## Setting Param only to a viewport
 
@@ -178,3 +180,8 @@ So let's set the order param to apply only on S (0 to 767) viewport
 Now the param is only set at S viewports
 
 ![Mobile param preview](../assets/hero-mobile-param-preview.png)
+
+Where:
+
+1. regular params will be set to all viewports
+2. Prefixed params will be apply only to the specific viewport overriding the general one.
