@@ -6,6 +6,9 @@ export default class Column extends ComponentBase {
   }
 
   connected() {
+    const firstChild = this.children[0];
+    const content = this.querySelector('div > div');
+    firstChild.replaceWith(...content.children);
     this.calculateGridTemplateColumns();
   }
 

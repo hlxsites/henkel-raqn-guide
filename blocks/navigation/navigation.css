@@ -61,8 +61,8 @@ raqn-navigation {
       list-style: none;
       max-width: 0;
       background-color: var(--scope-background, #fff);
-      min-width: var(--scope-max-width, 100%);
-      inset-inline-start: calc((100vw - var(--scope-max-width)) / 2);
+      min-width: 100%;
+      inset-inline-start: 0;
       inset-block-start: var(--scope-header-height, 64px);
       min-height: 100%;
       margin: 0 auto;
@@ -70,6 +70,8 @@ raqn-navigation {
 
       li {
         padding-block: 1.2em;
+        max-width: var(--scope-max-width, 100%);
+        margin: 0 auto;
       }
     }
   }
@@ -85,6 +87,11 @@ raqn-navigation {
       display: flex;
     }
 
+    & > ul {
+      inset-inline-start: calc((100vw - var(--scope-max-width)) / 2);
+      inset-block-start: var(--scope-header-height, 64px);
+    }
+
     & > p {
       display: inline-flex;
     }
@@ -95,17 +102,6 @@ raqn-navigation {
 
     .level-1 a {
       padding: var(--padding-vertical, 20px) var(--padding-horizontal, 20px);
-    }
-
-    .level-2,
-    .level-2 > ul {
-      display: inline-flex;
-      flex-direction: column;
-    }
-
-    .level-2 > ul {
-      list-style: none;
-      padding: 0;
     }
 
     .level-1 > ul {
@@ -137,6 +133,17 @@ raqn-navigation {
         box-shadow: 0 0 30px #000;
         z-index: 1;
       }
+    }
+
+    .level-2,
+    .level-2 > ul {
+      display: inline-flex;
+      flex-direction: column;
+    }
+
+    .level-2 > ul {
+      list-style: none;
+      padding: 0;
     }
 
     .level-1:hover > ul {

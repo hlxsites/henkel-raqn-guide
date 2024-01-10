@@ -27,7 +27,7 @@ export default class Navigation extends Column {
     if (this.compact) {
       this.nav.append(this.createButton());
     }
-    this.firstChild.replaceWith(this.nav);
+    this.append(this.nav);
     this.setupClasses(this.list);
     this.addEventListener('click', (e) => this.activate(e));
   }
