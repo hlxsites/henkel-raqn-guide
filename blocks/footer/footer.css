@@ -20,13 +20,20 @@ raqn-footer {
     padding: 0;
     margin: 0;
 
+    @media screen and (min-width: 1024px) {
+      display: flex;
+    }
+
     li {
       margin: 2em 0;
 
       a {
         padding: 10px 1.2em;
         color: var(--scope-color);
-        border-inline-end: 1px solid var(--scope-color);
+
+        @media screen and (min-width: 1024px) {
+          border-inline-end: 1px solid var(--scope-color);
+        }
       }
 
       &:last-child a {

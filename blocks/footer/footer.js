@@ -12,5 +12,6 @@ export default class Footer extends ComponentBase {
     this.nav = this.querySelector('ul');
     this.nav.setAttribute('role', 'navigation');
     this.classList.add('full-width');
+    this.classList.add('horizontal');
   }
 }
