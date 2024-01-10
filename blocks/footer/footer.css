@@ -7,27 +7,41 @@ footer {
 raqn-footer {
   background-color: var(--scope-background-color);
   border-top: 1px solid var(--scope-color);
-  display: grid;
-  grid-template-columns: auto 20vw;
 
-  & :last-child {
-    justify-self: end;
-    align-self: center;
+  @media screen and (min-width: 1024px) {
+    display: grid;
+    grid-template-columns: auto 20vw;
+  }
+
+  & > *:last-child {
+    @media screen and (min-width: 1024px) {
+      justify-self: end;
+      align-self: center;
+    }
   }
 
   ul {
     list-style: none;
     padding: 0;
-    margin: 0;
-    display: flex;
+    margin: 20px 0;
+
+    @media screen and (min-width: 1024px) {
+      display: flex;
+      margin: 0;
+    }
 
     li {
-      margin: 2em 0;
+      @media screen and (min-width: 1024px) {
+        margin: 2em 0;
+      }
 
       a {
-        padding: 10px 1.2em;
         color: var(--scope-color);
-        border-inline-end: 1px solid var(--scope-color);
+
+        @media screen and (min-width: 1024px) {
+          padding: 10px 1.2em;
+          border-inline-end: 1px solid var(--scope-color);
+        }
       }
 
       &:last-child a {

@@ -61,8 +61,8 @@ raqn-navigation {
       list-style: none;
       max-width: 0;
       background-color: var(--scope-background, #fff);
-      min-width: var(--scope-max-width, 100%);
-      inset-inline-start: calc((100vw - var(--scope-max-width)) / 2);
+      min-width: 100%;
+      inset-inline-start: 0;
       inset-block-start: var(--scope-header-height, 64px);
       min-height: 100%;
       margin: 0 auto;
@@ -70,6 +70,8 @@ raqn-navigation {
 
       li {
         padding-block: 1.2em;
+        max-width: var(--scope-max-width, 100%);
+        margin: 0 auto;
       }
     }
   }
@@ -83,6 +85,11 @@ raqn-navigation {
     ul {
       list-style: none;
       display: flex;
+    }
+
+    & > ul {
+      inset-inline-start: calc((100vw - var(--scope-max-width)) / 2);
+      inset-block-start: var(--scope-header-height, 64px);
     }
 
     & > p {

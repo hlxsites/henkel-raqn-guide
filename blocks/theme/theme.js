@@ -24,6 +24,7 @@ export default class Theme extends ComponentBase {
       'header-height',
       'header-background',
       'header-color',
+      'headings-color',
       'max-width',
     ];
     this.toTags = ['font-size', 'font-weight', 'font-family', 'line-height'];
@@ -73,7 +74,7 @@ export default class Theme extends ComponentBase {
         this.fontFace += this.fontFaceTemplate(value);
       } else {
         variable = `\n--raqn-${key}-${row}: ${value};\n`;
-        this.atomic += `\n.${key}-${row} {\n--scope-${key}: var(--raqn-${key}-${row}, ${value}); \n}\n`;
+        this.atomic += `\nbody .${key}-${row} {\n--scope-${key}: var(--raqn-${key}-${row}, ${value}); \n}\n`;
       }
     }
     return variable;
