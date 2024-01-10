@@ -24,13 +24,13 @@ The good:
 4. Deliver minimal for LCP
 5. Font fallback plugin
 
-The bad:
+Could improve
 
 1. Header
 2. no mention of preloading
 3. fixed code required to configure LCP_BLOCKS
 
-The ugly
+Problems
 
 1. Queue / Priorization with async await code
 2. Icons as inicial decoration script
@@ -67,7 +67,7 @@ Kepping it as good as it were preloaded.
 
 They offer a plugin to proper check and setup custom fonts to avoid CLS [font fallback plugin](https://www.aem.live/developer/font-fallback)
 
-# Bad
+# Could improve
 
 ## header
 
@@ -81,7 +81,7 @@ In some cases preload some assets would offer advantages on LCP and FP
 
 That also can be a issue if you have diferent blocks on diferent pages
 
-# the ugly
+# Problems
 
 Well althould is actually a well performing script, it's relying a lot on queue and async await.
 
