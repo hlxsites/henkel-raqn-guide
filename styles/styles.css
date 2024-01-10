@@ -41,6 +41,7 @@ main > * {
 .full-width {
   --scope-outer-gap: calc((var(--scope-max-width) - 100vw) / 2);
   --scope-inner-gap: calc((100vw - var(--scope-max-width)) / 2);
+
   display: grid;
   width: 100vw;
   margin-inline-start: var(--scope-outer-gap);

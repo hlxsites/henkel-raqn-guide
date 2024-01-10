@@ -6,19 +6,23 @@ raqn-card {
   gap: var(--scope-gap, 20px);
   padding: var(--scope-padding, 20px 0);
 }
+
 raqn-card a {
   font-size: var(--raqn-font-size-3, 1.2em);
   font-weight: bold;
 }
-raqn-card:not(.inner-background) > div {
-  background-color: var(--scope-background, #fff);
-  color: var(--scope-color, #000);
-}
+
 raqn-card > picture {
   grid-column: span var(--card-columns, 1fr);
 }
+
 raqn-card > div {
   position: relative;
+}
+
+raqn-card:not(.inner-background) > div {
+  background-color: var(--scope-background, #fff);
+  color: var(--scope-color, #000);
 }
 
 raqn-card > div div:last-child > a {
@@ -30,6 +34,7 @@ raqn-card > div div:last-child > a {
   cursor: pointer;
   text-indent: -10000px;
 }
+
 raqn-card raqn-icon {
   width: 100%;
   display: flex;
