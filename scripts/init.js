@@ -20,20 +20,22 @@ export function getInfos(blocks) {
   });
 }
 
+function getMeta(name) {
+  const meta = document.querySelector(`meta[name="${name}"]`);
+  if (!meta) {
+    return null;
+  }
+  return meta.content;
+}
+
 function lcpPriority() {
-  const eagerImages = document.querySelector('meta[name="eager"]');
+  const eagerImages = getMeta('eager-images');
   if (eagerImages) {
-    const length = parseInt(eagerImages.content, 10);
+    const length = parseInt(eagerImages, 10);
     eagerImage(document.body, length);
   }
-
-  const lcp = document.querySelector('meta[name="lcp"]');
-  if (!lcp) {
-    return window.raqnLCP || [];
-  }
-  window.raqnLCP =
-    window.raqnLCP || lcp.content.split(',').map((name) => ({ name }));
-  return window.raqnLCP;
+  const lcp = getMeta('lcp');
+  window.raqnLCP = lcp ? lcp.split(',').map((name) => ({ name })) : [];
 }
 
 export async function init(node = document) {
@@ -47,8 +49,11 @@ export async function init(node = document) {
 
   const data = getInfos(blocks);
   const lcp = window.raqnLCP;
+  const delay = window.raqnLCPDelay || [];
   const priority = data.filter(({ name }) => lcp.includes(name));
-  const rest = data.filter(({ name }) => !lcp.includes(name));
+  const rest = data.filter(
+    ({ name }) => !lcp.includes(name) && !delay.includes(name),
+  );
   const start = ({ name, el }) => {
     const loader = new ComponentLoader(name, el);
     return loader.decorate();

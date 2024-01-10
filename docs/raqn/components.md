@@ -8,6 +8,26 @@ That allows us to:
 2. Enforce good code practices
 3. Easy Reusability
 
+# Defining concern and features in Component-Based Architecture
+
+For better separation of concern we should define feaures as components.
+
+Let's have a example
+Let's check some concerns defined on the main OOB script for EDS
+1 - Decorate buttons
+2 - Placeholders
+3 - Load icons
+4 - Restructure Headings
+
+Those concerns should not be at general inicial script
+
+- A button should be the concern of it's component not a convetion based on beeing inside of a div
+- Placeholders should be concern of sites that require placeholders
+- Icons, so not every site or page will require icons, so icon is the concern of icons not all pages.
+- Headings can be defined by authors, and semantical meaning should also be concern of authors or a component.
+
+We should be able to set components and features on the fly without obligation as components.
+
 ## Simple component loader
 
 Instead of several decoration functions we setup a simple component loader to "decorate and prepare"

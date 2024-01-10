@@ -38,5 +38,5 @@ not all websites have the same set of components order / layout definitions ther
 
 Those are the minimal requirements
 
-1. Allow to setup what components are LCP
-2. Allow to setup what images are eager loaded
+1. Allow editorial setup what components are LCP per page
+2. Allow to setup what images are eager loaded per page
