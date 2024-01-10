@@ -25,12 +25,12 @@ body {
 }
 
 header {
-  --scope-background: var(--raqn-header-background-default, #fff);
-  --scope-color: var(--raqn-header-color-default, #000);
+  --scope-background: var(--scope-header-background, #fff);
+  --scope-color: var(--scope-header-color, #000);
 
   min-height: var(--scope-header-height, 64px);
   display: grid;
-  background-color: var(--raqn-header-background-default, #fff);
+  background-color: var(--scope-header-background, #fff);
 }
 
 main > * {
@@ -40,18 +40,35 @@ main > * {
 
 .full-width {
   --scope-outer-gap: calc((var(--scope-max-width) - 100vw) / 2);
+  --scope-inner-gap: calc((100vw - var(--scope-max-width)) / 2);
 
   display: grid;
   width: 100vw;
   margin-inline-start: var(--scope-outer-gap);
-  padding-inline: calc(-1 * var(--scope-outer-gap));
+  padding-inline: var(--scope-inner-gap);
   box-sizing: border-box;
 }
 
-main div > div {
+main > div > div {
   background-color: var(--scope-background, #fff);
   color: var(--scope-color, #000);
+  padding: var(--scope-padding, 0);
+}
+
+main > div > div > div {
+  max-width: var(--scope-max-width, 100%);
   margin: var(--scope-margin, 0 auto);
+  width: 100%;
+}
+
+.breadcrumbs {
+  display: grid;
+  grid-template-columns: var(--scope-grid-template-columns, 1fr);
+  gap: var(--scope-gap, 20px);
+  padding: var(--scope-padding, 20px 0);
+  align-items: center;
+  justify-items: start;
+  min-height: var(--scope-font-size, 1.2em);
 }
 
 a {
@@ -59,6 +76,13 @@ a {
   line-height: 1em;
   text-align: center;
   align-items: center;
+  color: var(--scope-link-color, inherit);
+  text-decoration: none;
+  font-size: var(--scope-font-size, 1em);
+
+  &:hover {
+    color: var(--scope-link-color-hover, inherit);
+  }
 }
 
 .raqn-grid {
@@ -82,26 +106,20 @@ img {
   pointer-events: none;
 }
 
-@keyframes placeholder {
-  0% {
-    background-color: var(--scope-background, #fff);
-  }
+p,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  margin-block: var(--scope-font-block-margins, 1em);
 
-  50% {
-    background-color: var(--scope-color, #999);
-  }
-
-  100% {
-    background-color: var(--scope-background, #fff);
+  @media screen and (min-width: 768px) {
+    max-width: 35vw;
   }
 }
 
-@keyframes fade-in {
-  0% {
-    opacity: 0;
-  }
-
-  100% {
-    opacity: 1;
-  }
+#franklin-svg-sprite {
+  display: none;
 }

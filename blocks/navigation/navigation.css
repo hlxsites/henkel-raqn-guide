@@ -97,6 +97,17 @@ raqn-navigation {
       padding: var(--padding-vertical, 20px) var(--padding-horizontal, 20px);
     }
 
+    .level-2,
+    .level-2 > ul {
+      display: inline-flex;
+      flex-direction: column;
+    }
+
+    .level-2 > ul {
+      list-style: none;
+      padding: 0;
+    }
+
     .level-1 > ul {
       display: flex;
       clip-path: inset(0% -100vw 100% -100vw);

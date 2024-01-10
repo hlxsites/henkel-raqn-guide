@@ -17,7 +17,7 @@ export default class Navigation extends Column {
     return button;
   }
 
-  render() {
+  ready() {
     this.list = this.querySelector('ul');
     this.nav = document.createElement('nav');
     this.nav.append(this.list);
