@@ -9,4 +9,5 @@ raqn-header {
   background-color: var(--scope-header-background, #fff);
   align-items: center;
   z-index: 100;
+  border-block-end: 1px solid white;
 }
