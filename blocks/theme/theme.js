@@ -6,28 +6,10 @@ const k = Object.keys;
 export default class Theme extends ComponentBase {
   constructor() {
     super();
-    this.external = '/theme.json';
-    this.skip = ['tag', 'font-face'];
-    this.themeVariables = [
-      'color',
-      'background',
-      'link-color',
-      'link-color-hover',
-      'accent-color',
-      'accent-background',
-      'accent-color-hover',
-      'accent-background-hover',
-      'accent2-color',
-      'accent2-background',
-      'accent2-color-hover',
-      'accent2-background-hover',
-      'header-height',
-      'header-background',
-      'header-color',
-      'headings-color',
-      'max-width',
-    ];
-    this.toTags = ['font-size', 'font-weight', 'font-family', 'line-height'];
+    this.external = '/copytheme.json';
+    this.skip = ['tags', 'font-face'];
+    this.toTags = ['font-size', 'font-weight', 'font-family', 'line-height', 'font-style'];
+    this.tags = '';
     this.fontFace = '';
     this.atomic = '';
   }
@@ -41,13 +23,13 @@ export default class Theme extends ComponentBase {
       const fontWeight = config.fontWeights[lastBit] || 'regular';
       const fontStyle = lastBit === 'italic' ? lastBit : 'normal';
       // eslint-disable-next-line max-len
-      return `\n@font-face {\nfont-family: ${name};\nfont-weight: ${fontWeight};\nfont-display: swap;\nfont-style: ${fontStyle};\nsrc: url('/fonts/${fontFace}') format(${format});\n}\n`;
+      return `@font-face {font-family: ${name};font-weight: ${fontWeight};font-display: swap;font-style: ${fontStyle};src: url('/fonts/${fontFace}') format(${format});}`;
     }
     return '';
   }
 
   fontTags(t, index) {
-    const tag = t.tag[index];
+    const tag = t.tags[index];
     const values = this.toTags.reduce((acc, key) => {
       if (t[key][index]) {
         if (acc[tag]) {
@@ -60,9 +42,9 @@ export default class Theme extends ComponentBase {
     }, {});
     return k(values).map((value) => {
       const val = values[value];
-      return `${tag} {\n${k(val)
+      return `${tag} {${k(val)
         .map((v) => `${v}: ${val[v]};`)
-        .join('\n')}\n}`;
+        .join('')}}`;
     });
   }
 
@@ -73,8 +55,8 @@ export default class Theme extends ComponentBase {
       if (key === 'font-face') {
         this.fontFace += this.fontFaceTemplate(value);
       } else {
-        variable = `\n--raqn-${key}-${row}: ${value};\n`;
-        this.atomic += `\nbody .${key}-${row} {\n--scope-${key}: var(--raqn-${key}-${row}, ${value}); \n}\n`;
+        variable = `--raqn-${key}-${row}: ${value};`;
+        this.atomic += `body .${key}-${row} {--scope-${key}: var(--raqn-${key}-${row}); }`;
       }
     }
     return variable;
@@ -98,29 +80,30 @@ export default class Theme extends ComponentBase {
         }, ac),
       {},
     );
-
-    this.tags = k(t.tag)
-      .map((index) => this.fontTags(t, index))
-      .join('\n\n');
-
+    // font tags
+    if (t.tags) {
+      this.tags = k(t.tags)
+        .map((index) => this.fontTags(t, index))
+        .join('');
+    }
     // full scoped theme classes
     this.themes = this.themesKeys
       .map(
-        (theme) => `\n.theme-${theme} {\n${k(t)
-          .filter((key) => this.themeVariables.includes(key))
+        (theme) => `.theme-${theme} {${k(t)
+          .filter((key) => ![...this.skip, ...this.toTags].includes(key))
           .map((key) =>
             t[key][theme]
-              ? `--scope-${key}: var(--raqn-${key}-${theme}, ${t[key][theme]});`
+              ? `--scope-${key}: var(--raqn-${key}-${theme});`
               : '',
           )
           .filter((v) => v !== '')
-          .join('\n')}
-        }\n`,
+          .join('')}
+        }`,
       )
       .join('');
 
     this.variables = k(t)
-      .filter((key) => !this.skip.includes(key))
+      .filter((key) => ![...this.skip, ...this.toTags].includes(key))
       .map((key) => {
         const rows = k(t[key]);
         return rows.map((row) => this.renderVariables(key, row, t)).join('');
@@ -130,7 +113,7 @@ export default class Theme extends ComponentBase {
 
   styles() {
     const style = document.createElement('style');
-    style.innerHTML = `${this.fontFace}\n\nbody {\n${this.variables}\n}\n\n${this.tags}\n\n${this.atomic}\n${this.themes}`;
+    style.innerHTML = `${this.fontFace}body {${this.variables}}${this.tags}${this.atomic}${this.themes}`;
     document.head.appendChild(style);
     document.body.classList.add('theme-default');
     document.body.style.display = 'block';
