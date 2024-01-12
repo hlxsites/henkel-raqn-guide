@@ -47,6 +47,10 @@ A sample doc file with an example text will be rendered into the following HTML:
 
 The document content will be transformed into the corresponding HTML structure as shown below:
 
+Example document:
+![Example doc](assets/doc-example.png)
+
+Output:
 ```HTML
 <div>
   <p>Normal text</p>
