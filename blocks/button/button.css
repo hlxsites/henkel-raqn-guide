@@ -31,6 +31,5 @@ raqn-button a {
 raqn-button a:hover,
 raqn-button a:visited,
 raqn-button a:active {
-  color: currentcolor;
   text-decoration: none;
 }
