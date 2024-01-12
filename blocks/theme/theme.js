@@ -6,7 +6,7 @@ const k = Object.keys;
 export default class Theme extends ComponentBase {
   constructor() {
     super();
-    this.external = '/copytheme.json';
+    this.external = '/theme.json';
     this.skip = ['tags', 'font-face'];
     this.toTags = ['font-size', 'font-weight', 'font-family', 'line-height', 'font-style'];
     this.tags = '';
