@@ -6,6 +6,7 @@ const k = Object.keys;
 export default class Theme extends ComponentBase {
   constructor() {
     super();
+    this.scapeDiv = document.createElement('div');
     this.external = '/copytheme.json';
     this.skip = ['tags', 'font-face'];
     this.toTags = ['font-size', 'font-weight', 'font-family', 'line-height', 'font-style'];
@@ -48,6 +49,11 @@ export default class Theme extends ComponentBase {
     });
   }
 
+  escapeHtml(unsafe) {
+    this.scapeDiv.textContent = unsafe;
+    return this.scapeDiv.innerHTML;
+  }
+
   renderVariables(key, row, t) {
     const value = t[key][row];
     let variable = '';
@@ -55,7 +61,7 @@ export default class Theme extends ComponentBase {
       if (key === 'font-face') {
         this.fontFace += this.fontFaceTemplate(value);
       } else {
-        variable = `\n--raqn-${key}-${row}: ${value};\n`;
+        variable = `\n--raqn-${key}-${row}: ${this.escapeHtml(value).trim()};\n`;
         this.atomic += `\nbody .${key}-${row} {\n--scope-${key}: var(--raqn-${key}-${row});}\n`;
       }
     }

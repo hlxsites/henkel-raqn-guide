@@ -12,7 +12,6 @@ img {
 body {
   display: none;
   background-color: var(--scope-background, #fff);
-  color: var(--scope-color, #000);
   padding: 0;
   margin: 0;
   width: 100%;
@@ -22,6 +21,28 @@ body {
   @media screen and (min-width: 768px) {
     --scope-header-height: 160px;
   }
+}
+
+html, body, div, span, applet, object, iframe,
+h1, h2, h3, h4, h5, h6, p, blockquote, pre,
+a, abbr, acronym, address, big, cite, code,
+del, dfn, em, img, ins, kbd, q, s, samp,
+small, strike, strong, sub, sup, tt, var,
+b, u, i, center,
+dl, dt, dd, ol, ul, li,
+fieldset, form, label, legend,
+table, caption, tbody, tfoot, thead, tr, th, td,
+article, aside, canvas, details, embed, 
+figure, figcaption, footer, header, hgroup, 
+menu, nav, output, ruby, section, summary,
+time, mark, audio, video {
+	margin: 0;
+	padding: 0;
+	border: 0;
+	font: inherit;
+  font-size: 100%;
+	vertical-align: baseline;
+  color: inherit;
 }
 
 header {
@@ -79,10 +100,10 @@ a {
   color: var(--scope-link-color, inherit);
   text-decoration: none;
   font-size: var(--scope-font-size, 1em);
+}
 
-  &:hover {
-    color: var(--scope-link-color-hover, inherit);
-  }
+a:hover {
+  color: var(--scope-link-color-hover, inherit);
 }
 
 .raqn-grid {

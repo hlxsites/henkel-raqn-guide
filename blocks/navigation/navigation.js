@@ -18,6 +18,7 @@ export default class Navigation extends Column {
   }
 
   ready() {
+    this.active = {};
     this.list = this.querySelector('ul');
     this.nav = document.createElement('nav');
     this.nav.append(this.list);
@@ -29,13 +30,16 @@ export default class Navigation extends Column {
     }
     this.append(this.nav);
     this.setupClasses(this.list);
-    this.addEventListener('click', (e) => this.activate(e));
+    if (this.compact) {
+      this.addEventListener('click', (e) => this.activate(e));
+    }
   }
 
   setupClasses(ul, level = 1) {
     const children = Array.from(ul.children);
     children.forEach((child) => {
       child.classList.add(`level-${level}`);
+      child.dataset.level = level;
       const hasChildren = child.querySelector('ul');
       if (hasChildren) {
         const anchor = child.querySelector('a');
@@ -49,13 +53,16 @@ export default class Navigation extends Column {
   }
 
   activate(e) {
+    e.preventDefault();
     if (e.target.tagName.toLowerCase() === 'a') {
       const current = e.target.closest('li');
-      if (this.active && this.active !== current) {
-        this.active.classList.remove('active');
+      const { level } = current.dataset;
+      if (this.active[level] && this.active[level] !== current) {
+        this.active[level].classList.remove('active');
       }
-      this.active = current;
-      this.active.classList.toggle('active');
+      this.active[level] = current;
+      this.setAttribute('active', level)
+      this.active[level].classList.toggle('active');
     }
   }
 }

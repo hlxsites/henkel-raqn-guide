@@ -1,12 +1,13 @@
 raqn-card {
-  background-color: var(--scope-background, red);
+  background-color: var(--scope-background, transparent);
+  color: var(--scope-color, #fff);
   display: grid;
   position: relative;
   grid-template-columns: var(--card-columns, 1fr);
   gap: var(--scope-gap, 20px);
   padding: var(--scope-padding, 20px 0);
 
-  a {
+  & a {
     font-size: var(--raqn-font-size-3, 1.2em);
     font-weight: bold;
   }
@@ -17,6 +18,7 @@ raqn-card {
 
   & > div {
     position: relative;
+    background-color: var(--scope-inner-background, transparent);
     padding: var(--scope-inner-padding, 20px);
     padding-block-end: calc(var(--scope-inner-padding, 20px) + var(--scope-icon-size, 20px));
   }
