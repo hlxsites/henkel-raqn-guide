@@ -6,7 +6,7 @@ const k = Object.keys;
 export default class Theme extends ComponentBase {
   constructor() {
     super();
-    this.external = '/theme.json';
+    this.external = '/copytheme.json';
     this.skip = ['tags', 'font-face'];
     this.toTags = ['font-size', 'font-weight', 'font-family', 'line-height', 'font-style'];
     this.tags = '';
@@ -55,8 +55,8 @@ export default class Theme extends ComponentBase {
       if (key === 'font-face') {
         this.fontFace += this.fontFaceTemplate(value);
       } else {
-        variable = `--raqn-${key}-${row}: ${value};`;
-        this.atomic += `body .${key}-${row} {--scope-${key}: var(--raqn-${key}-${row}); }`;
+        variable = `\n--raqn-${key}-${row}: ${value};\n`;
+        this.atomic += `\nbody .${key}-${row} {\n--scope-${key}: var(--raqn-${key}-${row});}\n`;
       }
     }
     return variable;
@@ -84,7 +84,7 @@ export default class Theme extends ComponentBase {
     if (t.tags) {
       this.tags = k(t.tags)
         .map((index) => this.fontTags(t, index))
-        .join('');
+        .join('\n');
     }
     // full scoped theme classes
     this.themes = this.themesKeys
@@ -93,7 +93,7 @@ export default class Theme extends ComponentBase {
           .filter((key) => ![...this.skip, ...this.toTags].includes(key))
           .map((key) =>
             t[key][theme]
-              ? `--scope-${key}: var(--raqn-${key}-${theme});`
+              ? `\n--scope-${key}: var(--raqn-${key}-${theme});`
               : '',
           )
           .filter((v) => v !== '')
