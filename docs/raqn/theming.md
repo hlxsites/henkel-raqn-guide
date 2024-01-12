@@ -110,7 +110,19 @@ h2, .heading2 {
     line-height: 1em;
     font-style: italic;
 }
-p, body, pre, input {
+h3, .heading3 {
+    font-size: 25px;
+    font-weight: bold;
+}
+h4, .heading4 {
+    font-size: 20px;
+    font-weight: bold;
+}
+h5, .heading5 {
+    font-size: 18px;
+    font-weight: bold;
+}
+p,body,pre,input {
     font-size: 12px;
     font-weight: normal;
     font-family: Roboto,Arial, sans-serif;
