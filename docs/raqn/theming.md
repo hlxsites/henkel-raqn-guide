@@ -3,10 +3,10 @@
 For better future developments we want to create some theme capabilities under EDS enviroment
 This means that an author could:
 
-1. Change layout
-2. Change colors
-3. Change icons
-4. Change Fonts definitions
+1. __Change layout__
+2. __Change colors__
+3. __Change icons__
+4. __Change Fonts definitions__
 
 
 ## CSS variables for theme
@@ -20,7 +20,7 @@ So let's take a look at this example:
 
 Let's take a look
 
-- First row define name of the theme, can be used as strings like primary secondary or numbers, althoult numbers are smaller and easier to use. (the A1 cell ilustrative and it's value is ignored)
+- First row define name of the theme, can be used as strings like primary secondary or numbers, althoult numbers are smaller and easier to use. __(the A1 cell ilustrative and it's value is ignored)__
 - The first column defines the property / variable name you want to use.
 
 So for a nice theme application well need:
@@ -130,6 +130,14 @@ p,body,pre,input {
     font-style: normal;
 }
 ```
+## fonts example
+
+With the theme defined above let's check the application
+Document
+![Alt text](../assets/simple-doc.png)
+Output
+![Alt text](../assets/font-example.png)
+
 
 ## default theme
 
@@ -141,14 +149,40 @@ The __theme and fonts__ are apply by default to the site
 </body>
 ```
 
+
 ## Adiconal variables 
 
-You can setup any variables to use as atomic classes but let's create some for general purposes 
+You can setup any variables to use as atomic classes but let's create some for general purposes
 
-
-
+General purpuse variables
+1. __Colors Variables__
+    1. __background__: Change general background __
+    2. __inner-background__: Change a child element background, ex cards background__
+    3. __link-color__:
+    4. __link-color-hover__:
+    5. __accent-color__:
+    6. __accent-background__:
+    7. __accent-color-hover__:
+    8. __accent-background-hover__:
+    9. __header-background__:
+    10. __header-color__:
+    11. __headings-color__:
+    12. __footer-background__:
+2. __Block Model__:
+    1. __max-width__:
+    2. __padding__
+    3. __inner-padding__
+    4. __gap__
+    5. __margin__
+    6. __icon-size__
+3. __Aligment__
+    1. __align__
+    2. __justify__
+    
 
 ## applying theme
+
+Lets try 
 
 
 
