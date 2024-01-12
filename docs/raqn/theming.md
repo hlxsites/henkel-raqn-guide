@@ -157,27 +157,27 @@ You can setup any variables to use as atomic classes but let's create some for g
 General purpuse variables
 1. __Colors Variables__
     1. __background__: Change general background __
-    2. __inner-background__: Change a child element background, ex cards background__
-    3. __link-color__:
-    4. __link-color-hover__:
-    5. __accent-color__:
-    6. __accent-background__:
-    7. __accent-color-hover__:
-    8. __accent-background-hover__:
-    9. __header-background__:
-    10. __header-color__:
-    11. __headings-color__:
-    12. __footer-background__:
+    2. __inner-background__: Change a child element background, ex cards background
+    3. __link-color__: Link colors 
+    4. __link-color-hover__: Link hover and active color
+    5. __accent-color__: Buttons and ctas color
+    6. __accent-background__: Buttons and ctas background
+    7. __accent-color-hover__: Buttons and ctas hover and active color
+    8. __accent-background-hover__: Buttons and ctas hover and active background
+    9. __header-background__: Header background
+    10. __header-color__: Header text color
+    11. __headings-color__: Headings color, h1 to h3
+    12. __footer-background__: footer background color
 2. __Block Model__:
-    1. __max-width__:
-    2. __padding__
-    3. __inner-padding__
-    4. __gap__
-    5. __margin__
-    6. __icon-size__
-3. __Aligment__
-    1. __align__
-    2. __justify__
+    1. __max-width__: full width / max container, prefered to use vw unit
+    2. __padding__: padding of a element
+    3. __inner-padding__: padding of a child element, ex cards 
+    4. __gap__: grid gap between columns
+    5. __margin__: margin of a element
+    6. __icon-size__: icon size (square)
+3. __Aligment__:
+    1. __align__: vertical aliment of elements
+    2. __justify__: Horizontal aliment of elements
     
 
 ## applying theme
