@@ -91,7 +91,24 @@ h1, .heading1 {
     font-weight: bold;
     line-height: 1.4em;
 }
-/* ... (other headings and tags) ... */
+h2, .heading2 {
+    font-size: 30px;
+    font-weight: 600;
+    line-height: 1em;
+    font-style: italic;
+}
+h3, .heading3 {
+    font-size: 25px;
+    font-weight: bold;
+}
+h4, .heading4 {
+    font-size: 20px;
+    font-weight: bold;
+}
+h5, .heading5 {
+    font-size: 18px;
+    font-weight: bold;
+}
 p,body,pre,input {
     font-size: 12px;
     font-weight: normal;
