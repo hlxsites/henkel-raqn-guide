@@ -125,7 +125,7 @@ Now let's add the LCP in this order
 ![Alt text](../assets/lcp-setup-1.png)
 
 Let's check the loading diference 
-![Alt text](../assets/lcp-setup-preview.png)
+![Alt text](../assets/lcp-setup-preview-1.png)
 
 
 
