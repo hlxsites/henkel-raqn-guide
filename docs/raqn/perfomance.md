@@ -34,10 +34,10 @@ Here we have the example of the impact of queueing under this page load.
 
 Where you can see several assets are queue before even the FCP and LCP
 
-1 - DOMContentLoaded and Load event conflict 
-2 - That counts that all LCP script should be at style.css
-3 - We have several ms between FCP and LCP, and that opens a window of CLS
-4 - loading is "strech" for several milliseconds before LCP
+1. DOMContentLoaded and Load event conflict 
+2. That counts that all LCP script should be at style.css
+3. We have several ms between FCP and LCP, and that opens a window of CLS
+4. loading is "strech" for several milliseconds before LCP
 
 That becames clear when slow network is applyed
 
