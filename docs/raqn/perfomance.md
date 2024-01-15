@@ -70,7 +70,7 @@ __slow network__
 Here we already can see 2 improvements 
 
 1. Concurrency reduce the overall load time and LCP, both in regular and slow networks
-2. DOMContentLoaded fired during head.html loads ends, then at Load event is fired after the EAGER phase 
+2. DOMContentLoaded fired during html resources parse ends, then at Load event is fired after the EAGER phase 
 
 ## Concurrency, Load and removing 3 fases.
 
@@ -85,7 +85,47 @@ __slow network__
 ![Alt text](../assets/raqn-slow3g-regular.png) 
 
 
+So here we can find a even better perfomance.
 
+1. More cucurrency improves the overall perfomance and LCP
+2. DOMContentLoaded fired correcly and load fires correcly on complete of the page.
+3. Just priorizing loading into LCP components but let other load offer better gains specially on slow networks.
+
+
+# conclusion 
+
+So we choose the regular priorizing and concurrency load that would offer better gains, specially if we follow the
+```It is a good rule of thumb to keep the aggregate payload before the LCP is displayed below 100kb, which usually results in an LCP event quicker than 1560ms (LCP scoring at 100 in PSI). Especially on mobile the network tends to be bandwidth constrained, so changing the loading sequence before LCP has minimal to no impact.```
+
+# Editorial Control Over LCP
+
+So many pages can have diferent templates and components and sometimes that can Impact the LCP.
+
+1 - We want to be able to select how many images would be priorized.
+2 - We want to define what components should be priorized to LCP
+
+## meta data to defined LCP and Eager images
+We can define what components should be priorized at metadata
+![Alt text](../assets/eager-lcp.png)
+
+1. lcp, comma-separeted components/block names
+2. eager-images, number of images that should have loading eager
+
+## Defining LCP components
+
+Here it's a example without defining a LCP,
+It loads by order of aperence
+![Alt text](../assets/no-lcp-loading.png)
+1. Notice that the navigation component is under the header component 
+2. It's load at the end of the queue since it's the last aperance (html loads, header loads, then navigation apears, navigation loads)
+
+Now let's add the LCP in this order
+ - `header, theme, navigation`
+
+![Alt text](../assets/lcp-setup-1.png)
+
+Let's check the loading diference 
+![Alt text](../assets/lcp-setup-preview.png)
 
 
 
