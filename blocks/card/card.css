@@ -20,7 +20,7 @@ raqn-card {
     position: relative;
     background-color: var(--scope-inner-background, transparent);
     padding: var(--scope-inner-padding, 20px);
-    padding-block-end: calc(var(--scope-inner-padding, 20px) + var(--scope-icon-size, 20px));
+    padding-block-end: var(--scope-icon-size, 20px);
   }
 
   & > div div:last-child > a {

@@ -9,7 +9,7 @@ export default class Theme extends ComponentBase {
     this.scapeDiv = document.createElement('div');
     this.external = '/theme.json';
     this.skip = ['tags', 'font-face'];
-    this.toTags = ['font-size', 'font-weight', 'font-family', 'line-height', 'font-style'];
+    this.toTags = ['font-size', 'font-weight', 'font-family', 'line-height', 'font-style', 'font-margin-block'];
     this.tags = '';
     this.fontFace = '';
     this.atomic = '';

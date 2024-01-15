@@ -150,13 +150,13 @@ The __theme and fonts__ are apply by default to the site
 ```
 
 
-## Adiconal variables 
+## Adicional variables 
 
 You can setup any variables to use as atomic classes but let's create some for general purposes
 
 General purpuse variables
 1. __Colors Variables__
-    1. __background__: Change general background __
+    1. __background__: Change general background
     2. __inner-background__: Change a child element background, ex cards background
     3. __link-color__: Link colors 
     4. __link-color-hover__: Link hover and active color
@@ -180,11 +180,55 @@ General purpuse variables
     2. __justify__: Horizontal aliment of elements
     
 
-## applying theme
+## Example of Theme spreadsheet 
+Here a file example
+[Theme Example](../assets/theme.xlsx)
 
-Lets try 
+## Appling theme 
 
+As mentioned before, the default theme is apply.
 
+Let's take the previous file as example
+![Alt text](../assets/theme-example-apply.png)
+
+Let's take a look at default and the C column (1)
+
+So a classname of `.theme-1` would apply the changes on top of the `.theme-default`
+
+So let's check a component example:
+A default hero will take the default theme column 
+![Alt text](../assets/hero-theme-default.png)
+Will look like
+![Alt text](../assets/hero-theme-default-preview.png)
+
+We can move it to the second theme by setting a class
+![Alt text](../assets/hero-theme-1.png)
+![Alt text](../assets/hero-theme-1-preview.png)
+
+## Atomic theming class
+
+We can also change only one of the styles of the theming by join the key row with the first row columns
+
+Example 
+![Alt text](../assets/atomic-example.png)
+
+At the row 13, the key name is `headings-color` and the theme column is `1` 
+
+So we can apply that value using the classname `headings-color-1`
+
+Here is a example 
+![Alt text](../assets/hero-atomic-1.png)
+![Alt text](../assets/hero-atomic-1-doc.png)
+
+Then only the value of headings-color will be changed.
+
+## applying theme without block
+
+We left a special block to use only theme and atomic classes, without having to load or have adicional features
+That block is called __Style__
+
+Here's a example:
+![Style](../assets/style-example.png)
 
 
 ## Limitations
