@@ -204,9 +204,7 @@ At row 13, the key name is `headings-color`, and the theme column is `1`. Applyi
 
 And its corresponding documentation:
 
-![Hero Atomic 1 Documentation](../assets/hero-atomic-1-doc
-
-.png)
+![Hero Atomic 1 Documentation](../assets/hero-atomic-1-doc.png)
 
 ## Applying theme without block
 
