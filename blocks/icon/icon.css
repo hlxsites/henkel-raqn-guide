@@ -14,8 +14,8 @@ raqn-icon {
 
 raqn-icon svg {
   display: inline-block;
-  max-width: var(--scope-icon-size, 1em);
-  max-height: var(--scope-icon-size, 1em);
+  width: var(--scope-icon-size, 1em);
+  height: var(--scope-icon-size, 1em);
   fill: currentcolor;
   overflow: hidden;
   vertical-align: middle;

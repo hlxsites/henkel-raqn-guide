@@ -20,7 +20,7 @@ raqn-footer {
     }
   }
 
-  ul {
+  & ul {
     list-style: none;
     padding: 0;
     margin: 20px 0;
@@ -30,12 +30,12 @@ raqn-footer {
       margin: 0;
     }
 
-    li {
+    & li {
       @media screen and (min-width: 1024px) {
         margin: 2em 0;
       }
 
-      a {
+      & a {
         color: var(--scope-color);
 
         @media screen and (min-width: 1024px) {

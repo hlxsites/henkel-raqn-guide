@@ -1,53 +1,33 @@
 # Edge Delivery Server Rendering
 
-To introduce we're going to breafly talk about the current Edge Delivery Boilerplate / Out of the box (OOB) ways of doing and reasoning what we improve
+In this section, we will briefly discuss the current Edge Delivery Boilerplate/Out of the Box (OOB) methods and rationale for improvement.
 
 ## Advantages
 
-- Simple document based authoring
-- Fast server side delivery
+- Simple document-based authoring
+- Fast server-side delivery
 
-## Simple Document based authoring
+## Simple Document-based Authoring
 
-This simply resume into 2 things
+This can be summarized into two key aspects:
 
-- docs into HTML
-- Excel / spreadsheets into JSON
+- Converting documents into HTML
+- Transforming Excel/spreadsheets into JSON
 
-That way we have a clean simple way to generate HTML and JSON based on documents and document trees
+This approach provides a clean and straightforward method for generating HTML and JSON based on documents and document trees.
 
-### Docs into HTML - Server side render
+### Docs into HTML - Server-side Render
 
-A simple doc file with a Example text will be rendered into something like
+A sample doc file with an example text will be rendered into the following HTML:
 
 ```HTML
 <!doctype html>
 <html>
   <head>
     <title>Name of the document</title>
-    <link
-      rel="canonical"
-      href="https://main--henkel-raqn-guide--hlxsites.hlx.page/untitled-document"
-    />
-    <meta property="og:title" content="Name of the document" />
-    <meta
-      property="og:url"
-      content="https://main--henkel-raqn-guide--hlxsites.hlx.page/untitled-document"
-    />
-    <meta
-      property="og:image"
-      content="https://main--henkel-raqn-guide--hlxsites.hlx.page/default-meta-image.png?width=1200&#x26;format=pjpg&#x26;optimize=medium"
-    />
-    <meta
-      property="og:image:secure_url"
-      content="https://main--henkel-raqn-guide--hlxsites.hlx.page/default-meta-image.png?width=1200&#x26;format=pjpg&#x26;optimize=medium"
-    />
-    <meta name="twitter:card" content="summary_large_image" />
-    <meta name="twitter:title" content="Name of the document" />
-    <meta
-      name="twitter:image"
-      content="https://main--henkel-raqn-guide--hlxsites.hlx.page/default-meta-image.png?width=1200&#x26;format=pjpg&#x26;optimize=medium"
-    />
+      <!--
+        content of meta tags and open graph tags
+       -->
     <meta name="viewport" content="width=device-width, initial-scale=1" />
     <script src="/scripts/lib-franklin.js" type="module"></script>
     <script src="/scripts/scripts.js" type="module"></script>
@@ -65,13 +45,12 @@ A simple doc file with a Example text will be rendered into something like
 </html>
 ```
 
-It renders the Docs into HTML like the example:
+The document content will be transformed into the corresponding HTML structure as shown below:
 
-Here's a example document
+Example document:
 ![Example doc](assets/doc-example.png)
 
-This will be transform into this apart from the HTML exampled above:
-
+Output:
 ```HTML
 <div>
   <p>Normal text</p>
@@ -101,25 +80,22 @@ This will be transform into this apart from the HTML exampled above:
 </div>
 ```
 
-So we can resume the server side render into this simple rules:
+Server-side rendering follows these rules:
 
-1. Title formating are H1
-2. Sub title formating are h3
-3. All other headings follows the proper name - element correlation
-4. All headings will be attached a ID based on it's content (example in the "asdkjasdlkja..." content)
-5. Tables will render one and only header as a classname, lowercase dash separated
-6. Tables rows will create one div per column
-7. Tables will be only rendered as `<table>` when inside another table
-8. You can wrapp a div by adding a `---` into the document
-9. Breaklines are `<p>`
-10. Links most of the time, are wrapped into `<p>` tags then a `<a>`
+1. Titles are formatted as H1.
+2. Subtitles are formatted as H3.
+3. All other headings follow the proper name-element correlation.
+4. Headings are assigned an ID based on their content.
+5. Tables will render with only one header as a class name in lowercase, dash-separated.
+6. Table rows will create one div per column.
+7. Tables will be rendered as `<table>` only when inside another table.
+8. A div can be wrapped by adding `---` into the document.
+9. Break lines are represented as `<p>`.
+10. Links are generally wrapped in `<p>` tags and then enclosed within an `<a>`.
 
-those are briefly the main examples
+### Spreadsheets into JSON
 
-### SpreadSheets into JSON
-
-It also render any SpreadSheets into a simple JSON format
-![Sheet example](assets/sheet-example.png)
+Spreadsheet content is rendered into a simple JSON format as shown in the example:
 
 ```json
 {
@@ -147,12 +123,10 @@ It also render any SpreadSheets into a simple JSON format
 }
 ```
 
-### OOB exceptions
+### OOB Exceptions
 
 ### Metadata and robots.txt
 
-A spreadsheet called `metadata` will actually be rendered as HTML `<meta>`
-and define robots.txt
+A spreadsheet named `metadata` will be rendered as HTML `<meta>` and define `robots.txt`.
 
-Please see more look into
-https://experienceleague.adobe.com/docs/experience-manager-cloud-service/content/edge-delivery/publish/authoring.html?lang=en
+For more details, refer to [Adobe Experience Manager Cloud Service Documentation](https://experienceleague.adobe.com/docs/experience-manager-cloud-service/content/edge-delivery/publish/authoring.html?lang=en).

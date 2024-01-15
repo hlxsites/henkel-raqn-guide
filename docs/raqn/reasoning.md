@@ -1,42 +1,24 @@
-# Reasoning
+# Reasoning for Edge Delivery Server (EDS) Implementation
 
-We want to take advantage of Edge Delivery cababilities but improving some key features we embrace in RAQN web
+We aim to leverage Edge Delivery capabilities while enhancing key features integral to RAQN web:
 
-1. Components Based Development
-2. Authoring theming capabilityes
-3. Fine Grained Perfomance by authoring
+1. **Component-Based Development:**
+   We are adopting a component-based architecture to facilitate the addition of features as reusable components, moving away from the conventional composition of functions. This approach provides several advantages:
+   - **Clear Component Life Cycle:** Components will have well-defined life cycles, making it easier to manage their behavior and interactions.
+   - **Enforced Code Practices:** By structuring development around components, we enforce good coding practices, leading to cleaner and more maintainable code.
+   - **Easy Reusability:** Components can be easily reused across various parts of the application, promoting a modular and scalable development approach.
 
-For proof of concept we are recreating https://guide.raqn.io/ in EDS
+2. **Authoring Theming Capabilities:**
+   Our goal is to empower authors to create efficient and visually appealing websites without requiring a dedicated development team. This entails allowing the same code to be dynamically customized in terms of:
+   - **Color Schemes:** Authors can easily change the color palette to match the branding or design preferences.
+   - **Layout Composition:** Authors have the flexibility to adjust grid structures, margins, and borders to achieve the desired layout.
+   - **Icon Customization:** The ability to change icons provides authors with creative control over visual elements.
+   - **Font Selection:** Authors can choose different fonts to enhance the overall aesthetic.
+   - **Specific Style Applications:** Authors can apply specific styles to components or elements, ensuring a tailored appearance.
 
-## Component Based Development
+3. **Fine-Grained Performance:**
+   Similar to the theming concept, we aim to provide fine-grained control over the performance characteristics of the website. This involves tailoring the same codebase to accommodate variations in performance requirements without requiring additional development effort. The key requirements for achieving fine-grained performance include:
+   - **Editorial Control Over LCP (Largest Contentful Paint):** Allowing editors to specify which components serve as the largest contentful paint on each page.
+   - **Selective Eager Loading of Images:** Providing the capability to selectively load images eagerly based on editorial preferences and performance considerations.
 
-We want to be able to add features as reusable components instead of a composition of functions.
-
-That allows us to:
-
-1. Have a clear component life cicle
-2. Enforce good code practices
-3. Easy Reusability
-
-## Authoring Theme Capabilityes
-
-We want authors to be able to create fast and quick simple websites without having a development team available
-
-this means same code can:
-
-1. Change colors
-2. Change composition (grid, margins, borders)
-3. Change Icons
-4. Change fonts
-5. Apply specific styles
-
-## Fine Grained Perfomance
-
-As the same concept of themeing we want to be able to setup same code base with diferent params related to perfomance.
-
-not all websites have the same set of components order / layout definitions therefore we need to be able to change components and elements priorization **without development** to be able to still get 100% perfomance.
-
-Those are the minimal requirements
-
-1. Allow editorial setup what components are LCP per page
-2. Allow to setup what images are eager loaded per page
+In essence, our approach to EDS implementation revolves around empowering both developers and authors, ensuring a balance between flexibility and control. By embracing component-based development, authoring theming capabilities, and fine-grained performance tuning, we aim to create a platform that is not only powerful but also user-friendly and adaptable to diverse web development needs. As a proof of concept, we are recreating the [RAQN Guide](https://guide.raqn.io/) within the EDS framework.

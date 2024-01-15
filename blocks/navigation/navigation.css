@@ -12,13 +12,13 @@ raqn-navigation {
 
   /* mobile */
   & > nav {
-    ul,
-    p {
+    & ul,
+    & p {
       display: none;
     }
   }
 
-  a {
+  & a {
     display: inline-flex;
     align-items: center;
     text-decoration: none;
@@ -28,15 +28,15 @@ raqn-navigation {
     font-size: var(--raqn-navigation-level-1);
   }
 
-  .level-2 a {
+  & .level-2 a {
     font-size: var(--raqn-navigation-level-2);
   }
 
-  div {
+  & div {
     display: flex;
   }
 
-  button {
+  & button {
     display: inline-flex;
     justify-self: end;
     align-items: center;
@@ -68,7 +68,7 @@ raqn-navigation {
       margin: 0 auto;
       padding: 0;
 
-      li {
+      & li {
         padding-block: 1.2em;
         max-width: var(--scope-max-width, 100%);
         margin: 0 auto;
@@ -78,11 +78,11 @@ raqn-navigation {
 
   /* desktop */
   &:not([compact='true']) > nav {
-    a {
+    & a {
       line-height: var(--scope-icon-size, 24px);
     }
 
-    ul {
+    & ul {
       list-style: none;
       display: flex;
     }
@@ -96,26 +96,26 @@ raqn-navigation {
       display: inline-flex;
     }
 
-    [icon='chevron-right'] {
+    & [icon='chevron-right'] {
       transform: rotate(90deg);
     }
 
-    .level-1 a {
+    & .level-1 a {
       padding: var(--padding-vertical, 20px) var(--padding-horizontal, 20px);
     }
 
-    .level-2,
-    .level-2 > ul {
+    & .level-2,
+    & .level-2 > ul {
       display: inline-flex;
       flex-direction: column;
     }
 
-    .level-2 > ul {
+    & .level-2 > ul {
       list-style: none;
       padding: 0;
     }
 
-    .level-1 > ul {
+    & .level-1 > ul {
       display: flex;
       clip-path: inset(0% -100vw 100% -100vw);
       position: absolute;
@@ -125,7 +125,7 @@ raqn-navigation {
       transition: clip-path 0.4s ease-in-out;
       overflow: visible;
 
-      .level-2 {
+      & .level-2 {
         padding-block: 1.2em;
         opacity: 0;
         transition: opacity 0.4s ease;
@@ -146,7 +146,7 @@ raqn-navigation {
       }
     }
 
-    .level-1:hover > ul {
+    & .level-1:hover > ul {
       display: flex;
       clip-path: inset(0 -100vw -100% -100vw);
 
