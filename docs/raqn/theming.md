@@ -1,46 +1,35 @@
 # Theming
 
-For better future developments we want to create some theme capabilities under EDS enviroment
-This means that an author could:
+To enhance future developments, we aim to introduce theme capabilities within the EDS environment. This empowers authors to:
 
-1. __Change layout__
-2. __Change colors__
-3. __Change icons__
-4. __Change Fonts definitions__
-
+1. **Change layout**
+2. **Adjust colors**
+3. **Modify icons**
+4. **Define font styles**
 
 ## CSS variables for theme
 
-Based on the EDS cababilities of delivering a spreadsheet as json,
-we'll use a theme.xls as a theme storage.
-
-So let's take a look at this example:
+ Leveraging EDS capabilities for delivering a spreadsheet as JSON, we'll employ a `theme.xls` as a theme storage. The following example illustrates the structure:
 
 ![Theme concept](../assets/theme-concept-excel.png)
 
-Let's take a look
+- The first row defines the name of the theme, which can be expressed as strings (e.g., primary, secondary) or numbers for simplicity. *(Note: The A1 cell is illustrative, and its value is ignored.)*
+- The first column outlines the property/variable names.
 
-- First row define name of the theme, can be used as strings like primary secondary or numbers, althoult numbers are smaller and easier to use. __(the A1 cell ilustrative and it's value is ignored)__
-- The first column defines the property / variable name you want to use.
+For effective theme application, we require:
 
-So for a nice theme application well need:
- - global css variables
- - Atomic classes for styling components or blocks
- - full theme classes to apply all properties
+- Global CSS variables
+- Atomic classes for styling components or blocks
+- Full theme classes to apply all properties
 
+The basic rule for rendering these is:
 
-So the theme component will render those as 
-
-Basic rule would be:
-
-```javascript 
-
+```javascript
 ${property}-${columnName}: ${value};
-
 ```
 
 ```css
-/* global css variables */
+/* Global CSS variables */
 body {
     --raqn-color-1: red;
     --raqn-color-2: blue;
@@ -68,7 +57,7 @@ body .background-2 {
 body .background-default {
     --scope-background: var(--raqn-background-default);
 }
-/* them classes to apply all scopes */
+/* Theme classes to apply all scopes */
 .theme-1 {
     --scope-color: var(--raqn-color-1);
     --scope-background: var(--raqn-background-1);
@@ -83,45 +72,26 @@ body .background-default {
 }
 ```
 
-## font tags 
-So for defining default font sizes and other properties we also have a second column
+## Font tags
 
-Main diference is that we need fonts to be defined independent of theme and to simplyfy 
+To define default font sizes and other properties, a second column is introduced. The key difference is that fonts need to be defined independently of the theme. The rule is:
 
-![Alt text](../assets/theme-fonts.png)
-
-rule would be 
 ```javascript
 ${tags} {
     // allowed properties: 'font-size', 'font-weight', 'font-family', 'line-height', 'font-style'
     ${property}: ${value};
 }
 ```
-Output in css 
+
+CSS output:
+
 ```css
 h1, .heading1 {
     font-size: 40px;
     font-weight: bold;
     line-height: 1.4em;
 }
-h2, .heading2 {
-    font-size: 30px;
-    font-weight: 600;
-    line-height: 1em;
-    font-style: italic;
-}
-h3, .heading3 {
-    font-size: 25px;
-    font-weight: bold;
-}
-h4, .heading4 {
-    font-size: 20px;
-    font-weight: bold;
-}
-h5, .heading5 {
-    font-size: 18px;
-    font-weight: bold;
-}
+/* ... (other headings and tags) ... */
 p,body,pre,input {
     font-size: 12px;
     font-weight: normal;
@@ -130,18 +100,20 @@ p,body,pre,input {
     font-style: normal;
 }
 ```
-## fonts example
 
-With the theme defined above let's check the application
-Document
-![Alt text](../assets/simple-doc.png)
-Output
-![Alt text](../assets/font-example.png)
+## Fonts example
 
+With the theme defined above, let's examine the application:
 
-## default theme
+Document:
+![Document](../assets/simple-doc.png)
 
-The __theme and fonts__ are apply by default to the site
+Output:
+![Output](../assets/font-example.png)
+
+## Default theme
+
+The theme and fonts are applied by default to the site:
 
 ```HTML
 <body class="theme-default">
@@ -149,90 +121,84 @@ The __theme and fonts__ are apply by default to the site
 </body>
 ```
 
+## Additional variables
 
-## Adicional variables 
+You can set up additional variables for general purposes. Here are some examples:
 
-You can setup any variables to use as atomic classes but let's create some for general purposes
+1. **Colors Variables**
+    - `background`: Change general background
+    - `inner-background`: Change a child element background, e.g., card backgrounds
+    - `link-color`: Link colors
+    - `link-color-hover`: Link hover and active color
+    - `accent-color`: Buttons and CTAs color
+    - `accent-background`: Buttons and CTAs background
+    - `accent-color-hover`: Buttons and CTAs hover and active color
+    - `accent-background-hover`: Buttons and CTAs hover and active background
+    - `header-background`: Header background
+    - `header-color`: Header text color
+    - `headings-color`: Headings color (h1 to h3)
+    - `footer-background`: Footer background color
+2. **Block Model**
+    - `max-width`: Full width / max container (preferably using vw unit)
+    - `padding`: Padding of an element
+    - `inner-padding`: Padding of a child element, e.g., cards
+    - `gap`: Grid gap between columns
+    - `margin`: Margin of an element
+    - `icon-size`: Icon size (square)
+3. **Alignment**
+    - `align`: Vertical alignment of elements
+    - `justify`: Horizontal alignment of elements
 
-General purpuse variables
-1. __Colors Variables__
-    1. __background__: Change general background
-    2. __inner-background__: Change a child element background, ex cards background
-    3. __link-color__: Link colors 
-    4. __link-color-hover__: Link hover and active color
-    5. __accent-color__: Buttons and ctas color
-    6. __accent-background__: Buttons and ctas background
-    7. __accent-color-hover__: Buttons and ctas hover and active color
-    8. __accent-background-hover__: Buttons and ctas hover and active background
-    9. __header-background__: Header background
-    10. __header-color__: Header text color
-    11. __headings-color__: Headings color, h1 to h3
-    12. __footer-background__: footer background color
-2. __Block Model__:
-    1. __max-width__: full width / max container, prefered to use vw unit
-    2. __padding__: padding of a element
-    3. __inner-padding__: padding of a child element, ex cards 
-    4. __gap__: grid gap between columns
-    5. __margin__: margin of a element
-    6. __icon-size__: icon size (square)
-3. __Aligment__:
-    1. __align__: vertical aliment of elements
-    2. __justify__: Horizontal aliment of elements
-    
+## Example of Theme spreadsheet
 
-## Example of Theme spreadsheet 
-Here a file example
-[Theme Example](../assets/theme.xlsx)
+Here's an example file: [Theme Example](../assets/theme.xlsx)
 
-## Appling theme 
+## Applying theme
 
-As mentioned before, the default theme is apply.
+As mentioned earlier, the default theme is applied. Using the provided file as an example:
 
-Let's take the previous file as example
-![Alt text](../assets/theme-example-apply.png)
+![Applying Theme](../assets/theme-example-apply.png)
 
-Let's take a look at default and the C column (1)
+Comparing the default and the C column (1), a classname of `.theme-1` would apply changes on top of the `.theme-default`. Thus, a component example using the default hero would take the default theme column:
 
-So a classname of `.theme-1` would apply the changes on top of the `.theme-default`
+![Hero Default Theme](../assets/hero-theme-default.png)
 
-So let's check a component example:
-A default hero will take the default theme column 
-![Alt text](../assets/hero-theme-default.png)
-Will look like
-![Alt text](../assets/hero-theme-default-preview.png)
+It would look like:
 
-We can move it to the second theme by setting a class
-![Alt text](../assets/hero-theme-1.png)
-![Alt text](../assets/hero-theme-1-preview.png)
+![Hero Default Preview](../assets/hero-theme-default-preview.png)
+
+Moving it to the second theme is achieved by setting a class:
+
+![Hero Theme 1](../assets/hero-theme-1.png)
+
+And the resulting preview:
+
+![Hero Theme 1 Preview](../assets/hero-theme-1-preview.png)
 
 ## Atomic theming class
 
-We can also change only one of the styles of the theming by join the key row with the first row columns
+Individual styles of the theme can be changed by combining the key row with the first-row columns. For example:
 
-Example 
-![Alt text](../assets/atomic-example.png)
+![Atomic Theming Example](../assets/atomic-example.png)
 
-At the row 13, the key name is `headings-color` and the theme column is `1` 
+At row 13, the key name is `headings-color`, and the theme column is `1`. Applying the value is done using the classname `headings-color-1`:
 
-So we can apply that value using the classname `headings-color-1`
+![Hero Atomic 1](../assets/hero-atomic-1.png)
 
-Here is a example 
-![Alt text](../assets/hero-atomic-1.png)
-![Alt text](../assets/hero-atomic-1-doc.png)
+And its corresponding documentation:
 
-Then only the value of headings-color will be changed.
+![Hero Atomic 1 Documentation](../assets/hero-atomic-1-doc
 
-## applying theme without block
+.png)
 
-We left a special block to use only theme and atomic classes, without having to load or have adicional features
-That block is called __Style__
+## Applying theme without block
 
-Here's a example:
-![Style](../assets/style-example.png)
+A special block named **Style** allows the use of only theme and atomic classes, without loading additional features. Here's an example:
 
+![Style Example](../assets/style-example.png)
 
 ## Limitations
 
-We also develop a font-face theme definition, but currently EDGE delivery lacks the cabability of maintaining fonts in drive or serving it.
+Although we have developed a font-face theme definition, the current EDGE delivery lacks the capability to maintain fonts in drive or serve them:
 
-![Alt text](../assets/font-limitation.png)
+![Font Limitation](../assets/font-limitation.png)
