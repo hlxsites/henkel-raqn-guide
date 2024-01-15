@@ -84,7 +84,7 @@ That also can be an issue if you have different blocks on different pages.
 
 Well, although it's actually a well-performing script, it relies a lot on queue and async-await.
 
-- Async function, if you actually await, becomes basically synchronous code.
+- Chaining of Async function, that actually await, endup beeing basically synchronous/queue code.
 
 Queue will always offer a step-by-step loading and reduce the concurrency, increasing the time to load overall and can lead to longer load times.
 
