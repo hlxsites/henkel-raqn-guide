@@ -122,10 +122,10 @@ It loads by order of aperence
 Now let's add the LCP in this order
  - `header, theme, navigation`
 
-![Alt text](../assets/lcp-setup-1.png)
+![LCP setup](../assets/lcp-setup-1.png)
 
 Let's check the loading diference 
-![Alt text](../assets/lcp-setup-preview-1.png)
+![lcp-setup-preview-1](../assets/lcp-setup-preview-1.png)
 
 
 
