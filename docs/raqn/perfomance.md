@@ -21,7 +21,7 @@ That actually is a key factor to good LCP and loading.
 And we would call it perfomance __BUDGET__ and queueing should influence that.
 
 
-## Let the load be fluid instead of queue.
+# OOB Implementation Queue.
 
 Base on that premise, we should avoid by default having too much assets and scripts loaded in the main priority
 But at the same time queuing those endups removing the benefits of concurency among other things
@@ -46,24 +46,19 @@ That becames clear when slow network is applyed
 Queuing impact now is quite clear.
 
 
-### Checking concurency and delaying
+## Checking concurency and delaying
 
 So having the same rule of thumb of a perfomance budget for LCP under 100kb, let's check 3 main hipotesis.
 
 1. Concurrency would be better
-2. Solving Load and DOMContentLoaded conflict 
-3. Using concurency freeing the LCP and FCP would improve perfomance
-
-So since the OOB script does already queue we already have that use case covered and mesure as following
-__Regular network__
-![EDS](../assets/franklin-regular-network.png)
-__slow network__
-![Alt text](../assets/franklin-slow3g-network.png)
+2. Solving Load and DOMContentLoaded conflict should be solve
+3. Using concurrency but keeping 3 fases improve perfomance
 
 Other examples on EDS perfonmance can be found [here](../edge/perfomance.md)
 
-## Then lets try the first Hipotecy
+## Concurrency, Load and keeping 3 fases.
 
+We can improve perfomance by concurrency load and keeping the 3 fases 
 Scripts will keep the 3 phases defined in EDGE but with better concurency
 
 Let's see the example
