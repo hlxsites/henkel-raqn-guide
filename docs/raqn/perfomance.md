@@ -67,6 +67,23 @@ __Regular network__
 __slow network__
 ![Alt text](../assets/raqn-slow3g-await.png) 
 
+Here we already can see 2 improvements 
+
+1. Concurrency reduce the overall load time and LCP, both in regular and slow networks
+2. DOMContentLoaded fired during head.html loads ends, then at Load event is fired after the EAGER phase 
+
+## Concurrency, Load and removing 3 fases.
+
+In this example we don't force delay we just priorize loading to in case of stalled loading.
+
+1 - Priorize LCP defined ones
+2 - Allow other things on the page to load toguether at the end of prio
+
+__Regular network__
+![Alt text](../assets/raqn-wifi-regular.png)
+__slow network__
+![Alt text](../assets/raqn-slow3g-regular.png) 
+
 
 
 
