@@ -210,6 +210,10 @@ And its corresponding documentation:
 
 A special block named **Style** allows the use of only theme and atomic classes, without loading additional features. Here's an example:
 
+Wherer:
+1 - You don't need to add `class=` just the classname 
+2 - No other feature or block is loaded
+
 ![Style Example](../assets/style-example.png)
 
 ## Limitations
