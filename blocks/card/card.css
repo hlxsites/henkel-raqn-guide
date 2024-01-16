@@ -31,13 +31,17 @@ raqn-card {
     height: 100%;
     cursor: pointer;
     text-indent: -10000px;
+    margin: 0;
+    padding: 0;
   }
 
   & raqn-icon {
     width: 100%;
     display: flex;
     position: absolute;
-    inset-block-end: calc(var(--scope-inner-padding, 20px));
-    inset-inline-end: var(--scope-inner-padding, 20px);
+    inset-block-end: 0;
+    inset-inline-end: 0;
+    box-sizing: border-box;
+    padding: var(--scope-inner-padding, 20px);
   }
 }

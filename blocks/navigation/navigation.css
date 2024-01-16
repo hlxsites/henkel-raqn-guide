@@ -17,7 +17,7 @@ raqn-navigation {
       display: none;
     }
 
-    & ul {  
+    & > ul {  
       overflow-y: auto;
       max-height: calc(100vh - var(--scope-header-height));
     }
@@ -76,15 +76,18 @@ raqn-navigation {
       min-width: 100%;
       inset-inline-start: 0;
       inset-block-start: var(--scope-header-height, 64px);
-      min-height: 100%;
+      height: 100%;
       max-height: calc(100vh - var(--scope-header-height, 64px));
       margin: 0 auto;
       padding: 0;
 
       & li {
-        padding-block: 1.2em;
         max-width: var(--scope-max-width, 100%);
         margin: 0 auto;
+
+        & a {
+          padding-block: 1.2em;
+        } 
       }
     }
   }
@@ -124,7 +127,6 @@ raqn-navigation {
     & .level-2 > a {
       color: var(--scope-link-color-hover);
       font-size: 1.2em;
-      font-weight: bold;
 
       &:hover {
         color: var(--scope-color, #fff);

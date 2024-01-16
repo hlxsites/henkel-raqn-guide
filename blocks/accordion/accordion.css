@@ -71,9 +71,9 @@ raqn-accordion {
 
         }
     }
+}
 
-    & .accordion-content-wrapper {
-        margin-block: 1em;
-        display: grid;
-    }
+.accordion-content-wrapper {
+    margin-block: 1em;
+    display: grid;
 }

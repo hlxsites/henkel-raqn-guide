@@ -94,7 +94,6 @@ main > div > div > div {
 a {
   display: inline-flex;
   line-height: 1em;
-  text-align: center;
   align-items: center;
   color: var(--scope-link-color, inherit);
   text-decoration: none;
@@ -155,7 +154,8 @@ h6 {
 
 /* component setup styles */
 
-raqn-navigation {
+raqn-navigation,
+.navigation {
   & > ul,
   & > button {
     display: none;
