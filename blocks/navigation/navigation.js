@@ -1,6 +1,8 @@
+import { start } from '../../scripts/init.js';
 import Column from '../column/column.js';
 
 export default class Navigation extends Column {
+
   createButton() {
     const button = document.createElement('button');
     button.setAttribute('aria-label', 'Menu');
@@ -27,6 +29,7 @@ export default class Navigation extends Column {
     this.icon = this.getAttribute('icon') || 'menu';
     if (this.compact) {
       this.nav.append(this.createButton());
+      start({name:'accordion'});
     }
     this.append(this.nav);
     this.setupClasses(this.list);
@@ -35,17 +38,33 @@ export default class Navigation extends Column {
     }
   }
 
+  createIcon(name = this.icon) {
+    const icon = document.createElement('raqn-icon');
+    icon.setAttribute('icon', name);
+    return icon;
+  }
+
+  creaeteAccordion(replaceChildrenElement) {
+    const accordion = document.createElement('raqn-accordion');
+    const children = Array.from(replaceChildrenElement.children);
+    accordion.append(...children);
+    replaceChildrenElement.append(accordion);
+  }
+
   setupClasses(ul, level = 1) {
     const children = Array.from(ul.children);
     children.forEach((child) => {
+      const hasChildren = child.querySelector('ul');
       child.classList.add(`level-${level}`);
       child.dataset.level = level;
-      const hasChildren = child.querySelector('ul');
+
       if (hasChildren) {
         const anchor = child.querySelector('a');
-        const icon = document.createElement('raqn-icon');
-        icon.setAttribute('icon', 'chevron-right');
-        anchor.append(icon);
+        if (this.compact) {
+          this.creaeteAccordion(child);
+        } else if (level === 1) {
+         anchor.append(this.createIcon('chevron-right'));
+        }
         child.classList.add('has-children');
         this.setupClasses(hasChildren, level + 1);
       }

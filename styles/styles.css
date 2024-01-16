@@ -42,7 +42,7 @@ time, mark, audio, video {
 	font: inherit;
   font-size: 100%;
 	vertical-align: baseline;
-  color: inherit;
+  color: var(--scope-color, inherit);
 }
 
 header {
@@ -86,7 +86,6 @@ main > div > div > div {
   display: grid;
   grid-template-columns: var(--scope-grid-template-columns, 1fr);
   gap: var(--scope-gap, 20px);
-  padding: var(--scope-padding, 20px 0);
   align-items: center;
   justify-items: start;
   min-height: var(--scope-font-size, 1.2em);
@@ -152,4 +151,13 @@ h6 {
 
 #franklin-svg-sprite {
   display: none;
+}
+
+/* component setup styles */
+
+raqn-navigation {
+  & > ul,
+  & > button {
+    display: none;
+  }
 }
