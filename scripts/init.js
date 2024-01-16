@@ -38,6 +38,12 @@ function lcpPriority() {
   window.raqnLCP = lcp ? lcp.split(',').map((name) => ({ name })) : [];
 }
 
+
+export async function start({ name, el }) {
+  const loader = new ComponentLoader(name, el);
+  return loader.decorate();
+};
+
 export async function init(node = document) {
   let blocks = Array.from(node.querySelectorAll('[class]:not([class^=style]'));
 
@@ -54,10 +60,6 @@ export async function init(node = document) {
   const rest = data.filter(
     ({ name }) => !lcp.includes(name) && !delay.includes(name),
   );
-  const start = ({ name, el }) => {
-    const loader = new ComponentLoader(name, el);
-    return loader.decorate();
-  };
 
   // start with lcp and priority
   Promise.all([

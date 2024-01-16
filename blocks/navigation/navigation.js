@@ -1,3 +1,4 @@
+import { start } from '../../scripts/init.js';
 import Column from '../column/column.js';
 
 export default class Navigation extends Column {
@@ -28,6 +29,7 @@ export default class Navigation extends Column {
     this.icon = this.getAttribute('icon') || 'menu';
     if (this.compact) {
       this.nav.append(this.createButton());
+      start({name:'accordion'});
     }
     this.append(this.nav);
     this.setupClasses(this.list);
@@ -43,12 +45,10 @@ export default class Navigation extends Column {
   }
 
   creaeteAccordion(replaceChildrenElement) {
-    const accordion = document.createElement('div');
-    accordion.classList.add('accordion');
+    const accordion = document.createElement('raqn-accordion');
     const children = Array.from(replaceChildrenElement.children);
     accordion.append(...children);
     replaceChildrenElement.append(accordion);
-    this.refresh(replaceChildrenElement);
   }
 
   setupClasses(ul, level = 1) {

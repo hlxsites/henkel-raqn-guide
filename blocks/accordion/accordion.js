@@ -3,24 +3,26 @@ import Column from '../column/column.js';
 export default class Accordion extends Column {
   ready() {
     this.setAttribute('role', 'navigation');
-    console.log('no this.contentChildren.length',this.contentChildren,this.contentChildren.length);
-    if (this.contentChildren.length === 0) {
-      this.contentChildren = Array.from(this.children);
-      console.log('this.contentChildren.length',this.contentChildren,this.contentChildren.length);
-      this.contentChildren = this.contentChildren.map((child) => {
-        const wrapper = document.createElement('div');
-        wrapper.append(child);
-        this.append(wrapper);
-        return wrapper;
-      });
-    }
-    this.setupControls(this.contentChildren.filter((child, ind) => ind % 2 === 0));
-    this.setupContent(this.contentChildren.filter((child, ind) => ind % 2 === 1));
+    let children = Array.from(this.children);
+    children = children.map((child) => {
+      if (child.tagName !== 'DIV') {
+        const div = document.createElement('div');
+        div.append(child);
+        this.append(div);
+        return div;
+      }
+      return child;
+    });
+    // console.log(children)
+    this.setupControls(children.filter((_, ind) => ind % 2 === 0));
+    this.setupContent(children.filter((_, ind) => ind % 2 === 1));
   }
 
   setupControls(controls) {
+    console.log(controls, this.id);
     controls.forEach((control,index) => {
       const icon = document.createElement('raqn-icon');
+      console.log(icon);
       icon.setAttribute('icon', 'chevron-right');
       const children = Array.from(control.children);
       if (children.length === 0) {

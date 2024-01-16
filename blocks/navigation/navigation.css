@@ -94,7 +94,7 @@ raqn-navigation {
   }
 
 
-&:not([compact='true']) > nav {
+/* &:not([compact='true']) > nav {
     & a {
       line-height: var(--scope-icon-size, 24px);
     }
@@ -171,5 +171,5 @@ raqn-navigation {
         opacity: 1;
       }
     }
-  }
+  } */
 }
