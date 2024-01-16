@@ -16,6 +16,18 @@ raqn-navigation {
     & p {
       display: none;
     }
+
+    & ul {  
+      overflow-y: auto;
+      max-height: calc(100vh - var(--scope-header-height));
+    }
+  }
+
+  &.active > nav  {
+    & ul,
+    & p {
+      display: block;
+    }
   }
 
   & a {
@@ -50,7 +62,7 @@ raqn-navigation {
   }
 
   &.active {
-    button {
+    & button {
       background-color: var(--scope-background-hover, #000);
       color: var(--scope-color-hover, #fff);
     }
@@ -65,6 +77,7 @@ raqn-navigation {
       inset-inline-start: 0;
       inset-block-start: var(--scope-header-height, 64px);
       min-height: 100%;
+      max-height: calc(100vh - var(--scope-header-height, 64px));
       margin: 0 auto;
       padding: 0;
 
@@ -76,8 +89,12 @@ raqn-navigation {
     }
   }
 
-  /* desktop */
-  &:not([compact='true']) > nav {
+  & .accordion-content-wrapper {
+    margin: 0;
+  }
+
+
+&:not([compact='true']) > nav {
     & a {
       line-height: var(--scope-icon-size, 24px);
     }

@@ -42,7 +42,7 @@ time, mark, audio, video {
 	font: inherit;
   font-size: 100%;
 	vertical-align: baseline;
-  color: inherit;
+  color: var(--scope-color, inherit);
 }
 
 header {
@@ -152,4 +152,13 @@ h6 {
 
 #franklin-svg-sprite {
   display: none;
+}
+
+/* component setup styles */
+
+raqn-navigation {
+  & ul,
+  & button {
+    display: none;
+  }
 }

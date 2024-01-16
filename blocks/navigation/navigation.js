@@ -1,6 +1,7 @@
 import Column from '../column/column.js';
 
 export default class Navigation extends Column {
+
   createButton() {
     const button = document.createElement('button');
     button.setAttribute('aria-label', 'Menu');
@@ -35,17 +36,35 @@ export default class Navigation extends Column {
     }
   }
 
+  createIcon(name = this.icon) {
+    const icon = document.createElement('raqn-icon');
+    icon.setAttribute('icon', name);
+    return icon;
+  }
+
+  creaeteAccordion(replaceChildrenElement) {
+    const accordion = document.createElement('div');
+    accordion.classList.add('accordion');
+    const children = Array.from(replaceChildrenElement.children);
+    accordion.append(...children);
+    replaceChildrenElement.append(accordion);
+    this.refresh(replaceChildrenElement);
+  }
+
   setupClasses(ul, level = 1) {
     const children = Array.from(ul.children);
     children.forEach((child) => {
-      child.classList.add(`level-${level}`);
-      child.dataset.level = level;
       const hasChildren = child.querySelector('ul');
       if (hasChildren) {
         const anchor = child.querySelector('a');
-        const icon = document.createElement('raqn-icon');
-        icon.setAttribute('icon', 'chevron-right');
-        anchor.append(icon);
+        if (this.compact) {
+          this.creaeteAccordion(child);
+        } else {
+         anchor.append(this.createIcon('chevron-right'));
+        }
+        child.classList.add(`level-${level}`);
+        child.dataset.level = level;
+        
         child.classList.add('has-children');
         this.setupClasses(hasChildren, level + 1);
       }

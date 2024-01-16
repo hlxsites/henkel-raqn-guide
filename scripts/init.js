@@ -64,7 +64,6 @@ export async function init(node = document) {
     ...lcp.map(({ name, el }) => start({ name, el })),
     ...priority.map(({ name, el }) => start({ name, el })),
   ]);
-
   // timeout for the rest to proper prioritize in case of stalled loading
   rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
 

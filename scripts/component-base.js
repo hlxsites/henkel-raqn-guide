@@ -28,9 +28,13 @@ export default class ComponentBase extends HTMLElement {
     if (response.ok) {
       const html = await response.text();
       this.innerHTML = html;
-      return init(this);
+      return this.refresh(this);
     }
     return response;
+  }
+
+  refresh(el = this) {
+    init(el);
   }
 
   connected() {}
