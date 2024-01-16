@@ -156,8 +156,8 @@ h6 {
 /* component setup styles */
 
 raqn-navigation {
-  & ul,
-  & button {
+  & > ul,
+  & > button {
     display: none;
   }
 }
