@@ -19,10 +19,8 @@ export default class Accordion extends Column {
   }
 
   setupControls(controls) {
-    console.log(controls, this.id);
     controls.forEach((control,index) => {
       const icon = document.createElement('raqn-icon');
-      console.log(icon);
       icon.setAttribute('icon', 'chevron-right');
       const children = Array.from(control.children);
       if (children.length === 0) {
