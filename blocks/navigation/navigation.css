@@ -94,7 +94,7 @@ raqn-navigation {
   }
 
 
-/* &:not([compact='true']) > nav {
+&:not([compact='true']) > nav {
     & a {
       line-height: var(--scope-icon-size, 24px);
     }
@@ -119,6 +119,16 @@ raqn-navigation {
 
     & .level-1 a {
       padding: var(--padding-vertical, 20px) var(--padding-horizontal, 20px);
+    }
+
+    & .level-2 > a {
+      color: var(--scope-link-color-hover);
+      font-size: 1.2em;
+      font-weight: bold;
+
+      &:hover {
+        color: var(--scope-color, #fff);
+      }
     }
 
     & .level-2,
@@ -171,5 +181,5 @@ raqn-navigation {
         opacity: 1;
       }
     }
-  } */
+  }
 }

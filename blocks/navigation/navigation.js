@@ -55,16 +55,16 @@ export default class Navigation extends Column {
     const children = Array.from(ul.children);
     children.forEach((child) => {
       const hasChildren = child.querySelector('ul');
+      child.classList.add(`level-${level}`);
+      child.dataset.level = level;
+
       if (hasChildren) {
         const anchor = child.querySelector('a');
         if (this.compact) {
           this.creaeteAccordion(child);
-        } else {
+        } else if (level === 1) {
          anchor.append(this.createIcon('chevron-right'));
         }
-        child.classList.add(`level-${level}`);
-        child.dataset.level = level;
-        
         child.classList.add('has-children');
         this.setupClasses(hasChildren, level + 1);
       }
