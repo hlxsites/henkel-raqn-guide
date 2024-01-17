@@ -222,9 +222,9 @@ h6 {
 
 /* component setup styles */
 
-raqn-navigation > ul,
-.navigation > ul,
-.navigation > button,
-raqn-navigation > button {
+raqn-navigation > nav > ul,
+.navigation > nav > ul,
+.navigation > nav > button,
+raqn-navigation > nav > button {
   display: none;
 }
