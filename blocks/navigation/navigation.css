@@ -113,7 +113,7 @@ raqn-navigation:not([compact='true']) > nav [icon='chevron-right'] {
 }
 
 raqn-navigation:not([compact='true']) > nav .level-1 a {
-  padding: var(--scope-padding-vertical, 20px)
+  padding: var(--scope-padding-vertical, 10px)
     var(--scope-padding-horizontal, 20px);
 }
 
