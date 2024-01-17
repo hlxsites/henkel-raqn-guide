@@ -40,7 +40,7 @@ raqn-navigation.active > nav .level-2 a {
   font-size: var(--raqn-navigation-level-2);
 }
 
-raqn-navigation.active > nav div {
+raqn-navigation.active > nav > div {
   display: flex;
 }
 
@@ -90,53 +90,53 @@ raqn-navigation .accordion-content-wrapper {
   margin: 0;
 }
 
-raqn-navigatio:not([compact='true']) > nav a {
+raqn-navigation:not([compact='true']) > nav a {
   line-height: var(--scope-icon-size, 24px);
 }
 
-raqn-navigatio:not([compact='true']) > nav ul {
+raqn-navigation:not([compact='true']) > nav ul {
   list-style: none;
   display: flex;
 }
 
-raqn-navigatio:not([compact='true']) > nav > ul {
+raqn-navigation:not([compact='true']) > nav > ul {
   inset-inline-start: calc((100vw - var(--scope-max-width)) / 2);
   inset-block-start: var(--scope-header-height, 64px);
 }
 
-raqn-navigatio:not([compact='true']) > nav > p {
+raqn-navigation:not([compact='true']) > nav > p {
   display: inline-flex;
 }
 
-raqn-navigatio:not([compact='true']) > nav [icon='chevron-right'] {
+raqn-navigation:not([compact='true']) > nav [icon='chevron-right'] {
   transform: rotate(90deg);
 }
 
-raqn-navigatio:not([compact='true']) > nav .level-1 a {
+raqn-navigation:not([compact='true']) > nav .level-1 a {
   padding: var(--padding-vertical, 20px) var(--padding-horizontal, 20px);
 }
 
-raqn-navigatio:not([compact='true']) > nav .level-2 > a {
+raqn-navigation:not([compact='true']) > nav .level-2 > a {
   color: var(--scope-link-color-hover);
   font-size: 1.2em;
 }
 
-raqn-navigatio:not([compact='true']) > nav .level-2 > a&:hover {
+raqn-navigation:not([compact='true']) > nav .level-2 > a&:hover {
   color: var(--scope-color, #fff);
 }
 
-raqn-navigatio:not([compact='true']) > nav .level-2,
-raqn-navigatio:not([compact='true']) > nav .level-2 > ul {
+raqn-navigation:not([compact='true']) > nav .level-2,
+raqn-navigation:not([compact='true']) > nav .level-2 > ul {
   display: inline-flex;
   flex-direction: column;
 }
 
-raqn-navigatio:not([compact='true']) > nav .level-2 > ul {
+raqn-navigation:not([compact='true']) > nav .level-2 > ul {
   list-style: none;
   padding: 0;
 }
 
-raqn-navigatio:not([compact='true']) > nav .level-1 > ul {
+raqn-navigation:not([compact='true']) > nav .level-1 > ul {
   display: flex;
   clip-path: inset(0% -100vw 100% -100vw);
   position: absolute;
@@ -147,14 +147,14 @@ raqn-navigatio:not([compact='true']) > nav .level-1 > ul {
   overflow: visible;
 }
 
-raqn-navigatio:not([compact='true']) > nav .level-1 > ul .level-2 {
+raqn-navigation:not([compact='true']) > nav .level-1 > ul .level-2 {
   padding-block: 1.2em;
   opacity: 0;
   transition: opacity 0.4s ease;
   z-index: 2;
 }
 
-raqn-navigatio:not([compact='true']) > nav .level-1 > ul::after {
+raqn-navigation:not([compact='true']) > nav .level-1 > ul::after {
   content: ' ';
   margin-inline: calc(-1 * ((100vw - var(--scope-max-width)) / 2));
   position: absolute;
@@ -167,11 +167,11 @@ raqn-navigatio:not([compact='true']) > nav .level-1 > ul::after {
   z-index: 1;
 }
 
-raqn-navigatio:not([compact='true']) > nav .level-1:hover > ul {
+raqn-navigation:not([compact='true']) > nav .level-1:hover > ul {
   display: flex;
   clip-path: inset(0 -100vw -100% -100vw);
 }
 
-raqn-navigatio:not([compact='true']) > nav .level-1:hover > ul > li {
+raqn-navigation:not([compact='true']) > nav .level-1:hover > ul > li {
   opacity: 1;
 }
