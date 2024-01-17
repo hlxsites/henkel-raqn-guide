@@ -78,6 +78,7 @@ main > div {
 
 main > div > * {
   max-width: var(--scope-max-width, 100%);
+  min-width: var(--scope-max-width, 100%);
   margin-inline: auto;
 }
 
