@@ -5,21 +5,21 @@ raqn-button {
   justify-content: center;
   align-items: center;
   justify-items: var(--scope-justify, start);
+}
 
-  & > * {
-    background-color: var(--scope-accent-background, #000);
-    color: var(--scope-accent-color, #fff);
-    text-transform: none;
-    border-radius: 20px;
-    border: 1px solid transparent;
-    overflow: hidden;
+raqn-button > * {
+  background-color: var(--scope-accent-background, #000);
+  color: var(--scope-accent-color, #fff);
+  text-transform: none;
+  border-radius: 20px;
+  border: 1px solid transparent;
+  overflow: hidden;
+}
 
-    &:hover {
-      background-color: var(--scope-accent-background-hover, #fff);
-      color: var(--scope-accent-color-hover, #fff);
-      border-color: currentcolor;
-    }
-  }
+raqn-button > *:hover {
+  background-color: var(--scope-accent-background-hover, #fff);
+  color: var(--scope-accent-color-hover, #fff);
+  border-color: currentcolor;
 }
 
 raqn-button a {

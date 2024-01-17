@@ -12,41 +12,41 @@ raqn-footer {
     display: grid;
     grid-template-columns: auto 20vw;
   }
+}
 
-  & > *:last-child {
-    @media screen and (min-width: 1024px) {
-      justify-self: end;
-      align-self: center;
-    }
+raqn-footer > *:last-child {
+  @media screen and (min-width: 1024px) {
+    justify-self: end;
+    align-self: center;
   }
+}
 
-  & ul {
-    list-style: none;
-    padding: 0;
-    margin: 20px 0;
+raqn-footer ul {
+  list-style: none;
+  padding: 0;
+  margin: 20px 0;
 
-    @media screen and (min-width: 1024px) {
-      display: flex;
-      margin: 0;
-    }
-
-    & li {
-      @media screen and (min-width: 1024px) {
-        margin: 2em 0;
-      }
-
-      & a {
-        color: var(--scope-color);
-
-        @media screen and (min-width: 1024px) {
-          padding: 10px 1.2em;
-          border-inline-end: 1px solid var(--scope-color);
-        }
-      }
-
-      &:last-child a {
-        border-inline-end: none;
-      }
-    }
+  @media screen and (min-width: 1024px) {
+    display: flex;
+    margin: 0;
   }
+}
+
+raqn-footer ul li {
+  @media screen and (min-width: 1024px) {
+    margin: 2em 0;
+  }
+}
+
+raqn-footer ul li a {
+  color: var(--scope-color);
+
+  @media screen and (min-width: 1024px) {
+    padding: 10px 1.2em;
+    border-inline-end: 1px solid var(--scope-color);
+  }
+}
+
+raqn-footer ul li:last-child a {
+  border-inline-end: none;
 }

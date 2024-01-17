@@ -38,11 +38,11 @@ function lcpPriority() {
   window.raqnLCP = lcp ? lcp.split(',').map((name) => ({ name })) : [];
 }
 
-
 export async function start({ name, el }) {
   const loader = new ComponentLoader(name, el);
+  console.log('start', name);
   return loader.decorate();
-};
+}
 
 export async function init(node = document) {
   let blocks = Array.from(node.querySelectorAll('[class]:not([class^=style]'));

@@ -8,8 +8,9 @@ export default class Theme extends ComponentBase {
     super();
     this.scapeDiv = document.createElement('div');
     this.external = '/theme.json';
-    this.skip = ['tags', 'font-face'];
+    this.skip = ['tags'];
     this.toTags = ['font-size', 'font-weight', 'font-family', 'line-height', 'font-style', 'font-margin-block'];
+    this.transform = {'font-margin-block': 'margin-block'};
     this.tags = '';
     this.fontFace = '';
     this.atomic = '';
@@ -44,7 +45,7 @@ export default class Theme extends ComponentBase {
     return k(values).map((value) => {
       const val = values[value];
       return `${tag} {${k(val)
-        .map((v) => `${v}: ${val[v]};`)
+        .map((v) => `${this.transform[v] ? this.transform[v] : v}: ${val[v]};`)
         .join('')}}`;
     });
   }
