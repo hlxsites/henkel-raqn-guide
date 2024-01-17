@@ -44,7 +44,7 @@ raqn-navigation.active > nav div {
   display: flex;
 }
 
-raqn-navigation.active > nav button {
+raqn-navigation > nav button {
   display: inline-flex;
   justify-self: end;
   align-items: center;
@@ -57,12 +57,12 @@ raqn-navigation.active > nav button {
   transition: background-color 0.2s ease-in-out;
 }
 
-raqn-navigation.active > nav.active button {
+raqn-navigation.active button {
   background-color: var(--scope-background-hover, #000);
   color: var(--scope-color-hover, #fff);
 }
 
-raqn-navigation.active > nav.active > nav > ul {
+raqn-navigation.active > nav > ul {
   position: fixed;
   display: block;
   list-style: none;
@@ -77,12 +77,12 @@ raqn-navigation.active > nav.active > nav > ul {
   padding: 0;
 }
 
-raqn-navigation.active > nav.active > nav > ul li {
+raqn-navigation.active > nav > ul li {
   max-width: var(--scope-max-width, 100%);
   margin: 0 auto;
 }
 
-raqn-navigation.active > nav.active > nav > ul li a {
+raqn-navigation.active > nav > ul li a {
   padding-block: 1.2em;
 }
 

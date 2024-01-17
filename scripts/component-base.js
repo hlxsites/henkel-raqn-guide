@@ -8,12 +8,16 @@ export default class ComponentBase extends HTMLElement {
   }
 
   async connectedCallback() {
-    this.setAttribute('id', this.uuid);
-    if (this.external) {
-      await this.load(this.external);
+    const inicialized = this.getAttribute('inicialized');
+    if (!inicialized) {
+      this.setAttribute('inicialized', true);
+      this.setAttribute('id', this.uuid);
+      if (this.external) {
+        await this.load(this.external);
+      }
+      this.connected();
+      this.ready();
     }
-    this.connected();
-    this.ready();
   }
 
   async load(block) {

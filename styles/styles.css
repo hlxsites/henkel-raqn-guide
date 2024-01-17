@@ -219,12 +219,3 @@ h6 {
 #franklin-svg-sprite {
   display: none;
 }
-
-/* component setup styles */
-
-raqn-navigation > nav > ul,
-.navigation > nav > ul,
-.navigation > nav > button,
-raqn-navigation > nav > button {
-  display: none;
-}
