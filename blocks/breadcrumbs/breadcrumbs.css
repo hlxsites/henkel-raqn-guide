@@ -5,6 +5,7 @@ raqn-breadcrumbs {
   align-items: center;
   padding: 10px 0;
   background: var(--scope-background, transparent);
+  color: var(--scope-color, #000);
 }
 
 raqn-breadcrumbs ul {
