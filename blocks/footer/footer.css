@@ -7,43 +7,41 @@ footer {
 raqn-footer {
   background-color: var(--scope-background-color);
   border-top: 1px solid var(--scope-color);
-
-  @media screen and (min-width: 1024px) {
-    display: grid;
-    grid-template-columns: auto 20vw;
-  }
-}
-
-raqn-footer > *:last-child {
-  @media screen and (min-width: 1024px) {
-    justify-self: end;
-    align-self: center;
-  }
 }
 
 raqn-footer ul {
   list-style: none;
   padding: 0;
   margin: 20px 0;
-
-  @media screen and (min-width: 1024px) {
-    display: flex;
-    margin: 0;
-  }
-}
-
-raqn-footer ul li {
-  @media screen and (min-width: 1024px) {
-    margin: 2em 0;
-  }
 }
 
 raqn-footer ul li a {
   color: var(--scope-color);
+}
 
-  @media screen and (min-width: 1024px) {
+@media screen and (min-width: 1024px) {
+  raqn-footer {
+    display: grid;
+    grid-template-columns: auto 20vw;
+  }
+
+  raqn-footer ul li a {
     padding: 10px 1.2em;
     border-inline-end: 1px solid var(--scope-color);
+  }
+
+  raqn-footer ul {
+    display: flex;
+    margin: 0;
+  }
+
+  raqn-footer ul li {
+    margin: 2em 0;
+  }
+
+  raqn-footer > *:last-child {
+    justify-self: end;
+    align-self: center;
   }
 }
 
