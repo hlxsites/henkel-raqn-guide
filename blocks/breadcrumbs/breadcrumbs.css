@@ -4,21 +4,22 @@ raqn-breadcrumbs {
   gap: 10px;
   align-items: center;
   padding: 10px 0;
+  background-color: var(--scope-background-color, transparent);
+}
 
-  ul {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-    display: flex;
+raqn-breadcrumbs ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+}
 
-    li {
-      margin-inline-end: 1em;
-      font-weight: bold;
+raqn-breadcrumbs ul li {
+  margin-inline-end: 1em;
+  font-weight: bold;
+}
 
-      a {
-        color: var(--scope-color);
-        font-weight: normal;
-      }
-    }
-  }
+raqn-breadcrumbs ul li a {
+  color: var(--scope-color);
+  font-weight: normal;
 }
