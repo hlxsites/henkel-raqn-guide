@@ -228,3 +228,9 @@ raqn-navigation > nav > ul,
 raqn-navigation > nav > button {
   display: none;
 }
+
+raqn-navigation {
+  & nav {
+    background-color: red;
+  }
+}
