@@ -6,42 +6,42 @@ raqn-card {
   grid-template-columns: var(--card-columns, 1fr);
   gap: var(--scope-gap, 20px);
   padding: var(--scope-padding, 20px 0);
+}
 
-  & a {
-    font-size: var(--raqn-font-size-3, 1.2em);
-    font-weight: bold;
-  }
+raqn-card a {
+  font-size: var(--raqn-font-size-3, 1.2em);
+  font-weight: bold;
+}
 
-  & > picture {
-    grid-column: span var(--card-columns, 1fr);
-  }
+raqn-card > picture {
+  grid-column: span var(--card-columns, 1fr);
+}
 
-  & > div {
-    position: relative;
-    background-color: var(--scope-inner-background, transparent);
-    padding: var(--scope-inner-padding, 20px);
-    padding-block-end: var(--scope-icon-size, 20px);
-  }
+raqn-card > div {
+  position: relative;
+  background-color: var(--scope-inner-background, transparent);
+  padding: var(--scope-inner-padding, 20px);
+  padding-block-end: var(--scope-icon-size, 20px);
+}
 
-  & > div div:last-child > a {
-    position: absolute;
-    inset-inline-start: 0;
-    inset-block-start: 0;
-    width: 100%;
-    height: 100%;
-    cursor: pointer;
-    text-indent: -10000px;
-    margin: 0;
-    padding: 0;
-  }
+raqn-card > div div:last-child > a {
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
+  text-indent: -10000px;
+  margin: 0;
+  padding: 0;
+}
 
-  & raqn-icon {
-    width: 100%;
-    display: flex;
-    position: absolute;
-    inset-block-end: 0;
-    inset-inline-end: 0;
-    box-sizing: border-box;
-    padding: var(--scope-inner-padding, 20px);
-  }
+raqn-card raqn-icon {
+  width: 100%;
+  display: flex;
+  position: absolute;
+  inset-block-end: 0;
+  inset-inline-end: 0;
+  box-sizing: border-box;
+  padding: var(--scope-inner-padding, 20px);
 }

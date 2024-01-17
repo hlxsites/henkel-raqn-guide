@@ -1,79 +1,77 @@
+.accordion-control {
+  border-block-start: var(--scope-border-block-start, none);
+  border-inline-start: var(--scope-border-inline-start, none);
+  border-inline-end: var(--scope-border-inline-end, none);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: start;
+  width: 100%;
+}
+
+.accordion-control:first-child {
+  border-block-start: none;
+}
+
+.accordion-control > * {
+  --scope-headings-color: var(--scope-color, black);
+  --scope-hover-color: var(--scope-accent-color, gray);
+
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  min-width: 100%;
+}
+
+.accordion-control:hover {
+  --scope-color: var(--scope-headings-color);
+}
+
 raqn-accordion {
-    --scope-icon-size: 1em;
-    --accordion-background-color: var(--scope-background, black);
-    --accordion-color: var(--scope-color, white);
+  --scope-icon-size: 1em;
+  --accordion-background-color: var(--scope-background, black);
+  --accordion-color: var(--scope-color, white);
 
-    background-color: var(--accordion-background-color);
-    color: var(--accordion-color);
-    margin: var(--scope-margin, 0);
-    display: grid;
-    
-    & .accordion-control {
-        border-block-start: var(--scope-border-block-start, none);
-        border-inline-start: var(--scope-border-inline-start, none);
-        border-inline-end: var(--scope-border-inline-end, none);
+  background-color: var(--accordion-background-color);
+  color: var(--accordion-color);
+  margin: var(--scope-margin, 0);
+  display: grid;
+}
 
-        &:first-child {
-            border-block-start: none
-        }
+raqn-accordion raqn-icon {
+  align-self: end;
+  transform: rotate(90deg);
+  transition: transform 0.2s ease-in-out;
+}
 
-        & > * {
-            --scope-headings-color: var(--scope-color, black);
-            --scope-hover-color: var(--scope-accent-color, gray);
+raqn-accordion accordion-control.active raqn-icon {
+  transform: rotate(270deg);
+}
 
-            width: 100%;
-            display: flex;
-            justify-content: space-between;
-            min-width: 100%;
-        }
+.accordion-content {
+  display: grid;
+  max-height: 0;
+  overflow: hidden;
+  opacity: 0;
+  border-block-end: var(--scope-border-block-end, none);
+  border-block-start: var(--scope-border-block-start, none);
+  margin-block-end: -1px;
+  transition:
+    max-height 0.5s ease-in-out,
+    opacity 0.5s ease-in-out;
+}
 
-        cursor: pointer;
-        display: flex;
-        align-items: center;
-        justify-content: start;
-        width: 100%;
+.accordion-content:last-child {
+  border-block-end: none;
+}
 
-        &:hover {
-            --scope-color: var(--scope-headings-color);
-        }
-    }
-
-    & raqn-icon {
-        align-self: end;
-        transform: rotate(90deg);
-        transition: transform 0.2s ease-in-out;
-    }
-
-    & accordion-control.active raqn-icon {
-        transform: rotate(270deg);
-    }
-
-    & .accordion-content {
-        display: grid;
-        max-height: 0;
-        overflow: hidden;
-        opacity: 0;
-        border-block-end: var(--scope-border-block-end, none);
-        border-block-start: var(--scope-border-block-start, none);
-        margin-block-end: -1px;
-        transition: max-height 0.5s ease-in-out,
-                    opacity 0.5s ease-in-out;
-
-
-        &:last-child {
-            border-block-end: none
-        }
-
-        &.active {
-            opacity: 1;
-            grid-template-rows: 1fr;
-            max-height: 100vw;
-
-        }
-    }
+.accordion-content.active {
+  opacity: 1;
+  grid-template-rows: 1fr;
+  max-height: 100vw;
 }
 
 .accordion-content-wrapper {
-    margin-block: 1em;
-    display: grid;
+  margin-block: 1em;
+  display: grid;
 }
