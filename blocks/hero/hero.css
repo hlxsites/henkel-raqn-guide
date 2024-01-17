@@ -3,7 +3,7 @@
 raqn-hero {
   --hero-background-color: var(--scope-background, black);
   --hero-color: var(--scope-color, white);
-  --hero-grid-template-columns: 1fr;
+  --hero-grid-template-columns: var(--scope-hero-columns, 1fr);
   --hero-hero-order: 0;
   --hero-padding-block: var(--scope-hero-padding-block, 40px);
 
