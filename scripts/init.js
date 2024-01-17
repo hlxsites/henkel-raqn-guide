@@ -40,7 +40,6 @@ function lcpPriority() {
 
 export async function start({ name, el }) {
   const loader = new ComponentLoader(name, el);
-  console.log('start', name);
   return loader.decorate();
 }
 
