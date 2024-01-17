@@ -123,7 +123,7 @@ raqn-navigation:not([compact='true']) > nav .level-2 > a {
   font-size: 1.2em;
 }
 
-raqn-navigation:not([compact='true']) > nav .level-2 > a&:hover {
+raqn-navigation:not([compact='true']) > nav .level-2 > a:hover {
   color: var(--scope-color, #fff);
 }
 
