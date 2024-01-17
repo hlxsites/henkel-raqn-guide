@@ -4,7 +4,7 @@ raqn-breadcrumbs {
   gap: 10px;
   align-items: center;
   padding: 10px 0;
-  background-color: var(--scope-background-color, transparent);
+  background-color: var(--scope-background, transparent);
 }
 
 raqn-breadcrumbs ul {
