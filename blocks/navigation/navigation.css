@@ -112,7 +112,7 @@ raqn-navigation:not([compact='true']) > nav [icon='chevron-right'] {
   transform: rotate(90deg);
 }
 
-raqn-navigation:not([compact='true']) > nav .level-1 a {
+raqn-navigation:not([compact='true']) > nav .level-1 > a {
   padding: var(--padding-vertical, 20px) var(--padding-horizontal, 20px);
 }
 
