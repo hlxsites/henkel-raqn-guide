@@ -16,8 +16,8 @@ raqn-hero {
   @media screen and (max-width: 767px) {
     --hero-grid-template-columns: 1fr;
   }
+}
 
-  & > div:first-child {
-    order: var(--hero-hero-order);
-  }
+raqn-hero > div:first-child {
+  order: var(--hero-hero-order);
 }
