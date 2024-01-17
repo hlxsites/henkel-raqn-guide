@@ -1,6 +1,12 @@
 import ComponentBase from '../../scripts/component-base.js';
 
 export default class BreadCrumbs extends ComponentBase {
+  constructor() {
+    super();
+    this.classList.add('full-width');
+    this.classList.add('breadcrumbs');
+  }
+
   capitalize(string) {
     return string
       .split('-')
@@ -10,7 +16,6 @@ export default class BreadCrumbs extends ComponentBase {
 
   ready() {
     this.path = window.location.pathname.split('/');
-    this.classList.add('breadcrumbs');
     this.innerHTML = `
     <ul>
         ${this.path
