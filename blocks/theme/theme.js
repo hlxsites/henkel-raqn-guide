@@ -54,12 +54,14 @@ export default class Theme extends ComponentBase {
       return `${tag} {${k(val)
         .map(
           (v) =>
-            `${this.transform[v] ? this.transform[v] : v}: var(--scope-${
-              this.transform[v] ? this.transform[v] : v
-            }, ${val[v]});`,
+            `${this.getKey(v)}: var(--scope-${this.getKey(v)}, ${val[v]});`,
         )
         .join('')}}`;
     });
+  }
+
+  getKey(key) {
+    return this.transform[key] ? this.transform[key] : key;
   }
 
   escapeHtml(unsafe) {
@@ -74,10 +76,14 @@ export default class Theme extends ComponentBase {
       if (key === 'font-face') {
         this.fontFace += this.fontFaceTemplate(value);
       } else {
-        variable = `\n--raqn-${key}-${row}: ${this.escapeHtml(
+        variable = `\n--raqn-${this.getKey(key)}-${row}: ${this.escapeHtml(
           value,
         ).trim()};\n`;
-        this.atomic += `\nbody .${key}-${row} {\n--scope-${key}: var(--raqn-${key}-${row});}\n`;
+        this.atomic += `\nbody .${this.getKey(
+          key,
+        )}-${row} {\n--scope-${this.getKey(key)}: var(--raqn-${this.getKey(
+          key,
+        )}-${row});}\n`;
       }
     }
     return variable;
@@ -124,7 +130,7 @@ export default class Theme extends ComponentBase {
       .join('');
 
     this.variables = k(t)
-      .filter((key) => ![...this.skip, ...this.toTags].includes(key))
+      .filter((key) => ![...this.skip].includes(key))
       .map((key) => {
         const rows = k(t[key]);
         return rows.map((row) => this.renderVariables(key, row, t)).join('');
