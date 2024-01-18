@@ -78,12 +78,10 @@ export default class Theme extends ComponentBase {
       } else {
         variable = `\n--raqn-${this.getKey(key)}-${row}: ${this.escapeHtml(
           value,
-        ).trim()};\n`;
-        this.atomic += `\nbody .${this.getKey(
+        ).trim()};`;
+        this.atomic += `body .${this.getKey(key)}-${row} {--scope-${this.getKey(
           key,
-        )}-${row} {\n--scope-${this.getKey(key)}: var(--raqn-${this.getKey(
-          key,
-        )}-${row});}\n`;
+        )}: var(--raqn-${this.getKey(key)}-${row});}\n`;
       }
     }
     return variable;
@@ -119,9 +117,7 @@ export default class Theme extends ComponentBase {
         (theme) => `.theme-${theme} {${k(t)
           .filter((key) => ![...this.skip, ...this.toTags].includes(key))
           .map((key) =>
-            t[key][theme]
-              ? `\n--scope-${key}: var(--raqn-${key}-${theme});`
-              : '',
+            t[key][theme] ? `--scope-${key}: var(--raqn-${key}-${theme});` : '',
           )
           .filter((v) => v !== '')
           .join('')}
@@ -129,19 +125,22 @@ export default class Theme extends ComponentBase {
       )
       .join('');
 
-    this.variables = k(t)
+    this.variables = `body{${k(t)
       .filter((key) => ![...this.skip].includes(key))
       .map((key) => {
         const rows = k(t[key]);
         return rows.map((row) => this.renderVariables(key, row, t)).join('');
       })
-      .join('');
+      .join('')}}`;
   }
 
   styles() {
-    const style = document.createElement('style');
-    style.innerHTML = `${this.fontFace}body {${this.variables}}${this.tags}${this.atomic}${this.themes}`;
-    document.head.appendChild(style);
+    ['variables', 'tags', 'atomic', 'themes'].forEach((cssSegment) => {
+      const style = document.createElement('style');
+      style.innerHTML = this[cssSegment];
+      style.classList.add(cssSegment);
+      document.head.appendChild(style);
+    });
     document.body.classList.add('theme-default');
     document.body.style.display = 'block';
   }

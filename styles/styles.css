@@ -156,7 +156,7 @@ h3,
 h4,
 h5,
 h6 {
-  margin-block: var(--scope-font-block-margins, 1em);
+  margin-block: var(--scope-margin-block, 1em);
 }
 
 @media screen and (min-width: 1024px) {

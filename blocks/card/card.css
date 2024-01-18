@@ -21,7 +21,6 @@ raqn-card > div {
   position: relative;
   background-color: var(--scope-inner-background, transparent);
   padding: var(--scope-inner-padding, 20px);
-  padding-block-end: var(--scope-icon-size, 20px);
 }
 
 raqn-card > div div:last-child > a {
@@ -34,6 +33,11 @@ raqn-card > div div:last-child > a {
   text-indent: -10000px;
   margin: 0;
   padding: 0;
+}
+
+raqn-card > div:has(raqn-icon) {
+  padding-block-end: 0;
+  padding-block-end: var(--scope-icon-size, 20px);
 }
 
 raqn-card p:has(raqn-icon) {
