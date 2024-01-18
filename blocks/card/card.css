@@ -36,7 +36,7 @@ raqn-card > div div:last-child > a {
   padding: 0;
 }
 
-raqn-card p:last-child {
+raqn-card p:has(raqn-icon) {
   display: inline-grid;
 }
 
