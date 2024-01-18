@@ -17,12 +17,8 @@ raqn-navigation > nav p {
   padding: 0;
 }
 
-raqn-navigation .level-1 a {
+raqn-navigation .level-1 a:not(:hover) {
   color: var(--scope-accent-background, #000);
-}
-
-raqn-navigation .level-1 a:hover {
-  color: var(--scope-accent-background-hover, #000);
 }
 
 raqn-navigation > nav > ul {
