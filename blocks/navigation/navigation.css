@@ -17,6 +17,14 @@ raqn-navigation > nav p {
   padding: 0;
 }
 
+raqn-navigation .level-1 a {
+  color: var(--scope-accent-color, #000);
+}
+
+raqn-navigation .level-1 a:hover {
+  color: var(--scope-accent-color-hover, #000);
+}
+
 raqn-navigation > nav > ul {
   overflow-y: auto;
   max-height: calc(100vh - var(--scope-header-height));
