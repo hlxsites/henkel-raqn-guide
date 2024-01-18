@@ -137,10 +137,6 @@ a:hover {
   justify-items: start;
 }
 
-p > a {
-  margin-block: 0;
-}
-
 picture,
 img {
   display: block;
