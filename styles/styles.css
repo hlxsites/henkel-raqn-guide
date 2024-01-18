@@ -80,6 +80,7 @@ main > div > * {
   max-width: var(--scope-max-width, 100%);
   min-width: var(--scope-max-width, 100%);
   margin-inline: auto;
+  box-sizing: border-box;
 }
 
 .full-width {
@@ -98,7 +99,6 @@ main > div > div {
   background-color: var(--scope-background, #fff);
   color: var(--scope-color, #000);
   padding: var(--scope-padding, 0);
-  box-sizing: border-box;
 }
 
 main > div > div > div {
