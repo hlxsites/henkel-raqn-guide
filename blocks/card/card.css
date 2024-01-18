@@ -21,6 +21,10 @@ raqn-card > div {
   position: relative;
   background-color: var(--scope-inner-background, transparent);
   padding: var(--scope-inner-padding, 20px);
+  border-block-start: var(--scope-border-block-start, none);
+  border-block-end: var(--scope-border-block-end, none);
+  border-inline-start: var(--scope-border-inline-start, none);
+  border-inline-end: var(--scope-border-inline-end, none);
 }
 
 raqn-card > div div:last-child > a {
