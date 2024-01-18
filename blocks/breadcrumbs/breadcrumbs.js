@@ -26,6 +26,6 @@ export default class BreadCrumbs extends ComponentBase {
             return `<li><a href="${href}">${this.capitalize(path)}</a></li>`;
           })
           .join('<li class="separator">›</li>')}
-    <ul>`;
+    </ul>`;
   }
 }

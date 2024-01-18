@@ -24,3 +24,17 @@ raqn-breadcrumbs ul li a {
   color: var(--scope-color);
   font-weight: normal;
 }
+
+@media screen and (max-width: 768px) {
+  raqn-breadcrumbs ul li {
+    display: none;
+  }
+
+  raqn-breadcrumbs ul li.separator:has(+ li:last-child) {
+    display: block;
+  }
+
+  raqn-breadcrumbs ul li:last-child {
+    display: block;
+  }
+}
