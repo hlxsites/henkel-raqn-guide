@@ -13,7 +13,7 @@ raqn-card a {
   font-weight: bold;
 }
 
-raqn-card p > a {
+raqn-card p a {
   margin-block: 0;
 }
 
