@@ -36,6 +36,10 @@ raqn-card > div div:last-child > a {
   padding: 0;
 }
 
+raqn-card p:last-child {
+  display: inline-grid;
+}
+
 raqn-card raqn-icon {
   width: 100%;
   display: flex;
