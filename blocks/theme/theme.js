@@ -9,8 +9,15 @@ export default class Theme extends ComponentBase {
     this.scapeDiv = document.createElement('div');
     this.external = '/theme.json';
     this.skip = ['tags'];
-    this.toTags = ['font-size', 'font-weight', 'font-family', 'line-height', 'font-style', 'font-margin-block'];
-    this.transform = {'font-margin-block': 'margin-block'};
+    this.toTags = [
+      'font-size',
+      'font-weight',
+      'font-family',
+      'line-height',
+      'font-style',
+      'font-margin-block',
+    ];
+    this.transform = { 'font-margin-block': 'margin-block' };
     this.tags = '';
     this.fontFace = '';
     this.atomic = '';
@@ -45,7 +52,12 @@ export default class Theme extends ComponentBase {
     return k(values).map((value) => {
       const val = values[value];
       return `${tag} {${k(val)
-        .map((v) => `${this.transform[v] ? this.transform[v] : v}: ${val[v]};`)
+        .map(
+          (v) =>
+            `${this.transform[v] ? this.transform[v] : v}: var(--scope-${
+              this.transform[v] ? this.transform[v] : v
+            }, ${val[v]});`,
+        )
         .join('')}}`;
     });
   }
@@ -62,7 +74,9 @@ export default class Theme extends ComponentBase {
       if (key === 'font-face') {
         this.fontFace += this.fontFaceTemplate(value);
       } else {
-        variable = `\n--raqn-${key}-${row}: ${this.escapeHtml(value).trim()};\n`;
+        variable = `\n--raqn-${key}-${row}: ${this.escapeHtml(
+          value,
+        ).trim()};\n`;
         this.atomic += `\nbody .${key}-${row} {\n--scope-${key}: var(--raqn-${key}-${row});}\n`;
       }
     }
