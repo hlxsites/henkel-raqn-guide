@@ -98,6 +98,7 @@ main > div > div {
   background-color: var(--scope-background, #fff);
   color: var(--scope-color, #000);
   padding: var(--scope-padding, 0);
+  box-sizing: border-box;
 }
 
 main > div > div > div {
@@ -170,7 +171,7 @@ h6 {
   h4,
   h5,
   h6 {
-    max-width: 45vw;
+    max-width: 50vw;
   }
 }
 
