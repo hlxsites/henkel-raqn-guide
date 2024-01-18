@@ -18,11 +18,11 @@ raqn-navigation > nav p {
 }
 
 raqn-navigation .level-1 a {
-  color: var(--scope-accent-color, #000);
+  color: var(--scope-accent-background, #000);
 }
 
 raqn-navigation .level-1 a:hover {
-  color: var(--scope-accent-color-hover, #000);
+  color: var(--scope-accent-background-hover, #000);
 }
 
 raqn-navigation > nav > ul {
