@@ -97,6 +97,7 @@ Server-side rendering follows these rules:
 ### Spreadsheets into JSON
 
 Spreadsheet content is rendered into a simple JSON format as shown in the example:
+![Alt text](../assets/sheet-example.png)
 
 ```json
 {
