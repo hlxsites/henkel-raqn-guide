@@ -8,7 +8,7 @@ raqn-button {
 }
 
 raqn-button > * {
-  background-color: var(--scope-accent-background, #000);
+  background: var(--scope-accent-background, #000);
   color: var(--scope-accent-color, #fff);
   text-transform: none;
   border-radius: 20px;
@@ -17,7 +17,7 @@ raqn-button > * {
 }
 
 raqn-button > *:hover {
-  background-color: var(--scope-accent-background-hover, #fff);
+  background: var(--scope-accent-background-hover, #fff);
   color: var(--scope-accent-color-hover, #fff);
   border-color: currentcolor;
 }

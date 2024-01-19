@@ -1,9 +1,9 @@
 raqn-accordion {
   --scope-icon-size: 1em;
-  --accordion-background-color: var(--scope-background, black);
+  --accordion-background: var(--scope-background, black);
   --accordion-color: var(--scope-color, white);
 
-  background-color: var(--accordion-background-color);
+  background: var(--accordion-background);
   color: var(--accordion-color);
   margin: var(--scope-margin, 0);
   padding: var(--scope-padding, 0);
