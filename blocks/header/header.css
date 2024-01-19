@@ -6,7 +6,7 @@ raqn-header {
   width: 100%;
   min-height: var(--scope-header-height, 64px);
   display: grid;
-  background-color: var(--scope-header-background, #fff);
+  background: var(--scope-header-background, #fff);
   align-items: center;
   z-index: 100;
 }

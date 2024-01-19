@@ -1,5 +1,5 @@
 raqn-card {
-  background-color: var(--scope-background, transparent);
+  background: var(--scope-background, transparent);
   color: var(--scope-color, #fff);
   display: grid;
   position: relative;
@@ -23,7 +23,7 @@ raqn-card > picture {
 
 raqn-card > div {
   position: relative;
-  background-color: var(--scope-inner-background, transparent);
+  background: var(--scope-inner-background, transparent);
   padding: var(--scope-inner-padding, 20px);
   border-block-start: var(--scope-border-block-start, none);
   border-block-end: var(--scope-border-block-end, none);

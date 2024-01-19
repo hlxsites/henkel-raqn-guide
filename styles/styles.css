@@ -19,7 +19,7 @@ body {
 
 body {
   display: none;
-  background-color: var(--scope-background, #fff);
+  background: var(--scope-background, #fff);
   padding: 0;
   margin: 0;
   width: 100%;
@@ -68,7 +68,7 @@ header {
 
   min-height: var(--scope-header-height, 64px);
   display: grid;
-  background-color: var(--scope-header-background, #fff);
+  background: var(--scope-header-background, #fff);
 }
 
 main > div {
@@ -96,7 +96,7 @@ main > div > * {
 }
 
 main > div > div {
-  background-color: var(--scope-background, #fff);
+  background: var(--scope-background, #fff);
   color: var(--scope-color, #000);
   padding: var(--scope-padding, 0);
 }

@@ -37,7 +37,7 @@ raqn-navigation.active > nav a {
   text-decoration: none;
   color: var(--raqn-navigation-color, #000);
   border-radius: var(--border-radius);
-  transition: background-color 0.2s ease-in-out;
+  transition: background 0.2s ease-in-out;
   font-size: var(--raqn-navigation-level-1);
 }
 
@@ -54,16 +54,16 @@ raqn-navigation > nav button {
   justify-self: end;
   align-items: center;
   justify-content: center;
-  background-color: var(--scope-background, #fff);
+  background: var(--scope-background, #fff);
   color: var(--scope-color, #000);
   border: none;
   border-radius: var(--border-radius);
   padding: var(--padding-vertical, 10px) var(--padding-horizontal, 10px);
-  transition: background-color 0.2s ease-in-out;
+  transition: background 0.2s ease-in-out;
 }
 
 raqn-navigation.active button {
-  background-color: var(--scope-background-hover, #000);
+  background: var(--scope-background-hover, #000);
   color: var(--scope-color-hover, #fff);
 }
 
@@ -72,7 +72,7 @@ raqn-navigation.active > nav > ul {
   display: block;
   list-style: none;
   max-width: 0;
-  background-color: var(--scope-background, #fff);
+  background: var(--scope-background, #fff);
   min-width: 100%;
   inset-inline-start: 0;
   inset-block-start: var(--scope-header-height, 64px);
@@ -167,7 +167,7 @@ raqn-navigation:not([compact='true']) > nav .level-1 > ul::after {
   height: 100%;
   width: 100vw;
   inset-inline-start: 0;
-  background-color: var(--scope-background, #fff);
+  background: var(--scope-background, #fff);
   border-block-start: 1px solid var(--scope-color, #000);
   box-shadow: 0 0 30px #000;
   z-index: 1;

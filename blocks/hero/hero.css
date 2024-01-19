@@ -1,13 +1,13 @@
 /* block specific CSS goes here */
 
 raqn-hero {
-  --hero-background-color: var(--scope-background, black);
+  --hero-background: var(--scope-background, black);
   --hero-color: var(--scope-color, white);
   --hero-grid-template-columns: var(--scope-hero-columns, 1fr);
   --hero-hero-order: 0;
   --hero-padding-block: var(--scope-hero-padding-block, 40px);
 
-  background-color: var(--hero-background-color);
+  background: var(--hero-background);
   color: var(--hero-color);
   align-items: center;
   grid-template-columns: var(--hero-grid-template-columns, 1fr);
