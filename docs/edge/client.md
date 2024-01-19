@@ -78,6 +78,6 @@ Here are some examples:
 1. Blocks need to be executed manually in every element
 2. Any new DOM needs to be decorated manually
 3. Limited reusability of a "component"
-4. Too opinionated allows free-style coding / no code best practices enforcing
+4. Low opinionated allows free-style coding / no code best practices enforcing
 5. No clear life cycle of a block
 6. Uses semantical data as parameters and passing options
