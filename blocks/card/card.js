@@ -6,7 +6,7 @@ export default class Card extends ComponentBase {
     return ['columns', 'ratio', 'eager', 'background', 'button'];
   }
 
-  connected() {
+  ready() {
     if (this.getAttribute('button') === 'true') {
       Array.from(this.querySelectorAll('a')).forEach((a) =>
         this.convertLink(a),

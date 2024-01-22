@@ -5,7 +5,7 @@ export default class Hero extends ComponentBase {
     return ['order'];
   }
 
-  connected() {
+  ready() {
     const child = this.children[0];
     child.replaceWith(...child.children);
     this.classList.add('full-width');

@@ -1,22 +1,26 @@
-import { init } from './init.js';
+import { init, start } from './init.js';
 
 export default class ComponentBase extends HTMLElement {
   constructor() {
     super();
     this.external = false;
+    this.dependencies = [];
     this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
   }
 
   async connectedCallback() {
     const inicialized = this.getAttribute('inicialized');
     if (!inicialized) {
-      this.setAttribute('inicialized', true);
       this.setAttribute('id', this.uuid);
       if (this.external) {
         await this.load(this.external);
       }
+      if (this.dependencies.length > 0) {
+        await Promise.all(this.dependencies.map((dep) => start({ name: dep })));
+      }
       this.connected();
       this.ready();
+      this.setAttribute('inicialized', true);
     }
   }
 

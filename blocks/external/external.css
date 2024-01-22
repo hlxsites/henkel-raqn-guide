@@ -1,0 +1,7 @@
+raqn-external {
+  display: none;
+}
+
+raqn-external[inicialized='true'] {
+  display: block;
+}

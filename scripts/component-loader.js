@@ -116,9 +116,11 @@ export default class ComponentLoader {
       return this.setupElement();
     }
     try {
-      const cssLoaded = this.loadCSS(this.cssPath);
+      const cssLoaded = this.loadCSS(this.cssPath).catch(() =>
+        console.log(`${this.cssPath} does not exist`),
+      );
       const decorationComplete = this.loadWebComponent();
-      return Promise.all([cssLoaded, decorationComplete]);
+      return Promise.all([decorationComplete, cssLoaded]);
     } catch (error) {
       // eslint-disable-next-line no-console
       console.log(`failed to load module for ${this.blockName}`, error);
