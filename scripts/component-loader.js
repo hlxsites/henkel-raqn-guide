@@ -117,6 +117,7 @@ export default class ComponentLoader {
     }
     try {
       const cssLoaded = this.loadCSS(this.cssPath).catch(() =>
+        // eslint-disable-next-line no-console
         console.log(`${this.cssPath} does not exist`),
       );
       const decorationComplete = this.loadWebComponent();
