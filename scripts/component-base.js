@@ -9,8 +9,8 @@ export default class ComponentBase extends HTMLElement {
   }
 
   async connectedCallback() {
-    const inicialized = this.getAttribute('inicialized');
-    if (!inicialized) {
+    const initialized = this.getAttribute('initialized');
+    if (!initialized) {
       this.setAttribute('id', this.uuid);
       if (this.external) {
         await this.load(this.external);
@@ -20,7 +20,7 @@ export default class ComponentBase extends HTMLElement {
       }
       this.connected();
       this.ready();
-      this.setAttribute('inicialized', true);
+      this.setAttribute('initialized', true);
     }
   }
 

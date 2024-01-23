@@ -2,6 +2,6 @@ raqn-external {
   display: none;
 }
 
-raqn-external[inicialized='true'] {
+raqn-external[initialized='true'] {
   display: block;
 }
