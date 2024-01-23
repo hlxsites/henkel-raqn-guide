@@ -5,9 +5,33 @@ export default class Router extends ComponentBase {
     return ['external'];
   }
 
+  getPlainUrl(url) {
+    if (url.indexOf('.html') >= 0) {
+      return url.replace(/\.html$/, '.plain.html');
+    }
+    return `${url}.plain.html`;
+  }
+
+  ready() {
+    document.addEventListener(
+      'click',
+      (event) => {
+        if (
+          event.target.tagName === 'A' &&
+          event.target.href.startsWith(window.location.origin)
+        ) {
+          event.preventDefault();
+          this.setAttribute('external', this.getPlainUrl(event.target.href));
+        }
+      },
+      true,
+    );
+  }
+
   attributeChangedCallback(name, oldValue, newValue) {
     if (name === 'external' && oldValue !== newValue) {
       this.external = newValue;
+      console.log(this.external, this.getPlainUrl(this.external));
       this.load(this.external);
     }
   }
