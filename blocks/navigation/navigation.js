@@ -2,7 +2,6 @@ import { start } from '../../scripts/init.js';
 import Column from '../column/column.js';
 
 export default class Navigation extends Column {
-
   createButton() {
     const button = document.createElement('button');
     button.setAttribute('aria-label', 'Menu');
@@ -29,7 +28,7 @@ export default class Navigation extends Column {
     this.icon = this.getAttribute('icon') || 'menu';
     if (this.compact) {
       this.nav.append(this.createButton());
-      start({name:'accordion'});
+      start({ name: 'accordion' });
     }
     this.append(this.nav);
     this.setupClasses(this.list);
@@ -63,7 +62,7 @@ export default class Navigation extends Column {
         if (this.compact) {
           this.creaeteAccordion(child);
         } else if (level === 1) {
-         anchor.append(this.createIcon('chevron-right'));
+          anchor.append(this.createIcon('chevron-right'));
         }
         child.classList.add('has-children');
         this.setupClasses(hasChildren, level + 1);
@@ -80,7 +79,7 @@ export default class Navigation extends Column {
         this.active[level].classList.remove('active');
       }
       this.active[level] = current;
-      this.setAttribute('active', level)
+      this.setAttribute('active', level);
       this.active[level].classList.toggle('active');
     }
   }

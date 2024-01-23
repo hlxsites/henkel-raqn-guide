@@ -1,6 +1,8 @@
 import Column from '../column/column.js';
 
 export default class Accordion extends Column {
+  dependencies = ['icon'];
+
   ready() {
     this.setAttribute('role', 'navigation');
     let children = Array.from(this.children);
@@ -19,7 +21,7 @@ export default class Accordion extends Column {
   }
 
   setupControls(controls) {
-    controls.forEach((control,index) => {
+    controls.forEach((control, index) => {
       const icon = document.createElement('raqn-icon');
       icon.setAttribute('icon', 'chevron-right');
       const children = Array.from(control.children);
@@ -49,8 +51,14 @@ export default class Accordion extends Column {
     if (content) {
       content.classList.toggle('active');
       control.classList.toggle('active');
-      control.setAttribute('aria-expanded', content.classList.contains('active'));
-      content.setAttribute('aria-hidden', !content.classList.contains('active'));
+      control.setAttribute(
+        'aria-expanded',
+        content.classList.contains('active'),
+      );
+      content.setAttribute(
+        'aria-hidden',
+        !content.classList.contains('active'),
+      );
     }
   }
 
@@ -62,9 +70,12 @@ export default class Accordion extends Column {
       wrapper.append(...internal);
       content.append(wrapper);
       content.setAttribute('role', 'region');
-      content.setAttribute('aria-hidden',true);
+      content.setAttribute('aria-hidden', true);
       content.classList.add('accordion-content');
-      content.setAttribute('aria-labelledby', content.previousElementSibling.id);
+      content.setAttribute(
+        'aria-labelledby',
+        content.previousElementSibling.id,
+      );
     });
   }
 }
