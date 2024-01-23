@@ -9,6 +9,9 @@ export default class Router extends ComponentBase {
     if (url.indexOf('.html') >= 0) {
       return url.replace(/\.html$/, '.plain.html');
     }
+    if (url.endsWith(`${window.location.host}/`) || url === '') {
+      return '/index.plain.html';
+    }
     return `${url}.plain.html`;
   }
 
@@ -21,7 +24,7 @@ export default class Router extends ComponentBase {
           event.target.href.startsWith(window.location.origin)
         ) {
           event.preventDefault();
-          this.setAttribute('external', this.getPlainUrl(event.target.href));
+          this.setAttribute('external', event.target.href);
         }
       },
       true,
@@ -31,8 +34,8 @@ export default class Router extends ComponentBase {
   attributeChangedCallback(name, oldValue, newValue) {
     if (name === 'external' && oldValue !== newValue) {
       this.external = newValue;
-      console.log(this.external, this.getPlainUrl(this.external));
-      this.load(this.external);
+      window.history.pushState(this.external, '', this.external);
+      this.load(this.getPlainUrl(this.external));
     }
   }
 
