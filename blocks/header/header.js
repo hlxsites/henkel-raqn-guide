@@ -1,11 +1,13 @@
-import {
-  loadBlocks,
-} from '../../scripts/lib-franklin.js';
-import {
-  decorateMain,
-} from '../../scripts/scripts.js';
+import ComponentBase from '../../scripts/component-base.js';
+import { eagerImage } from '../../scripts/libs.js';
 
-export default async function decorate(block) {
-  decorateMain(block);
-  loadBlocks(block);
+export default class Header extends ComponentBase {
+  external = '/header.plain.html';
+
+  dependencies = ['navigation'];
+
+  async processExternal(response) {
+    await super.processExternal(response);
+    eagerImage(this, 1);
+  }
 }

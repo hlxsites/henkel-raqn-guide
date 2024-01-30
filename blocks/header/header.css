@@ -1,19 +1,12 @@
-header a:any-link {
-  color: inherit;
-}
+raqn-header {
+  --scope-background: var(--scope-header-background, #fff);
+  --scope-color: var(--scope-header-color, #000);
 
-header p,
-header .section.grid .element p {
-  margin: 0;
-  padding: 0;
-}
-
-a.button:any-link {
-  background-color: transparent;
-  color: inherit;
-  font-weight: normal;
-}
-
-a.button:any-link .icon {
-  vertical-align: middle;
+  position: fixed;
+  width: 100%;
+  min-height: var(--scope-header-height, 64px);
+  display: grid;
+  background: var(--scope-header-background, #fff);
+  align-items: center;
+  z-index: 100;
 }

@@ -23,3 +23,7 @@ npm run lint:fix
 1. Install the [AEM CLI](https://github.com/adobe/helix-cli): `npm install -g @adobe/aem-cli`
 1. Start AEM EDS Proxy: `aem up` (opens your browser at `http://localhost:3000`)
 1. Open the `henkel-raqn-guide` directory in your favorite IDE and start coding :)
+
+## Documentation
+
+[Documentation](docs/readme.md)

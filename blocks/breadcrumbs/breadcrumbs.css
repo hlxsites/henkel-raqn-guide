@@ -1,0 +1,40 @@
+raqn-breadcrumbs {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 10px;
+  align-items: center;
+  padding: 10px 0;
+  background: var(--scope-background, transparent);
+  color: var(--scope-color, #000);
+}
+
+raqn-breadcrumbs ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: flex;
+}
+
+raqn-breadcrumbs ul li {
+  margin-inline-end: 1em;
+  font-weight: bold;
+}
+
+raqn-breadcrumbs ul li a {
+  color: var(--scope-color);
+  font-weight: normal;
+}
+
+@media screen and (max-width: 768px) {
+  raqn-breadcrumbs ul li {
+    display: none;
+  }
+
+  raqn-breadcrumbs ul li.separator:has(+ li:last-child) {
+    display: block;
+  }
+
+  raqn-breadcrumbs ul li:last-child {
+    display: block;
+  }
+}

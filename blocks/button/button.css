@@ -1,0 +1,38 @@
+raqn-button {
+  width: 100%;
+  display: grid;
+  align-content: center;
+  justify-content: center;
+  align-items: center;
+  justify-items: var(--scope-justify, start);
+}
+
+raqn-button > * {
+  background: var(--scope-accent-background, #000);
+  color: var(--scope-accent-color, #fff);
+  text-transform: none;
+  border-radius: var(--scope-border-radius, 0);
+  border-block-start: var(--scope-border-block-start, 1px solid transparent);
+  border-block-end: var(--scope-border-block-end, 1px solid transparent);
+  border-inline-start: var(--scope-border-inline-start, 1px solid transparent);
+  border-inline-end: var(--scope-border-inline-end, 1px solid transparent);
+  overflow: hidden;
+}
+
+raqn-button > *:hover {
+  background: var(--scope-accent-background-hover, #fff);
+  color: var(--scope-accent-color-hover, #fff);
+  border-color: currentcolor;
+}
+
+raqn-button a {
+  color: var(--scope-accent-color, currentcolor);
+  padding: 10px 20px;
+  text-decoration: none;
+}
+
+raqn-button a:hover,
+raqn-button a:visited,
+raqn-button a:active {
+  text-decoration: none;
+}

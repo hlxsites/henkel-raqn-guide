@@ -1,25 +1,17 @@
-import { readBlockConfig, decorateIcons } from '../../scripts/lib-franklin.js';
+import ComponentBase from '../../scripts/component-base.js';
 
-/**
- * loads and decorates the footer
- * @param {Element} block The footer block element
- */
-export default async function decorate(block) {
-  const cfg = readBlockConfig(block);
-  block.textContent = '';
+export default class Footer extends ComponentBase {
+  constructor() {
+    super();
+    this.external = '/footer.plain.html';
+  }
 
-  // fetch footer content
-  const footerPath = cfg.footer || '/footer';
-  const resp = await fetch(`${footerPath}.plain.html`, window.location.pathname.endsWith('/footer') ? { cache: 'reload' } : {});
-
-  if (resp.ok) {
-    const html = await resp.text();
-
-    // decorate footer DOM
-    const footer = document.createElement('div');
-    footer.innerHTML = html;
-
-    decorateIcons(footer);
-    block.append(footer);
+  ready() {
+    const child = this.children[0];
+    child.replaceWith(...child.children);
+    this.nav = this.querySelector('ul');
+    this.nav.setAttribute('role', 'navigation');
+    this.classList.add('full-width');
+    this.classList.add('horizontal');
   }
 }
