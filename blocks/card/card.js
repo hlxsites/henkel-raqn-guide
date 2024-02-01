@@ -2,9 +2,7 @@ import ComponentBase from '../../scripts/component-base.js';
 import { eagerImage } from '../../scripts/libs.js';
 
 export default class Card extends ComponentBase {
-  static get observedAttributes() {
-    return ['columns', 'ratio', 'eager', 'background', 'button'];
-  }
+  static observedAttributes = ['columns', 'ratio', 'eager', 'background', 'button'];
 
   ready() {
     if (this.getAttribute('button') === 'true') {

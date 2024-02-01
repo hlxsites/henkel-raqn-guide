@@ -7,7 +7,7 @@ export default class Theme extends ComponentBase {
   constructor() {
     super();
     this.scapeDiv = document.createElement('div');
-    this.external = '/theme.json';
+    this.fragment = '/theme.json';
     this.skip = ['tags'];
     this.toTags = [
       'font-size',
@@ -145,7 +145,7 @@ export default class Theme extends ComponentBase {
     document.body.style.display = 'block';
   }
 
-  async processExternal(response) {
+  async processFragment(response) {
     if (response.ok) {
       this.themeJson = await response.json();
       this.readValue();

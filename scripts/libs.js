@@ -1,5 +1,5 @@
 export const config = {
-  elementBlocks: ['header', 'footer'],
+  semanticBlocks: ['header', 'footer'],
   breakpoints: {
     s: 0,
     m: 768,
@@ -57,3 +57,11 @@ export const eagerImage = (block, length = 1) => {
     img.setAttribute('loading', 'eager');
   });
 };
+
+export function getMeta(name) {
+  const meta = document.querySelector(`meta[name="${name}"]`);
+  if (!meta) {
+    return null;
+  }
+  return meta.content;
+}

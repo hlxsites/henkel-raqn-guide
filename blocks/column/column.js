@@ -1,9 +1,7 @@
 import ComponentBase from '../../scripts/component-base.js';
 
 export default class Column extends ComponentBase {
-  static observedAttributes() {
-    return ['position', 'size'];
-  }
+  static observedAttributes = ['position', 'size'];
 
   connected() {
     const content = this.querySelectorAll('div > div');

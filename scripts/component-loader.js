@@ -7,7 +7,6 @@ export default class ComponentLoader {
     this.setBlockPaths();
     this.block = element;
     if (this.block) {
-      this.setParams();
       this.content = this.block.children;
     }
   }
@@ -27,9 +26,10 @@ export default class ComponentLoader {
     });
   }
 
-  setParams() {
+  getParams(clazz) {
     const mediaParams = {};
-    this.params = {
+    const knownAttributes = (clazz && clazz.knownAttributes) || [];
+    return {
       ...Array.from(this.block.classList)
         .filter((c) => c !== this.blockName && c !== 'block')
         .reduce((acc, c) => {
@@ -42,16 +42,24 @@ export default class ComponentLoader {
             return acc;
           }
 
+          // param does not apply because it is for a different breakpoint
           if (config.breakpoints[key] !== undefined) {
             return acc;
           }
 
+          // variants without a known attribute are considered classes for the element
+          if(key != 'class' && knownAttributes.indexOf(key) < 0) {
+            values.unshift(key);
+            key = 'class';
+          }
+
+          const value = values.join('-');
           if (acc[key] && Array.isArray(acc[key])) {
-            acc[key].push(values.join('-'));
+            acc[key].push(value);
           } else if (acc[key]) {
-            acc[key] = [acc[key], values.join('-')];
+            acc[key] = [acc[key], value];
           } else {
-            acc[key] = values.join('-');
+            acc[key] = value;
           }
           return acc;
         }, {}),
@@ -68,47 +76,37 @@ export default class ComponentLoader {
     const elementName = `raqn-${this.blockName.toLowerCase()}`;
     const element = document.createElement(elementName);
     element.append(...this.block.children);
-    Object.keys(this.params).forEach((key) => {
-      const value = Array.isArray(this.params[key])
-        ? this.params[key].join(' ')
-        : this.params[key];
+    const params = this.getParams(window.raqnComponents[this.blockName])
+    Object.keys(params).forEach((key) => {
+      const value = Array.isArray(params[key])
+        ? params[key].join(' ')
+        : params[key];
       element.setAttribute(key, value);
     });
     this.block.replaceWith(element);
   }
 
   async loadWebComponent() {
-    return new Promise((resolve, reject) => {
-      (async () => {
-        try {
-          const mod = await import(this.jsPath);
-          if (
-            mod.default &&
-            mod.default.name &&
-            mod.default.name !== 'decorate'
-          ) {
-            const { name } = mod.default;
-            const elementName = `raqn-${name.toLowerCase()}`;
-            // define the custom element if it doesn't exist
-            if (!window.raqnComponents[name]) {
-              const Contructor = mod.default;
-              customElements.define(elementName, Contructor);
-              window.raqnComponents[name] = Contructor;
-            }
-            if (this.block) {
-              this.setupElement();
-            }
-          } else if (mod.default) {
-            await mod.default(this.block);
-          }
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.log(`failed to load module for ${this.blockName}`, error);
-          return reject(error);
-        }
-        return resolve();
-      })();
-    });
+    const mod = await import(this.jsPath);
+    if (
+      mod.default &&
+      mod.default.toString().startsWith('class')
+    ) {
+      const { name } = mod.default;
+      const elementName = `raqn-${name.toLowerCase()}`;
+      // define the custom element if it doesn't exist
+      if (!window.raqnComponents[this.blockName]) {
+        const clazz = mod.default;
+        customElements.define(elementName, clazz);
+        window.raqnComponents[this.blockName] = clazz;
+      }
+      if (this.block) {
+        this.setupElement();
+      }
+    // fallback in case we have a standard block
+    } else if (mod.default) {
+      await mod.default(this.block);
+    }
   }
 
   async decorate() {
@@ -118,14 +116,13 @@ export default class ComponentLoader {
     try {
       const cssLoaded = this.loadCSS(this.cssPath).catch(() =>
         // eslint-disable-next-line no-console
-        console.log(`${this.cssPath} does not exist`),
+        console.trace(`${this.cssPath} does not exist`),
       );
       const decorationComplete = this.loadWebComponent();
-      return Promise.all([decorationComplete, cssLoaded]);
+      Promise.all([decorationComplete, cssLoaded]);
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.log(`failed to load module for ${this.blockName}`, error);
-      return Promise.resolve();
+      console.error(`failed to load module for ${this.blockName}`, error);
     }
   }
 }

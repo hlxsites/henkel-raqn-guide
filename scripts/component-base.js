@@ -1,9 +1,16 @@
-import { init, start } from './init.js';
+import { start, startBlock } from './init.js';
 
 export default class ComponentBase extends HTMLElement {
+  static get knownAttributes() {
+    return [
+      ...(Object.getPrototypeOf(this).knownAttributes || []),
+      ...(this.observedAttributes || [])
+    ]
+  }
+
   constructor() {
     super();
-    this.external = false;
+    this.fragment = false;
     this.dependencies = [];
     this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
   }
@@ -12,8 +19,8 @@ export default class ComponentBase extends HTMLElement {
     const initialized = this.getAttribute('initialized');
     if (!initialized) {
       this.setAttribute('id', this.uuid);
-      if (this.external) {
-        await this.load(this.external);
+      if (this.fragment) {
+        await this.loadFragment(this.fragment);
       }
       if (this.dependencies.length > 0) {
         await Promise.all(this.dependencies.map((dep) => start({ name: dep })));
@@ -24,25 +31,21 @@ export default class ComponentBase extends HTMLElement {
     }
   }
 
-  async load(block) {
+  async loadFragment(path) {
     const response = await fetch(
-      `${block}`,
-      window.location.pathname.endsWith(block) ? { cache: 'reload' } : {},
+      `${path}`,
+      window.location.pathname.endsWith(path) ? { cache: 'reload' } : {},
     );
-    return this.processExternal(response);
+    return this.processFragment(response);
   }
 
-  async processExternal(response) {
+  async processFragment(response) {
     if (response.ok) {
       const html = await response.text();
       this.innerHTML = html;
-      return this.refresh(this);
+      return this.querySelectorAll(':scope > div > div').forEach((block) => startBlock(block));
     }
     return response;
-  }
-
-  refresh(el = this) {
-    init(el);
   }
 
   connected() {}

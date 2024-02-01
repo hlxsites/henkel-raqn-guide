@@ -1,9 +1,7 @@
 import ComponentBase from '../../scripts/component-base.js';
 
 export default class Router extends ComponentBase {
-  static get observedAttributes() {
-    return ['external'];
-  }
+  static observedAttributes = ['external'];
 
   getPlainUrl(url) {
     if (url.indexOf('.html') >= 0) {
@@ -39,7 +37,7 @@ export default class Router extends ComponentBase {
     }
   }
 
-  async processExternal(response) {
+  async processFragment(response) {
     if (response.ok) {
       const html = await response.text();
       const main = document.body.querySelector('main');
