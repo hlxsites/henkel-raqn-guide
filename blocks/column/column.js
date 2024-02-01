@@ -27,7 +27,7 @@ export default class Column extends ComponentBase {
     if (this.position) {
       const parent = this.parentElement;
       const children = Array.from(parent.children);
-      this.parentElement.classList.add('raqn-grid');
+      parent.classList.add('raqn-grid');
       let parentGridTemplateColumns = parent.style.getPropertyValue(
         '--grid-template-columns',
       );

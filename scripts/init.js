@@ -49,7 +49,7 @@ async function init() {
   const blocks = [
     ...document.head.querySelectorAll('style[class]'), 
     document.body.querySelector('header'), 
-    ...document.body.querySelectorAll('main > div > div'), 
+    ...document.body.querySelectorAll('main [class]:not([class^=style]'), 
     document.body.querySelector('footer'),
   ];
 
