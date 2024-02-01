@@ -20,7 +20,7 @@ function getInfos(blocks) {
 
 export async function start({ name, el }) {
   const loader = new ComponentLoader(name, el);
-  return loader.decorate();
+  return loader.start();
 }
 
 export async function startBlock(block) {
@@ -37,7 +37,11 @@ function initEagerImages() {
 
 function getLcp() {
   const lcpMeta = getMeta('lcp');
-  return lcpMeta ? lcpMeta.split(',').map((name) => ({ name })) : [];
+  return lcpMeta ? lcpMeta.split(',').map((name) => ({ name: name.trim() })) : [];
+}
+
+function includesInfo(infos, search) {
+  return infos.find(({ name }) => name === search);
 }
 
 async function init() {
@@ -47,23 +51,24 @@ async function init() {
   initEagerImages();
 
   const blocks = [
-    ...document.head.querySelectorAll('style[class]'), 
     document.body.querySelector('header'), 
-    ...document.body.querySelectorAll('main [class]:not([class^=style]'), 
+    ...document.querySelectorAll('[class]:not([class^=style]'), 
     document.body.querySelector('footer'),
   ];
 
-  const lcp = getLcp();
-  const delay = window.raqnLCPDelay || [];
   const data = getInfos(blocks);
-  const priority = data.filter(({ name }) => lcp.includes(name));
+  const lcp = getLcp().map(({ name }) => includesInfo(data, name) || { name });
+  const delay = window.raqnLCPDelay || [];
   const lazy = data.filter(
-    ({ name }) => !lcp.includes(name) && !delay.includes(name)
+    ({ name }) => !includesInfo(lcp, name) && !includesInfo(delay, name)
   );
 
-  // start with lcp and priority
-  lcp.map(({ name, el }) => start({ name, el })),
-  priority.map(({ name, el }) => start({ name, el })),
+  // start with lcp
+  await Promise.all(
+    lcp.map(({ name, el }) => start({ name, el }))
+  ).then(() => {
+    document.body.style.display = 'unset';
+  });
   // timeout for the rest to proper prioritize in case of stalled loading
   lazy.map(({ name, el }) => setTimeout(() => start({ name, el })));
 

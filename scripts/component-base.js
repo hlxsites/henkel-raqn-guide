@@ -28,6 +28,7 @@ export default class ComponentBase extends HTMLElement {
       this.connected();
       this.ready();
       this.setAttribute('initialized', true);
+      this.dispatchEvent(new CustomEvent('initialized', { detail: { block: this } }));
     }
   }
 

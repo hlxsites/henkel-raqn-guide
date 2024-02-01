@@ -142,7 +142,6 @@ export default class Theme extends ComponentBase {
       document.head.appendChild(style);
     });
     document.body.classList.add('theme-default');
-    document.body.style.display = 'block';
   }
 
   async processFragment(response) {

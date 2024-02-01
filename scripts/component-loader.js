@@ -11,6 +11,27 @@ export default class ComponentLoader {
     }
   }
 
+  get handler() {
+    return window.raqnComponents[this.blockName];
+  }
+
+  set handler(handler) {
+    window.raqnComponents[this.blockName] = handler;
+  }
+
+  isWebComponentClass(clazz = this.handler) {
+    return clazz.toString().startsWith('class');
+  }
+
+  setBlockPaths() {
+    this.cssPath = `/blocks/${this.blockName}/${this.blockName}.css`;
+    this.jsPath = `/blocks/${this.blockName}/${this.blockName}.js`;
+  }
+
+  get webComponentName() {
+    return `raqn-${this.blockName.toLowerCase()}`;
+  }
+
   async loadCSS(href) {
     return new Promise((resolve, reject) => {
       if (!document.querySelector(`head > link[href="${href}"]`)) {
@@ -26,9 +47,9 @@ export default class ComponentLoader {
     });
   }
 
-  getParams(clazz) {
+  loadParams() {
     const mediaParams = {};
-    const knownAttributes = (clazz && clazz.knownAttributes) || [];
+    const knownAttributes = (this.handler && this.handler.knownAttributes) || [];
     return {
       ...Array.from(this.block.classList)
         .filter((c) => c !== this.blockName && c !== 'block')
@@ -67,59 +88,59 @@ export default class ComponentLoader {
     };
   }
 
-  setBlockPaths() {
-    this.cssPath = `/blocks/${this.blockName}/${this.blockName}.css`;
-    this.jsPath = `/blocks/${this.blockName}/${this.blockName}.js`;
-  }
-
-  setupElement() {
-    const elementName = `raqn-${this.blockName.toLowerCase()}`;
-    const element = document.createElement(elementName);
+  async setupElement() {
+    const element = document.createElement(this.webComponentName);
     element.append(...this.block.children);
-    const params = this.getParams(window.raqnComponents[this.blockName])
+    const params = this.loadParams()
     Object.keys(params).forEach((key) => {
       const value = Array.isArray(params[key])
         ? params[key].join(' ')
         : params[key];
       element.setAttribute(key, value);
     });
+    const initialized = new Promise((resolve) => {
+      const initListener = (event) => {
+        if(event.detail.block === element) {
+          element.removeEventListener('initialized', initListener);
+          resolve();
+        }
+      };
+      element.addEventListener('initialized', initListener);
+    });
     this.block.replaceWith(element);
+    await initialized;
   }
 
-  async loadWebComponent() {
-    const mod = await import(this.jsPath);
-    if (
-      mod.default &&
-      mod.default.toString().startsWith('class')
-    ) {
-      const { name } = mod.default;
-      const elementName = `raqn-${name.toLowerCase()}`;
-      // define the custom element if it doesn't exist
-      if (!window.raqnComponents[this.blockName]) {
-        const clazz = mod.default;
-        customElements.define(elementName, clazz);
-        window.raqnComponents[this.blockName] = clazz;
-      }
-      if (this.block) {
-        this.setupElement();
-      }
-    // fallback in case we have a standard block
-    } else if (mod.default) {
-      await mod.default(this.block);
-    }
-  }
-
-  async decorate() {
-    if (window.raqnComponents[this.blockName]) {
-      return this.setupElement();
-    }
+  async start() {
     try {
-      const cssLoaded = this.loadCSS(this.cssPath).catch(() =>
-        // eslint-disable-next-line no-console
-        console.trace(`${this.cssPath} does not exist`),
-      );
-      const decorationComplete = this.loadWebComponent();
-      Promise.all([decorationComplete, cssLoaded]);
+      let cssLoaded = Promise.resolve();
+      if (!this.handler) {
+        this.handler = new Promise(async (resolve, reject) => {
+          try {
+            cssLoaded = this.loadCSS(this.cssPath).catch(() =>
+              // eslint-disable-next-line no-console
+              console.trace(`${this.cssPath} does not exist`),
+            );
+            const mod = await import(this.jsPath);
+            this.handler = mod.default;
+            if(this.isWebComponentClass(mod.default)) {
+              customElements.define(this.webComponentName, this.handler);
+            }
+            resolve(mod.default);
+          } catch(e) {
+            reject(e);
+          }
+        });
+      }
+      await this.handler;
+      if(this.block) {
+        if(this.isWebComponentClass()) {
+          await this.setupElement();
+        } else {
+          await this.handler(this.block);
+        }
+      }
+      await cssLoaded;
     } catch (error) {
       // eslint-disable-next-line no-console
       console.error(`failed to load module for ${this.blockName}`, error);
