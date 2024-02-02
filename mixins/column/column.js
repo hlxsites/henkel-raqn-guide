@@ -1,10 +1,17 @@
-import ComponentBase from '../../scripts/component-base.js';
+import ComponentMixin from '../../scripts/component-mixin.js';
 
-export default class Column extends ComponentBase {
-  static observedAttributes = ['position', 'size'];
+export default class Column extends ComponentMixin {
+  static observedAttributes = ['column-position', 'column-size', 'column-justify'];
 
-  connected() {
-    const content = this.querySelectorAll('div > div');
+  constructor(element) {
+    super(element);
+    this.position = parseInt(this.getAttribute('column-position'), 10);
+    this.size = this.getAttribute('column-size');
+    this.justify = this.getAttribute('column-justify') || 'stretch';
+  }
+  
+  start() {
+    const content = this.element.querySelectorAll('div > div');
     // clean up dom structure (div div div div div div) and save the content
     this.contentChildren = Array.from(content).map((child) => {
       const {children} = child;
@@ -18,14 +25,11 @@ export default class Column extends ComponentBase {
   }
 
   calculateGridTemplateColumns() {
-    this.position = parseInt(this.getAttribute('position'), 10);
-    this.size = this.getAttribute('size');
-    this.justify = this.getAttribute('justify') || 'stretch';
     if (this.justify) {
-      this.style.justifyContent = this.justify;
+      this.element.style.justifyContent = this.justify;
     }
     if (this.position) {
-      const parent = this.parentElement;
+      const parent = this.element.parentElement;
       const children = Array.from(parent.children);
       parent.classList.add('raqn-grid');
       let parentGridTemplateColumns = parent.style.getPropertyValue(
@@ -48,7 +52,7 @@ export default class Column extends ComponentBase {
         );
       } else {
         const { position } = this;
-        const prio = children.indexOf(this) + 1;
+        const prio = children.indexOf(this.element) + 1;
         parentGridTemplateColumns = parentGridTemplateColumns
           .split(' ')
           .map((size, i) => {
@@ -75,8 +79,8 @@ export default class Column extends ComponentBase {
           parentGridTemplateColumns,
         );
       }
-      this.style.gridColumn = this.position;
-      this.style.gridRow = 1;
+      this.element.style.gridColumn = this.position;
+      this.element.style.gridRow = 1;
     }
   }
 }

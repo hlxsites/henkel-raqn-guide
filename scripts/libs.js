@@ -7,7 +7,6 @@ export const config = {
     xl: 1280,
     xxl: 1920,
   },
-  joinParams: ['class'],
   fontWeights: {
     regular: 400,
     medium: 500,
@@ -64,4 +63,76 @@ export function getMeta(name) {
     return null;
   }
   return meta.content;
+}
+
+export function collectParams(blockName, classes, mixins, knownAttributes) {
+  const mediaParams = {};
+  const allKnownAttributes = [
+    ...(knownAttributes || []),
+    ...mixins.map((mixin) => mixin.observedAttributes || []).flat(),
+  ];
+  return {
+    ...Array.from(classes)
+      .filter((c) => c !== blockName && c !== 'block')
+      .reduce((acc, c) => {
+        let value = c;
+        const breakpoint = Object.keys(config.breakpoints).find((breakpoint) => c.startsWith(`${breakpoint}-`));
+        if(breakpoint) {
+          if(breakpoint === getBreakPoint()) {
+            value = value.slice(breakpoint.length + 1);  
+          } else {
+            // skip as param applies only for a different breakpoint
+            return acc;
+          }
+        }
+
+        // known attributes will be set directly to the element, all other classes will stay in the class attribute
+        let key = 'class';
+        if(value.startsWith(key)) {
+          value = value.slice(key.length + 1);
+        } else {
+          const knownAttribute = allKnownAttributes.find((attribute) => value.startsWith(`${attribute}-`));
+          if(knownAttribute) {
+            key = knownAttribute;
+            value = value.slice(knownAttribute.length + 1);
+          }
+        }
+
+        // media params always overwrite
+        if(breakpoint) {
+          mediaParams[key] = value;
+        } else {
+          // support multivalue attributes
+          if (acc[key]) {
+            acc[key] += ` ${value}`;
+          } else {
+            acc[key] = value;
+          }
+        }
+        return acc;
+      }, {}),
+    ...mediaParams,
+  };
+}
+
+export function loadModule(urlWithoutExtension) {
+  const js = import(`${urlWithoutExtension}.js`);
+  const css = new Promise((resolve, reject) => {
+    const cssHref = `${urlWithoutExtension}.css`;
+    if (!document.querySelector(`head > link[href="${cssHref}"]`)) {
+      const link = document.createElement('link');
+      link.rel = 'stylesheet';
+      link.href = cssHref;
+      link.onload = resolve;
+      link.onerror = reject;
+      document.head.append(link);
+    } else {
+      resolve();
+    }
+  }).catch(() =>
+    // eslint-disable-next-line no-console
+    console.trace(`could not load module style`, urlWithoutExtension),
+  );
+
+  return { css, js };
 }

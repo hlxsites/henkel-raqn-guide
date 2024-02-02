@@ -1,4 +1,5 @@
 import ComponentLoader from './component-loader.js';
+import ComponentMixin from './component-mixin.js';
 import { config, debounce, eagerImage, getBreakPoint, getMeta } from './libs.js';
 
 function getInfo(block) {
@@ -45,15 +46,17 @@ function includesInfo(infos, search) {
 }
 
 async function init() {
+  ComponentMixin.getMixins();
+  
   // mechanism of retrieving lang to be used in the app
   document.documentElement.lang = document.documentElement.lang || 'en';
 
   initEagerImages();
 
   const blocks = [
-    document.body.querySelector('header'), 
+    document.body.querySelector(config.semanticBlocks[0]), 
     ...document.querySelectorAll('[class]:not([class^=style]'), 
-    document.body.querySelector('footer'),
+    document.body.querySelector(config.semanticBlocks.slice(1).join(',')),
   ];
 
   const data = getInfos(blocks);
@@ -64,7 +67,7 @@ async function init() {
   );
 
   // start with lcp
-  await Promise.all(
+  Promise.all(
     lcp.map(({ name, el }) => start({ name, el }))
   ).then(() => {
     document.body.style.display = 'unset';

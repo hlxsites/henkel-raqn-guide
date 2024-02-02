@@ -1,6 +1,6 @@
-import Column from '../column/column.js';
+import ComponentBase from '../../scripts/component-base.js';
 
-export default class Accordion extends Column {
+export default class Accordion extends ComponentBase {
   dependencies = ['icon'];
 
   ready() {

@@ -1,5 +1,5 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { config } from '../../scripts/libs.js';
+import { config, getMeta } from '../../scripts/libs.js';
 // minify alias
 const k = Object.keys;
 
@@ -141,7 +141,8 @@ export default class Theme extends ComponentBase {
       style.classList.add(cssSegment);
       document.head.appendChild(style);
     });
-    document.body.classList.add('theme-default');
+    const themeMeta = getMeta('theme');
+    document.body.classList.add(themeMeta || 'theme-default');
   }
 
   async processFragment(response) {
