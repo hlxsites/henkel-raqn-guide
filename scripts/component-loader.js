@@ -64,6 +64,7 @@ export default class ComponentLoader {
             }
             resolve(mod.default);
           } catch(e) {
+            conosle.error('error loading module', e);
             reject(e);
           }
         });

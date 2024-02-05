@@ -17,7 +17,7 @@ export default class ComponentMixin {
           const mod = await js;
           return mod.default;
         }));
-
+        resolve(window.raqnMixins);
       });
     }
     return window.raqnMixins;
