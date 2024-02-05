@@ -1,4 +1,4 @@
-import { config, getBreakPoint, collectParams, loadModule } from './libs.js';
+import { collectParams, loadModule } from './libs.js';
 import ComponentMixin from './component-mixin.js';
 
 export default class ComponentLoader {
@@ -54,20 +54,15 @@ export default class ComponentLoader {
     try {
       let cssLoaded = Promise.resolve();
       if (!this.handler) {
-        this.handler = new Promise(async (resolve, reject) => {
-          try {
-            const { css, js } = loadModule(this.pathWithoutExtension);
-            cssLoaded = css;
-            const mod = await js;
-            if(this.isWebComponentClass(mod.default)) {
-              customElements.define(this.webComponentName, mod.default);
-            }
-            resolve(mod.default);
-          } catch(e) {
-            conosle.error('error loading module', e);
-            reject(e);
+        this.handler = (async () => {
+          const { css, js } = loadModule(this.pathWithoutExtension);
+          cssLoaded = css;
+          const mod = await js;
+          if(this.isWebComponentClass(mod.default)) {
+            customElements.define(this.webComponentName, mod.default);
           }
-        });
+          return mod.default;
+        })();
       }
       this.handler = await this.handler;
       if(this.block) {

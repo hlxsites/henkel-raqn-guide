@@ -3,7 +3,7 @@ import ComponentMixin from './component-mixin.js';
 import { config, debounce, eagerImage, getBreakPoint, getMeta } from './libs.js';
 
 function getInfo(block) {
-  let el = block;
+  const el = block;
   const tagName = el.tagName.toLowerCase();
   let name = tagName;
   if (!config.semanticBlocks.includes(tagName)) {
@@ -47,7 +47,7 @@ function includesInfo(infos, search) {
 
 async function init() {
   ComponentMixin.getMixins();
-  
+
   // mechanism of retrieving lang to be used in the app
   document.documentElement.lang = document.documentElement.lang || 'en';
 

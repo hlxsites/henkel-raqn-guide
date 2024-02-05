@@ -1,3 +1,5 @@
+/* global WebImporter */
+
 function transformLinks(main) {
   main.querySelectorAll('a').forEach((a) => {
     if (a.href.startsWith('/') || a.href.startsWith(window.location.origin) || a.href.startsWith('https://guide.raqn.io/')) {

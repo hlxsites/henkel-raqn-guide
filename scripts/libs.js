@@ -76,7 +76,7 @@ export function collectParams(blockName, classes, mixins, knownAttributes) {
       .filter((c) => c !== blockName && c !== 'block')
       .reduce((acc, c) => {
         let value = c;
-        const breakpoint = Object.keys(config.breakpoints).find((breakpoint) => c.startsWith(`${breakpoint}-`));
+        const breakpoint = Object.keys(config.breakpoints).find((b) => c.startsWith(`${b}-`));
         if(breakpoint) {
           if(breakpoint === getBreakPoint()) {
             value = value.slice(breakpoint.length + 1);  
@@ -101,13 +101,11 @@ export function collectParams(blockName, classes, mixins, knownAttributes) {
         // media params always overwrite
         if(breakpoint) {
           mediaParams[key] = value;
+        // support multivalue attributes
+        } else if (acc[key]) {
+          acc[key] += ` ${value}`;
         } else {
-          // support multivalue attributes
-          if (acc[key]) {
-            acc[key] += ` ${value}`;
-          } else {
-            acc[key] = value;
-          }
+          acc[key] = value;
         }
         return acc;
       }, {}),

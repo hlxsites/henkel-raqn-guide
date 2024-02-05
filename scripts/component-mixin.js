@@ -9,7 +9,7 @@ export default class ComponentMixin {
 
   static async getMixins() {
     if(!window.raqnMixins) {
-      window.raqnMixins = new Promise(async (resolve) => {
+      window.raqnMixins = (async () => {
         const mixins = getMeta('mixins');
         window.raqnMixins = await Promise.all((mixins ? mixins.split(',') : []).map(async (mixin) => {
           const { css, js } = loadModule(`/mixins/${mixin.trim()}/${mixin.trim()}`);
@@ -17,8 +17,8 @@ export default class ComponentMixin {
           const mod = await js;
           return mod.default;
         }));
-        resolve(window.raqnMixins);
-      });
+        return window.raqnMixins;
+      })();
     }
     return window.raqnMixins;
   }
@@ -27,7 +27,7 @@ export default class ComponentMixin {
     return Promise.all(
       (await ComponentMixin.getMixins())
         .filter((mixin) => mixin.applies(element))
-        .map((mixin) => new mixin(element).start())
+        .map((Mixin) => new Mixin(element).start())
     );
   }
 
