@@ -1,6 +1,8 @@
 import ComponentBase from '../../scripts/component-base.js';
 
 export default class Icon extends ComponentBase {
+  static observedAttributes = ['icon'];
+  
   constructor() {
     super();
     this.setupSprite();
@@ -29,7 +31,7 @@ export default class Icon extends ComponentBase {
     if (!this.cache[this.iconName]) {
       this.cache[this.iconName] = {
         loading: new Promise((resolve) => {
-          resolve(this.load(this.iconUrl));
+          resolve(this.loadFragment(this.iconUrl));
         }),
       };
     } else {
@@ -56,7 +58,7 @@ export default class Icon extends ComponentBase {
     return `<defs><g id="icons-sprite-${iconName}" viewBox="${viewBox}" width="${width}" height="${height}">${svg.innerHTML}</g></defs>`;
   }
 
-  async processExternal(response) {
+  async processFragment(response) {
     if (response.ok) {
       const { iconName } = this;
       this.svg = await response.text();

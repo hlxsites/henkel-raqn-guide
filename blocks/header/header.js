@@ -2,12 +2,12 @@ import ComponentBase from '../../scripts/component-base.js';
 import { eagerImage } from '../../scripts/libs.js';
 
 export default class Header extends ComponentBase {
-  external = '/header.plain.html';
+  fragment = '/header.plain.html';
 
   dependencies = ['navigation'];
 
-  async processExternal(response) {
-    await super.processExternal(response);
+  async processFragment(response) {
+    await super.processFragment(response);
     eagerImage(this, 1);
   }
 }

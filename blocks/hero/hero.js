@@ -1,9 +1,7 @@
 import ComponentBase from '../../scripts/component-base.js';
 
 export default class Hero extends ComponentBase {
-  get observedAttributes() {
-    return ['order'];
-  }
+  static observedAttributes = ['order'];
 
   ready() {
     const child = this.children[0];

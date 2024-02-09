@@ -1,5 +1,5 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { config } from '../../scripts/libs.js';
+import { config, getMeta } from '../../scripts/libs.js';
 // minify alias
 const k = Object.keys;
 
@@ -7,7 +7,7 @@ export default class Theme extends ComponentBase {
   constructor() {
     super();
     this.scapeDiv = document.createElement('div');
-    this.external = '/theme.json';
+    this.fragment = '/theme.json';
     this.skip = ['tags'];
     this.toTags = [
       'font-size',
@@ -141,11 +141,11 @@ export default class Theme extends ComponentBase {
       style.classList.add(cssSegment);
       document.head.appendChild(style);
     });
-    document.body.classList.add('theme-default');
-    document.body.style.display = 'block';
+    const themeMeta = getMeta('theme');
+    document.body.classList.add(themeMeta || 'theme-default');
   }
 
-  async processExternal(response) {
+  async processFragment(response) {
     if (response.ok) {
       this.themeJson = await response.json();
       this.readValue();

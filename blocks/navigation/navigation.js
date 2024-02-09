@@ -1,7 +1,9 @@
 import { start } from '../../scripts/init.js';
-import Column from '../column/column.js';
+import ComponentBase from '../../scripts/component-base.js';
 
-export default class Navigation extends Column {
+export default class Navigation extends ComponentBase {
+  static observedAttributes = ['icon', 'compact'];
+
   createButton() {
     const button = document.createElement('button');
     button.setAttribute('aria-label', 'Menu');

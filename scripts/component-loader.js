@@ -1,131 +1,81 @@
-import { config, getBreakPoint } from './libs.js';
+import { collectParams, loadModule } from './libs.js';
+import ComponentMixin from './component-mixin.js';
 
 export default class ComponentLoader {
+
   constructor(blockName, element) {
     window.raqnComponents = window.raqnComponents || {};
     this.blockName = blockName;
-    this.setBlockPaths();
+    this.pathWithoutExtension = `/blocks/${this.blockName}/${this.blockName}`;
     this.block = element;
     if (this.block) {
-      this.setParams();
       this.content = this.block.children;
     }
   }
 
-  async loadCSS(href) {
-    return new Promise((resolve, reject) => {
-      if (!document.querySelector(`head > link[href="${href}"]`)) {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = href;
-        link.onload = resolve;
-        link.onerror = reject;
-        document.head.append(link);
-      } else {
-        resolve();
-      }
-    });
+  get handler() {
+    return window.raqnComponents[this.blockName];
   }
 
-  setParams() {
-    const mediaParams = {};
-    this.params = {
-      ...Array.from(this.block.classList)
-        .filter((c) => c !== this.blockName && c !== 'block')
-        .reduce((acc, c) => {
-          const values = c.split('-');
-          let key = values.shift();
-          const breakpoint = getBreakPoint();
-          if (breakpoint === key) {
-            key = values.shift();
-            mediaParams[key] = values.join('-');
-            return acc;
-          }
-
-          if (config.breakpoints[key] !== undefined) {
-            return acc;
-          }
-
-          if (acc[key] && Array.isArray(acc[key])) {
-            acc[key].push(values.join('-'));
-          } else if (acc[key]) {
-            acc[key] = [acc[key], values.join('-')];
-          } else {
-            acc[key] = values.join('-');
-          }
-          return acc;
-        }, {}),
-      ...mediaParams,
-    };
+  set handler(handler) {
+    window.raqnComponents[this.blockName] = handler;
   }
 
-  setBlockPaths() {
-    this.cssPath = `/blocks/${this.blockName}/${this.blockName}.css`;
-    this.jsPath = `/blocks/${this.blockName}/${this.blockName}.js`;
+  isWebComponentClass(clazz = this.handler) {
+    return clazz.toString().startsWith('class');
   }
 
-  setupElement() {
-    const elementName = `raqn-${this.blockName.toLowerCase()}`;
-    const element = document.createElement(elementName);
+  get webComponentName() {
+    return `raqn-${this.blockName.toLowerCase()}`;
+  }
+
+  async setupElement() {
+    const element = document.createElement(this.webComponentName);
     element.append(...this.block.children);
-    Object.keys(this.params).forEach((key) => {
-      const value = Array.isArray(this.params[key])
-        ? this.params[key].join(' ')
-        : this.params[key];
-      element.setAttribute(key, value);
+    const params = collectParams(this.blockName, this.block.classList, await ComponentMixin.getMixins(), this.handler && this.handler.knownAttributes);
+    Object.keys(params).forEach((key) => {
+      element.setAttribute(key, params[key]);
+    });
+    const initialized = new Promise((resolve) => {
+      const initListener = async (event) => {
+        if(event.detail.block === element) {
+          element.removeEventListener('initialized', initListener);
+          await ComponentMixin.startAll(element);
+          resolve();
+        }
+      };
+      element.addEventListener('initialized', initListener);
     });
     this.block.replaceWith(element);
+    await initialized;
   }
 
-  async loadWebComponent() {
-    return new Promise((resolve, reject) => {
-      (async () => {
-        try {
-          const mod = await import(this.jsPath);
-          if (
-            mod.default &&
-            mod.default.name &&
-            mod.default.name !== 'decorate'
-          ) {
-            const { name } = mod.default;
-            const elementName = `raqn-${name.toLowerCase()}`;
-            // define the custom element if it doesn't exist
-            if (!window.raqnComponents[name]) {
-              const Contructor = mod.default;
-              customElements.define(elementName, Contructor);
-              window.raqnComponents[name] = Contructor;
-            }
-            if (this.block) {
-              this.setupElement();
-            }
-          } else if (mod.default) {
-            await mod.default(this.block);
-          }
-        } catch (error) {
-          // eslint-disable-next-line no-console
-          console.log(`failed to load module for ${this.blockName}`, error);
-          return reject(error);
-        }
-        return resolve();
-      })();
-    });
-  }
-
-  async decorate() {
-    if (window.raqnComponents[this.blockName]) {
-      return this.setupElement();
-    }
+  async start() {
     try {
-      const cssLoaded = this.loadCSS(this.cssPath).catch(() =>
-        // eslint-disable-next-line no-console
-        console.log(`${this.cssPath} does not exist`),
-      );
-      const decorationComplete = this.loadWebComponent();
-      return Promise.all([decorationComplete, cssLoaded]);
+      let cssLoaded = Promise.resolve();
+      if (!this.handler) {
+        this.handler = (async () => {
+          const { css, js } = loadModule(this.pathWithoutExtension);
+          cssLoaded = css;
+          const mod = await js;
+          if(this.isWebComponentClass(mod.default)) {
+            customElements.define(this.webComponentName, mod.default);
+          }
+          return mod.default;
+        })();
+      }
+      this.handler = await this.handler;
+      if(this.block) {
+        if(this.isWebComponentClass()) {
+          await this.setupElement();
+        } else {
+          await this.handler(this.block);
+        }
+      }
+      await cssLoaded;
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.log(`failed to load module for ${this.blockName}`, error);
-      return Promise.resolve();
+      console.error(`failed to load module for ${this.blockName}`, error);
     }
   }
 }

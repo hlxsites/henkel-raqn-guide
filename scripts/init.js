@@ -1,72 +1,79 @@
 import ComponentLoader from './component-loader.js';
-import { config, debounce, eagerImage, getBreakPoint } from './libs.js';
+import ComponentMixin from './component-mixin.js';
+import { config, debounce, eagerImage, getBreakPoint, getMeta } from './libs.js';
 
-export function getInfos(blocks) {
-  return blocks.map((block) => {
-    let el = block;
-    const tagName = el.tagName.toLowerCase();
-    let name = tagName;
-    if (!config.elementBlocks.includes(tagName)) {
-      [name] = Array.from(el.classList);
-    } else {
-      // allow original way of defining blocks
-      el = document.createElement('div');
-      block.append(el);
-    }
-    return {
-      name,
-      el,
-    };
-  });
-}
-
-function getMeta(name) {
-  const meta = document.querySelector(`meta[name="${name}"]`);
-  if (!meta) {
-    return null;
+function getInfo(block) {
+  const el = block;
+  const tagName = el.tagName.toLowerCase();
+  let name = tagName;
+  if (!config.semanticBlocks.includes(tagName)) {
+    [name] = Array.from(el.classList);
   }
-  return meta.content;
+  return {
+    name,
+    el,
+  };
 }
 
-function lcpPriority() {
+function getInfos(blocks) {
+  return blocks.map((block) => getInfo(block));
+}
+
+export async function start({ name, el }) {
+  const loader = new ComponentLoader(name, el);
+  return loader.start();
+}
+
+export async function startBlock(block) {
+  return start(getInfo(block));
+}
+
+function initEagerImages() {
   const eagerImages = getMeta('eager-images');
   if (eagerImages) {
     const length = parseInt(eagerImages, 10);
     eagerImage(document.body, length);
   }
-  const lcp = getMeta('lcp');
-  window.raqnLCP = lcp ? lcp.split(',').map((name) => ({ name })) : [];
 }
 
-export async function start({ name, el }) {
-  const loader = new ComponentLoader(name, el);
-  return loader.decorate();
+function getLcp() {
+  const lcpMeta = getMeta('lcp');
+  return lcpMeta ? lcpMeta.split(',').map((name) => ({ name: name.trim() })) : [];
 }
 
-export async function init(node = document) {
-  let blocks = Array.from(node.querySelectorAll('[class]:not([class^=style]'));
+function includesInfo(infos, search) {
+  return infos.find(({ name }) => name === search);
+}
 
-  if (node === document) {
-    const header = node.querySelector('header');
-    const footer = node.querySelector('footer');
-    blocks = [header, ...blocks, footer];
-  }
+async function init() {
+  ComponentMixin.getMixins();
+
+  // mechanism of retrieving lang to be used in the app
+  document.documentElement.lang = document.documentElement.lang || 'en';
+
+  initEagerImages();
+
+  const blocks = [
+    document.body.querySelector(config.semanticBlocks[0]), 
+    ...document.querySelectorAll('[class]:not([class^=style]'), 
+    document.body.querySelector(config.semanticBlocks.slice(1).join(',')),
+  ];
 
   const data = getInfos(blocks);
-  const lcp = window.raqnLCP;
+  const lcp = getLcp().map(({ name }) => includesInfo(data, name) || { name });
   const delay = window.raqnLCPDelay || [];
-  const priority = data.filter(({ name }) => lcp.includes(name));
-  const rest = data.filter(
-    ({ name }) => !lcp.includes(name) && !delay.includes(name),
+  const lazy = data.filter(
+    ({ name }) => !includesInfo(lcp, name) && !includesInfo(delay, name)
   );
 
-  // start with lcp and priority
-  Promise.all([
-    ...lcp.map(({ name, el }) => start({ name, el })),
-    ...priority.map(({ name, el }) => start({ name, el })),
-  ]);
+  // start with lcp
+  Promise.all(
+    lcp.map(({ name, el }) => start({ name, el }))
+  ).then(() => {
+    document.body.style.display = 'unset';
+  });
   // timeout for the rest to proper prioritize in case of stalled loading
-  rest.map(({ name, el }) => setTimeout(() => start({ name, el })));
+  lazy.map(({ name, el }) => setTimeout(() => start({ name, el })));
 
   // reload on breakpoint change to reset params and variables
   window.raqnBreakpoint = getBreakPoint();
@@ -80,7 +87,5 @@ export async function init(node = document) {
     }, 100),
   );
 }
-// mechanism of retrieving lang to be used in the app
-document.documentElement.lang = document.documentElement.lang || 'en';
-lcpPriority();
+
 init();
