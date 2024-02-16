@@ -71,6 +71,10 @@ header {
   background: var(--scope-header-background, #fff);
 }
 
+main {
+  margin-top: var(--scope-header-height, 64px);
+}
+
 main > div {
   max-width: var(--scope-max-width, 100%);
   margin: 0 auto;
@@ -81,6 +85,11 @@ main > div > * {
   min-width: var(--scope-max-width, 100%);
   margin-inline: auto;
   box-sizing: border-box;
+}
+
+main > .raqn-grid > * {
+  max-width: auto;
+  min-width: auto;
 }
 
 .full-width {
