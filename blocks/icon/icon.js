@@ -2,7 +2,7 @@ import ComponentBase from '../../scripts/component-base.js';
 
 export default class Icon extends ComponentBase {
   static observedAttributes = ['icon'];
-  
+
   constructor() {
     super();
     this.setupSprite();
@@ -18,6 +18,7 @@ export default class Icon extends ComponentBase {
   }
 
   get iconUrl() {
+    // keep as it is
     return `/assets/icons/${this.iconName}.svg`;
   }
 

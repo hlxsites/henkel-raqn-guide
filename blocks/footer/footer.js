@@ -1,6 +1,7 @@
 import ComponentBase from '../../scripts/component-base.js';
 
 export default class Footer extends ComponentBase {
+  // keep as it is
   fragment = '/footer.plain.html';
 
   ready() {
