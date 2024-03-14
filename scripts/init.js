@@ -54,7 +54,7 @@ function includesInfo(infos, search) {
 }
 
 async function init() {
-  const base = document.createElement('base');
+  const base = document.createElement('basepath');
   base.href = `${window.location.origin}/${getMeta('basePath') || ''}`;
   document.head.appendChild(base);
 
