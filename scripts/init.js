@@ -55,7 +55,7 @@ function includesInfo(infos, search) {
 
 async function init() {
   const base = document.createElement('base');
-  base.href = `${window.location.origin}/${getMeta('basepath') || ''}`;
+  base.href = `${window.location.origin}${getMeta('basepath') || ''}`;
   document.head.appendChild(base);
 
   ComponentMixin.getMixins();
