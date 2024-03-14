@@ -7,7 +7,7 @@ export default class Theme extends ComponentBase {
   constructor() {
     super();
     this.scapeDiv = document.createElement('div');
-    this.fragment = `${getMeta('basePath')}/theme.json`;
+    this.fragment = `${getMeta('basepath')}/theme.json`;
     this.skip = ['tags'];
     this.toTags = [
       'font-size',

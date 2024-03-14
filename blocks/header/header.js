@@ -1,8 +1,8 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { eagerImage } from '../../scripts/libs.js';
+import { eagerImage, getMeta } from '../../scripts/libs.js';
 
 export default class Header extends ComponentBase {
-  fragment = '/header.plain.html';
+  fragment = `${getMeta('basepath')}/header.plain.html`;
 
   dependencies = ['navigation'];
 

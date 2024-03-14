@@ -1,4 +1,5 @@
 import ComponentBase from '../../scripts/component-base.js';
+import { getMeta } from '../../scripts/libs.js';
 
 export default class Icon extends ComponentBase {
   static observedAttributes = ['icon'];
@@ -18,7 +19,7 @@ export default class Icon extends ComponentBase {
   }
 
   get iconUrl() {
-    return `/assets/icons/${this.iconName}.svg`;
+    return `${getMeta('basepath')}/assets/icons/${this.iconName}.svg`;
   }
 
   get cache() {
