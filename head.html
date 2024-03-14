@@ -4,7 +4,7 @@
   const meta = document.querySelector(`meta[name="basepath"]`);
   if (meta) {
     const base = document.createElement('base');
-    base.href = `${window.location.origin}${meta.content || ''}`;
+    base.href = `${meta.content || ''}/`;
     document.head.appendChild(base);
   }
 </script>
@@ -12,7 +12,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <link
   rel="preload"
-  href="/web-guide/en/header.plain.html"
+  href="header.plain.html"
   as="fetch"
   crossorigin="anonymous"
 />

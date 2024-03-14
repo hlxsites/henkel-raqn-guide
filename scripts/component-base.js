@@ -4,8 +4,8 @@ export default class ComponentBase extends HTMLElement {
   static get knownAttributes() {
     return [
       ...(Object.getPrototypeOf(this).knownAttributes || []),
-      ...(this.observedAttributes || [])
-    ]
+      ...(this.observedAttributes || []),
+    ];
   }
 
   constructor() {
@@ -28,7 +28,9 @@ export default class ComponentBase extends HTMLElement {
       this.connected();
       this.ready();
       this.setAttribute('initialized', true);
-      this.dispatchEvent(new CustomEvent('initialized', { detail: { block: this } }));
+      this.dispatchEvent(
+        new CustomEvent('initialized', { detail: { block: this } }),
+      );
     }
   }
 
@@ -44,7 +46,9 @@ export default class ComponentBase extends HTMLElement {
     if (response.ok) {
       const html = await response.text();
       this.innerHTML = html;
-      return this.querySelectorAll(':scope > div > div').forEach((block) => startBlock(block));
+      return this.querySelectorAll(':scope > div > div').forEach((block) =>
+        startBlock(block),
+      );
     }
     return response;
   }

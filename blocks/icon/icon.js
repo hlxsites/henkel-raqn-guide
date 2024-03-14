@@ -19,7 +19,7 @@ export default class Icon extends ComponentBase {
 
   get iconUrl() {
     // keep as it is
-    return `/assets/icons/${this.iconName}.svg`;
+    return `assets/icons/${this.iconName}.svg`;
   }
 
   get cache() {

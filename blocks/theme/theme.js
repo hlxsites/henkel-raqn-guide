@@ -1,5 +1,5 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { config } from '../../scripts/libs.js';
+import { config, getMeta } from '../../scripts/libs.js';
 // minify alias
 const k = Object.keys;
 
@@ -8,7 +8,7 @@ export default class Theme extends ComponentBase {
     super();
     this.scapeDiv = document.createElement('div');
     // keep as it is
-    this.fragment = '/theme.json';
+    this.fragment = 'theme.json';
     this.skip = ['tags'];
     this.toTags = [
       'font-size',
