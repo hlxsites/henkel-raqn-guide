@@ -1,6 +1,12 @@
 import ComponentLoader from './component-loader.js';
 import ComponentMixin from './component-mixin.js';
-import { config, debounce, eagerImage, getBreakPoint, getMeta } from './libs.js';
+import {
+  config,
+  debounce,
+  eagerImage,
+  getBreakPoint,
+  getMeta,
+} from './libs.js';
 
 function getInfo(block) {
   const el = block;
@@ -38,7 +44,9 @@ function initEagerImages() {
 
 function getLcp() {
   const lcpMeta = getMeta('lcp');
-  return lcpMeta ? lcpMeta.split(',').map((name) => ({ name: name.trim() })) : [];
+  return lcpMeta
+    ? lcpMeta.split(',').map((name) => ({ name: name.trim() }))
+    : [];
 }
 
 function includesInfo(infos, search) {
@@ -46,6 +54,10 @@ function includesInfo(infos, search) {
 }
 
 async function init() {
+  const base = document.createElement('base');
+  base.href = `${window.location.origin}/${getMeta('basePath') || ''}`;
+  document.head.appendChild(base);
+
   ComponentMixin.getMixins();
 
   // mechanism of retrieving lang to be used in the app
@@ -54,8 +66,8 @@ async function init() {
   initEagerImages();
 
   const blocks = [
-    document.body.querySelector(config.semanticBlocks[0]), 
-    ...document.querySelectorAll('[class]:not([class^=style]'), 
+    document.body.querySelector(config.semanticBlocks[0]),
+    ...document.querySelectorAll('[class]:not([class^=style]'),
     document.body.querySelector(config.semanticBlocks.slice(1).join(',')),
   ];
 
@@ -63,13 +75,11 @@ async function init() {
   const lcp = getLcp().map(({ name }) => includesInfo(data, name) || { name });
   const delay = window.raqnLCPDelay || [];
   const lazy = data.filter(
-    ({ name }) => !includesInfo(lcp, name) && !includesInfo(delay, name)
+    ({ name }) => !includesInfo(lcp, name) && !includesInfo(delay, name),
   );
 
   // start with lcp
-  Promise.all(
-    lcp.map(({ name, el }) => start({ name, el }))
-  ).then(() => {
+  Promise.all(lcp.map(({ name, el }) => start({ name, el }))).then(() => {
     document.body.style.display = 'unset';
   });
   // timeout for the rest to proper prioritize in case of stalled loading
