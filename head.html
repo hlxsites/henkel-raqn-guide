@@ -1,4 +1,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- basepath -->
+<script>
+  const meta = document.querySelector(`meta[name="basepath"]`);
+  if (meta) {
+    const base = document.createElement('base');
+    base.href = `${window.location.origin}${meta.content || ''}`;
+    document.head.appendChild(base);
+  }
+</script>
+
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <link
   rel="preload"

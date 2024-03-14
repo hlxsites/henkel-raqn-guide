@@ -54,10 +54,6 @@ function includesInfo(infos, search) {
 }
 
 async function init() {
-  const base = document.createElement('base');
-  base.href = `${window.location.origin}${getMeta('basepath') || ''}`;
-  document.head.appendChild(base);
-
   ComponentMixin.getMixins();
 
   // mechanism of retrieving lang to be used in the app
