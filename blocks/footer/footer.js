@@ -1,5 +1,4 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { getMeta } from '../../scripts/libs.js';
 
 export default class Footer extends ComponentBase {
   // keep as it is

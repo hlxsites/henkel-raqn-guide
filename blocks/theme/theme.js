@@ -1,5 +1,5 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { config, getMeta } from '../../scripts/libs.js';
+import { config } from '../../scripts/libs.js';
 // minify alias
 const k = Object.keys;
 

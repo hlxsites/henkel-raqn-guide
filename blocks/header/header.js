@@ -1,5 +1,5 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { eagerImage, getMeta } from '../../scripts/libs.js';
+import { eagerImage } from '../../scripts/libs.js';
 
 export default class Header extends ComponentBase {
   // keep as it is

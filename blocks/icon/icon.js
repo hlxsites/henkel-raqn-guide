@@ -1,5 +1,4 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { getMeta } from '../../scripts/libs.js';
 
 export default class Icon extends ComponentBase {
   static observedAttributes = ['icon'];
