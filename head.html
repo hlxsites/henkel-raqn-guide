@@ -7,6 +7,9 @@
     base.href = `${meta.content || ''}/`;
     document.head.appendChild(base);
   }
+  document.querySelectorAll(`a[href^="http://~/"]`).forEach((a) => {
+    a.href = a.href.replace('http://~/', '');
+  });
 </script>
 
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />

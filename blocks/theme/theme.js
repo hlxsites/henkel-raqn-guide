@@ -38,6 +38,7 @@ export default class Theme extends ComponentBase {
     return '';
   }
 
+
   fontTags(t, index) {
     const tag = t.tags[index];
     const values = this.toTags.reduce((acc, key) => {

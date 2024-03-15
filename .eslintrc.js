@@ -15,6 +15,7 @@ module.exports = {
     'import/no-unresolved': [2, { commonjs: true }],
     'array-callback-return': 'off', // due to prettier
     'class-methods-use-this': 'off', // due to prettier
+    'comma-dangle': 'always-multiline', // due to prettier
     // allow reassigning param
     'no-param-reassign': [2, { props: false }],
     'linebreak-style': ['error', 'unix'],
