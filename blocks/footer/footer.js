@@ -1,8 +1,8 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { getMeta } from '../../scripts/libs.js';
 
 export default class Footer extends ComponentBase {
-  fragment = `${getMeta('basepath')}/footer.plain.html`;
+  // keep as it is
+  fragment = 'footer.plain.html';
 
   ready() {
     const child = this.children[0];

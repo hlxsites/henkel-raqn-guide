@@ -1,8 +1,21 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<!-- basepath -->
+<script>
+  const meta = document.querySelector(`meta[name="basepath"]`);
+  if (meta) {
+    const base = document.createElement('base');
+    base.href = `${meta.content || ''}/`;
+    document.head.appendChild(base);
+  }
+  document.querySelectorAll(`a[href^="http://~/"]`).forEach((a) => {
+    a.href = a.href.replace('http://~/', '');
+  });
+</script>
+
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <link
   rel="preload"
-  href="/web-guide/en/header.plain.html"
+  href="header.plain.html"
   as="fetch"
   crossorigin="anonymous"
 />
