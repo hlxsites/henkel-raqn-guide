@@ -14,13 +14,13 @@ export default class Column extends ComponentMixin {
     const content = this.element.querySelectorAll('div > div');
     // clean up dom structure (div div div div div div) and save the content
     this.contentChildren = Array.from(content).map((child) => {
-      const {children} = child;
+      const { children } = child;
       const parent = child.parentNode;
       if (children.length > 0) {
         child.replaceWith(...children);
       }
       return parent;
-    })
+    });
     this.calculateGridTemplateColumns();
   }
 

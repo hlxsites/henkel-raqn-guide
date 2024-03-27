@@ -9,26 +9,6 @@
   </script>
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta property="og:title" content="Page not found">
-  <script src="/scripts/scripts.js" type="module" crossorigin="use-credentials"></script>
-  <script type="module">
-    import { sampleRUM } from '/scripts/lib-franklin.js';
-
-    window.addEventListener('load', () => {
-      if (document.referrer) {
-        const { origin, pathname } = new URL(document.referrer);
-        if (origin === window.location.origin) {
-          const backBtn = document.createElement('a');
-          backBtn.classList.add('button', 'error-button-back');
-          backBtn.href = pathname;
-          backBtn.textContent = 'Go back';
-          backBtn.title = 'Go back';
-          const btnContainer = document.querySelector('.button-container');
-          btnContainer.append(backBtn);
-        }
-      }
-      sampleRUM('404', { source: document.referrer, target: window.location.href });
-    });
-  </script>
   <link rel="stylesheet" href="/styles/styles.css">
   <style>
     main.error {
@@ -43,6 +23,9 @@
 
     main.error .error-number text {
       font-family: var(--fixed-font-family);
+    }
+    html body {
+      display: unset;
     }
   </style>
   <link rel="stylesheet" href="/styles/lazy-styles.css">
