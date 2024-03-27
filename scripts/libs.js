@@ -1,7 +1,27 @@
+import { publish } from './pubsub.js';
+
 export const config = {
   semanticBlocks: ['header', 'footer'],
+  blocks: [
+    'accordion',
+    'breadcrumbs',
+    'button',
+    'card',
+    'external',
+    'hero',
+    'icon',
+    'navigation',
+    'router',
+    'section-metadata',
+    'theme',
+    'wrapper',
+  ],
+  mixinsBlocks: [
+    'column',
+  ],
   breakpoints: {
-    s: 0,
+    xs: 0,
+    s: 480,
     m: 768,
     l: 1024,
     xl: 1280,
@@ -14,19 +34,91 @@ export const config = {
   },
 };
 
+export function matchMediaQuery(breakpointMin, breakpointMax) {
+  const min = `(min-width: ${breakpointMin}px)`;
+  const max = breakpointMax ? ` and (max-width: ${breakpointMax}px)` : '';
+
+  return window.matchMedia(`${min}${max}`);
+}
+
 export function getBreakPoints() {
-  window.raqnBreakpoints = window.raqnBreakpoints || {};
-  const breakpoints = Object.keys(config.breakpoints);
-  window.raqnBreakpoints = breakpoints.filter(
-    (bp) => matchMedia(`(min-width: ${config.breakpoints[bp]}px)`).matches,
-  );
+  window.raqnBreakpoints ??= {
+    ordered: [],
+    byName: {},
+    activeMinMax: [],
+    activeMin: null,
+  };
+
+  if (window.raqnBreakpoints.ordered.length) return window.raqnBreakpoints;
+
+  window.raqnBreakpoints.ordered = Object.entries(config.breakpoints)
+    .sort((a, b) => a[1] - b[1])
+    .map(([breakpointMinName, breakpointMin], index, arr) => {
+      const [, breakpointNext] = arr[index + 1] || [];
+      const breakpointMax = breakpointNext ? breakpointNext - 1 : null;
+      const breakpoint = {
+        name: breakpointMinName,
+        min: breakpointMin,
+        max: breakpointMax,
+        matchMediaMin: matchMediaQuery(breakpointMin),
+        matchMediaMinMax: matchMediaQuery(breakpointMin, breakpointMax),
+      };
+      window.raqnBreakpoints.byName[breakpointMinName] = breakpoint;
+      if (breakpoint.matchMediaMin.matches) {
+        (window.raqnBreakpoints.activeMin ??= []).push({ ...breakpoint });
+      }
+      if (breakpoint.matchMediaMinMax.matches) {
+        window.raqnBreakpoints.activeMinMax = { ...breakpoint };
+      }
+      return { ...breakpoint };
+    });
+
   return window.raqnBreakpoints;
 }
 
-export function getBreakPoint() {
-  const b = getBreakPoints();
-  return b[b.length - 1];
-}
+// This will trigger a `matches = true` event on both increasing and decreasing the viewport size for each viewport type.
+// No need for throttle here as the events are only triggered once at a time when the exact condition is valid.
+export function publishBreakpointChange() {
+  const breakpoints = getBreakPoints();
+
+  if (breakpoints.listenersInitialized) return;
+  breakpoints.ordered.forEach((breakpoint) => {
+    breakpoint.matchMediaMinMax.addEventListener('change', (e) => {
+      
+      e.raqnBreakpoint = {
+        ...breakpoint,
+      };
+
+      if (e.matches) {
+        e.previousRaqnBreakpoint = {
+          ...breakpoints.activeMinMax,
+        };
+        breakpoints.activeMinMax = { ...breakpoint };
+        breakpoints.activeMin = breakpoints.ordered.filter((br) => br.min <= breakpoint.min);
+      }
+      /**
+       * Based on the breakpoints list there will always be
+       * one matching breakpoint and one not matching breakpoint 
+       * at fired the same time.
+       * 
+       * To prevent a subscription callbacks to be fired 2 times in a row,
+       * once for matching breakpoint and once for the not matching breakpoint
+       * it's advisable to use wither a matching or a non matching event
+       */
+      // general event fired for matching and non matching breakpoints
+      publish('breakpoint::change', e);
+      publish(`breakpoint::change::${breakpoint.name}`, e);
+      if (e.matches) {
+        publish('breakpoint::change::matches', e);
+        publish(`breakpoint::change::matches::${breakpoint.name}`);
+      } else {
+        publish('breakpoint::change::not::matches', e);
+        publish(`breakpoint::change::not::matches::${breakpoint.name}`);
+      }
+    });
+  });
+  breakpoints.listenersInitialized = true;
+};
 
 export const debounce = (func, wait, immediate) => {
   let timeout;
@@ -65,51 +157,74 @@ export function getMeta(name) {
   return meta.content;
 }
 
-export function collectParams(blockName, classes, mixins, knownAttributes) {
-  const mediaParams = {};
-  const allKnownAttributes = [
-    ...(knownAttributes || []),
-    ...mixins.map((mixin) => mixin.observedAttributes || []).flat(),
-  ];
-  return {
-    ...Array.from(classes)
-      .filter((c) => c !== blockName && c !== 'block')
-      .reduce((acc, c) => {
-        let value = c;
-        const breakpoint = Object.keys(config.breakpoints).find((b) => c.startsWith(`${b}-`));
-        if(breakpoint) {
-          if(breakpoint === getBreakPoint()) {
-            value = value.slice(breakpoint.length + 1);  
+export function collectAttributes(blockName, classes, mixins, knownAttributes = [], element = null) {
+  const mediaAttributes = {};
+  // inherit default param values
+  const attributesValues = element?.attributesValues || {};
+
+  const mixinKnownAttributes = mixins.flatMap((mixin) => mixin.observedAttributes || []);
+  const attrs = Array.from(classes)
+    .filter((c) => c !== blockName && c !== 'block')
+    .reduce((acc, c) => {
+      let value = c;
+      let isKnownAttribute = null;
+      let isMixinKnownAttributes = null;
+
+      const classBreakpoint = Object.keys(config.breakpoints).find((b) => c.startsWith(`${b}-`));
+      const activeBreakpoint = getBreakPoints().activeMinMax.name;
+
+      if (classBreakpoint) {
+        value = value.slice(classBreakpoint.length + 1);
+      }
+
+      let key = 'class';
+      const isClassValue = value.startsWith(key);
+      if (isClassValue) {
+        value = value.slice(key.length + 1);
+      } else {
+        isKnownAttribute = knownAttributes.find((attribute) => value.startsWith(`${attribute}-`));
+        isMixinKnownAttributes = mixinKnownAttributes.find((attribute) => value.startsWith(`${attribute}-`));
+        const getKnownAttribute = isKnownAttribute || isMixinKnownAttributes;
+        if (getKnownAttribute) {
+          key = getKnownAttribute;
+          value = value.slice(getKnownAttribute.length + 1);
+        }
+      }
+      const isClass = key === 'class';
+      if (isKnownAttribute || isClass) attributesValues[key] ??= {};
+
+      // media params always overwrite
+      if (classBreakpoint) {
+        if (classBreakpoint === activeBreakpoint) {
+          mediaAttributes[key] = value;
+        }
+        if (isKnownAttribute) attributesValues[key][classBreakpoint] = value;
+        if (isClass) {
+          if (attributesValues[key][classBreakpoint]) {
+            attributesValues[key][classBreakpoint] += ` ${value}`;
           } else {
-            // skip as param applies only for a different breakpoint
-            return acc;
+            attributesValues[key][classBreakpoint] = value;
           }
         }
-
-        // known attributes will be set directly to the element, all other classes will stay in the class attribute
-        let key = 'class';
-        if(value.startsWith(key)) {
-          value = value.slice(key.length + 1);
-        } else {
-          const knownAttribute = allKnownAttributes.find((attribute) => value.startsWith(`${attribute}-`));
-          if(knownAttribute) {
-            key = knownAttribute;
-            value = value.slice(knownAttribute.length + 1);
-          }
-        }
-
-        // media params always overwrite
-        if(breakpoint) {
-          mediaParams[key] = value;
         // support multivalue attributes
-        } else if (acc[key]) {
-          acc[key] += ` ${value}`;
-        } else {
-          acc[key] = value;
-        }
-        return acc;
-      }, {}),
-    ...mediaParams,
+      } else if (acc[key]) {
+        acc[key] += ` ${value}`;
+      } else {
+        acc[key] = value;
+      }
+
+      if (isKnownAttribute || isClass) attributesValues[key].all = acc[key];
+
+      return acc;
+    }, {});
+
+  return { // TODO improve how classes are collected and merged.
+    currentAttributes: {
+      ...attrs,
+      ...mediaAttributes,
+      ...((attrs.class || mediaAttributes.class) && { class: `${attrs.class ? attrs.class : ''}${mediaAttributes.class ? ` ${ mediaAttributes.class}` : ''}` }),
+    },
+    attributesValues,
   };
 }
 
@@ -127,9 +242,9 @@ export function loadModule(urlWithoutExtension) {
     } else {
       resolve();
     }
-  }).catch(() =>
+  }).catch((error) =>
     // eslint-disable-next-line no-console
-    console.trace(`could not load module style`, urlWithoutExtension),
+    console.trace('could not load module style', urlWithoutExtension, error),
   );
 
   return { css, js };

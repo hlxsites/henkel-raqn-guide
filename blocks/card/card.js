@@ -11,10 +11,7 @@ export default class Card extends ComponentBase {
       );
     }
     this.eager = parseInt(this.getAttribute('eager') || 0, 10);
-    this.ratio = this.getAttribute('ratio') || '4/3';
-    this.style.setProperty('--card-ratio', this.ratio);
     this.classList.add('inner');
-    this.setupColumns(this.getAttribute('columns'));
     if (this.eager) {
       eagerImage(this, this.eager);
     }
@@ -27,14 +24,28 @@ export default class Card extends ComponentBase {
     a.replaceWith(button);
   }
 
+  setupRatio(ratio) {
+    this.ratio = ratio || '4/3';
+    this.style.setProperty('--card-ratio', this.ratio);
+  }
+
   setupColumns(columns) {
-    if (!columns) {
-      return;
-    }
+    if (!columns) return;
+
     this.columns = parseInt(columns, 10);
     this.area = Array.from(Array(parseInt(this.columns, 10)))
       .map(() => '1fr')
       .join(' ');
     this.style.setProperty('--card-columns', this.area);
+  }
+
+  onAttrChanged_columns({ oldValue, newValue }) {
+    if (oldValue === newValue) return;
+    this.setupColumns(newValue);
+  }
+
+  onAttrChanged_ratio({ oldValue, newValue }) {
+    if (oldValue === newValue) return;
+    this.setupRatio(newValue);
   }
 }

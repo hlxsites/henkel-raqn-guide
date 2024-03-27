@@ -28,6 +28,8 @@ export default class Icon extends ComponentBase {
   }
 
   async connected() {
+    this.setAttribute('aria-hidden', 'true');
+
     this.iconName = this.getAttribute('icon');
     if (!this.cache[this.iconName]) {
       this.cache[this.iconName] = {
@@ -52,7 +54,7 @@ export default class Icon extends ComponentBase {
         return '';
       })
       .join(' ');
-    return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ${attributes}><use xlink:href="#icons-sprite-${this.iconName}"/></svg>`;
+    return `<svg focusable="false" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ${attributes}><use xlink:href="#icons-sprite-${this.iconName}"/></svg>`;
   }
 
   iconTemplate(iconName, svg, viewBox, width, height) {
