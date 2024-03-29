@@ -1,24 +1,5 @@
-import { publish } from './pubsub.js';
-
 export const config = {
   semanticBlocks: ['header', 'footer'],
-  blocks: [
-    'accordion',
-    'breadcrumbs',
-    'button',
-    'card',
-    'external',
-    'hero',
-    'icon',
-    'navigation',
-    'router',
-    'section-metadata',
-    'theme',
-    'wrapper',
-  ],
-  mixinsBlocks: [
-    'column',
-  ],
   breakpoints: {
     xs: 0,
     s: 480,
@@ -34,6 +15,9 @@ export const config = {
   },
 };
 
+export const camelCaseAttr = (val) => val.replace(/-([a-z])/g, (k) => k[1].toUpperCase());
+export const capitalizeCaseAttr = (val) => camelCaseAttr(val.replace(/^[a-z]/g, (k) => k.toUpperCase()));
+
 export function matchMediaQuery(breakpointMin, breakpointMax) {
   const min = `(min-width: ${breakpointMin}px)`;
   const max = breakpointMax ? ` and (max-width: ${breakpointMax}px)` : '';
@@ -45,10 +29,10 @@ export function getBreakPoints() {
   window.raqnBreakpoints ??= {
     ordered: [],
     byName: {},
-    activeMinMax: [],
-    activeMin: null,
+    active: null,
   };
 
+  // return if already set
   if (window.raqnBreakpoints.ordered.length) return window.raqnBreakpoints;
 
   window.raqnBreakpoints.ordered = Object.entries(config.breakpoints)
@@ -60,15 +44,12 @@ export function getBreakPoints() {
         name: breakpointMinName,
         min: breakpointMin,
         max: breakpointMax,
-        matchMediaMin: matchMediaQuery(breakpointMin),
-        matchMediaMinMax: matchMediaQuery(breakpointMin, breakpointMax),
+        matchMedia: matchMediaQuery(breakpointMin, breakpointMax),
       };
       window.raqnBreakpoints.byName[breakpointMinName] = breakpoint;
-      if (breakpoint.matchMediaMin.matches) {
-        (window.raqnBreakpoints.activeMin ??= []).push({ ...breakpoint });
-      }
-      if (breakpoint.matchMediaMinMax.matches) {
-        window.raqnBreakpoints.activeMinMax = { ...breakpoint };
+
+      if (breakpoint.matchMedia.matches) {
+        window.raqnBreakpoints.active = { ...breakpoint };
       }
       return { ...breakpoint };
     });
@@ -76,49 +57,26 @@ export function getBreakPoints() {
   return window.raqnBreakpoints;
 }
 
-// This will trigger a `matches = true` event on both increasing and decreasing the viewport size for each viewport type.
-// No need for throttle here as the events are only triggered once at a time when the exact condition is valid.
-export function publishBreakpointChange() {
+export function listenBreakpointChange(callback) {
   const breakpoints = getBreakPoints();
+  let { active } = breakpoints;
 
-  if (breakpoints.listenersInitialized) return;
   breakpoints.ordered.forEach((breakpoint) => {
-    breakpoint.matchMediaMinMax.addEventListener('change', (e) => {
-      
-      e.raqnBreakpoint = {
-        ...breakpoint,
-      };
+    breakpoint.matchMedia.addEventListener('change', (e) => {
+      e.raqnBreakpoint = { ...breakpoint };
 
       if (e.matches) {
-        e.previousRaqnBreakpoint = {
-          ...breakpoints.activeMinMax,
-        };
-        breakpoints.activeMinMax = { ...breakpoint };
-        breakpoints.activeMin = breakpoints.ordered.filter((br) => br.min <= breakpoint.min);
+        e.previousRaqnBreakpoint = { ...active };
+        active = { ...breakpoint };
+        if (breakpoints.active.name !== breakpoint.name) {
+          breakpoints.active = { ...breakpoint };
+        }
       }
-      /**
-       * Based on the breakpoints list there will always be
-       * one matching breakpoint and one not matching breakpoint 
-       * at fired the same time.
-       * 
-       * To prevent a subscription callbacks to be fired 2 times in a row,
-       * once for matching breakpoint and once for the not matching breakpoint
-       * it's advisable to use wither a matching or a non matching event
-       */
-      // general event fired for matching and non matching breakpoints
-      publish('breakpoint::change', e);
-      publish(`breakpoint::change::${breakpoint.name}`, e);
-      if (e.matches) {
-        publish('breakpoint::change::matches', e);
-        publish(`breakpoint::change::matches::${breakpoint.name}`);
-      } else {
-        publish('breakpoint::change::not::matches', e);
-        publish(`breakpoint::change::not::matches::${breakpoint.name}`);
-      }
+
+      callback?.(e);
     });
   });
-  breakpoints.listenersInitialized = true;
-};
+}
 
 export const debounce = (func, wait, immediate) => {
   let timeout;
@@ -171,7 +129,7 @@ export function collectAttributes(blockName, classes, mixins, knownAttributes = 
       let isMixinKnownAttributes = null;
 
       const classBreakpoint = Object.keys(config.breakpoints).find((b) => c.startsWith(`${b}-`));
-      const activeBreakpoint = getBreakPoints().activeMinMax.name;
+      const activeBreakpoint = getBreakPoints().active.name;
 
       if (classBreakpoint) {
         value = value.slice(classBreakpoint.length + 1);
@@ -190,20 +148,22 @@ export function collectAttributes(blockName, classes, mixins, knownAttributes = 
           value = value.slice(getKnownAttribute.length + 1);
         }
       }
+
       const isClass = key === 'class';
-      if (isKnownAttribute || isClass) attributesValues[key] ??= {};
+      const camelCaseKey = camelCaseAttr(key);
+      if (isKnownAttribute || isClass) attributesValues[camelCaseKey] ??= {};
 
       // media params always overwrite
       if (classBreakpoint) {
         if (classBreakpoint === activeBreakpoint) {
           mediaAttributes[key] = value;
         }
-        if (isKnownAttribute) attributesValues[key][classBreakpoint] = value;
+        if (isKnownAttribute) attributesValues[camelCaseKey][classBreakpoint] = value;
         if (isClass) {
-          if (attributesValues[key][classBreakpoint]) {
-            attributesValues[key][classBreakpoint] += ` ${value}`;
+          if (attributesValues[camelCaseKey][classBreakpoint]) {
+            attributesValues[camelCaseKey][classBreakpoint] += ` ${value}`;
           } else {
-            attributesValues[key][classBreakpoint] = value;
+            attributesValues[camelCaseKey][classBreakpoint] = value;
           }
         }
         // support multivalue attributes
@@ -213,16 +173,19 @@ export function collectAttributes(blockName, classes, mixins, knownAttributes = 
         acc[key] = value;
       }
 
-      if (isKnownAttribute || isClass) attributesValues[key].all = acc[key];
+      if (isKnownAttribute || isClass) attributesValues[camelCaseKey].all = acc[key];
 
       return acc;
     }, {});
 
-  return { // TODO improve how classes are collected and merged.
+  return {
+    // TODO improve how classes are collected and merged.
     currentAttributes: {
       ...attrs,
       ...mediaAttributes,
-      ...((attrs.class || mediaAttributes.class) && { class: `${attrs.class ? attrs.class : ''}${mediaAttributes.class ? ` ${ mediaAttributes.class}` : ''}` }),
+      ...((attrs.class || mediaAttributes.class) && {
+        class: `${attrs.class ? attrs.class : ''}${mediaAttributes.class ? ` ${mediaAttributes.class}` : ''}`,
+      }),
     },
     attributesValues,
   };

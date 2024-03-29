@@ -4,7 +4,6 @@ import {
   config,
   eagerImage,
   getMeta,
-  publishBreakpointChange,
 } from './libs.js';
 
 function getInfo(block) {
@@ -53,7 +52,6 @@ function includesInfo(infos, search) {
 }
 
 async function init() {
-  publishBreakpointChange();
   ComponentMixin.getMixins();
 
   // mechanism of retrieving lang to be used in the app
@@ -62,11 +60,9 @@ async function init() {
 
   initEagerImages();
 
-  // query only known blocks
-  const blockSelectors = `.${config.blocks.join(', .')}`;
   const blocks = [
     document.body.querySelector(config.semanticBlocks[0]),
-    ...document.querySelectorAll(blockSelectors),
+    ...document.querySelectorAll('[class]:not([class^=style]'),
     ...document.body.querySelectorAll(config.semanticBlocks.slice(1).join(',')),
   ];
 

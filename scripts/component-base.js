@@ -1,63 +1,32 @@
 import { start, startBlock } from './init.js';
-import { getBreakPoints } from './libs.js';
-import { publish, subscribe, unsubscribe, unsubscribeAll } from './pubsub.js';
+import { getBreakPoints, listenBreakpointChange, camelCaseAttr, capitalizeCaseAttr } from './libs.js';
 
 export default class ComponentBase extends HTMLElement {
   static get knownAttributes() {
-    return [
-      ...(Object.getPrototypeOf(this).knownAttributes || []),
-      ...(this.observedAttributes || []),
-    ];
+    return [...(Object.getPrototypeOf(this).knownAttributes || []), ...(this.observedAttributes || [])];
   }
 
   constructor() {
     super();
+    this.blockName = null; // set by component loader
+    this.webComponentName = null; // set by component loader
     this.fragment = false;
     this.dependencies = [];
     this.breakpoints = getBreakPoints();
     this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
-    this.activeSubscriptions = []; // populated by the internal pubSub methods
     this.attributesValues = {}; // the values are set by the component loader
+    this.config = {};
     this.setBinds();
   }
 
-  config = {
-    subscriptions: {
-      breakpointMatches: 'breakpoint::change::matches',
-    },
-  };
-
   setBinds() {
-    this.onBreakpointMatches = this.onBreakpointMatches.bind(this);
+    this.onBreakpointChange = this.onBreakpointChange.bind(this);
   }
 
-  // Use only the internal pub-sub methods
-  subscribe(event, callback, options) {
-    subscribe(event, callback, { scope: this, ...options });
-  }
-
-  publish(event, data, options) {
-    publish(event, data, options);
-  }
-
-  unsubscribe(event, callback, options) {
-    unsubscribe(event, callback, { scope: this, ...options });
-  }
-
-  unsubscribeAll(options) {
-    unsubscribeAll({ scope: this, ...options });
-  }
-
-  disconnectedCallback() {
-    this.unsubscribeAll(); // must unsubscribe each time the element is added to the document
-  }
-
-  initSubscriptions() {
-    this.subscribe(this.config.subscriptions.breakpointMatches, this.onBreakpointMatches);
-  }
-
-  onBreakpointMatches(e) {
-    this.setBreakpointAttributesValues(e);
+  onBreakpointChange(e) {
+    if (e.matches) {
+      this.setBreakpointAttributesValues(e);
+    }
   }
 
   setBreakpointAttributesValues(e) {
@@ -65,7 +34,7 @@ export default class ComponentBase extends HTMLElement {
       const isAttribute = attribute !== 'class';
       if (isAttribute) {
         const newValue = breakpointsValues[e.raqnBreakpoint.name] ?? breakpointsValues.all;
-        // this will trigger the `attributeChangedCallback` and a `onAttrChanged_${name}` method
+        // this will trigger the `attributeChangedCallback` and a `onAttribute${capitalizedAttr}Changed` method
         // should be defined to handle the attribute value change
         if (newValue ?? false) {
           if (this.getAttribute(attribute) === newValue) return;
@@ -74,8 +43,8 @@ export default class ComponentBase extends HTMLElement {
           this.removeAttribute(attribute, newValue);
         }
       } else {
-        const prevClasses = (breakpointsValues[e.previousRaqnBreakpoint.name] ?? '').split(' ').filter((x)=> x);
-        const newClasses = (breakpointsValues[e.raqnBreakpoint.name] ?? '').split(' ').filter((x)=> x);
+        const prevClasses = (breakpointsValues[e.previousRaqnBreakpoint.name] ?? '').split(' ').filter((x) => x);
+        const newClasses = (breakpointsValues[e.raqnBreakpoint.name] ?? '').split(' ').filter((x) => x);
         const removeClasses = prevClasses.filter((prevClass) => !newClasses.includes(prevClass));
         const addClasses = newClasses.filter((newClass) => !prevClasses.includes(newClass));
 
@@ -87,20 +56,26 @@ export default class ComponentBase extends HTMLElement {
 
   /**
    * Attributes are assigned before the `connectedCallback` is triggered.
-   * In some cases a check for `this.initialized` inside `onAttrChanged_${name}` might be required
+   * In some cases a check for `this.initialized` inside `onAttribute${capitalizedAttr}Changed` might be required
    */
   attributeChangedCallback(name, oldValue, newValue) {
+    const camelAttr = camelCaseAttr(name);
+    const capitalizedAttr = capitalizeCaseAttr(name);
     // handle case when attribute is removed from the element
     // default to attribute breakpoint value
-    const defaultNewVal = (newValue === null) ? (this.getBreakpointAttrVal(name) ?? null) : newValue;
-    this[`onAttrChanged_${name}`]?.({ oldValue, newValue: defaultNewVal });
+    const defaultNewVal = newValue === null ? this.getBreakpointAttrVal(camelAttr) ?? null : newValue;
+    this[`onAttribute${capitalizedAttr}Changed`]?.({ oldValue, newValue: defaultNewVal });
   }
 
   getBreakpointAttrVal(attr) {
-    const { name: activeBrName } = this.breakpoints.activeMinMax;
+    const { name: activeBrName } = this.breakpoints.active;
     const attribute = this.attributesValues?.[attr];
     if (!attribute) return undefined;
     return attribute?.[activeBrName] ?? attribute?.all;
+  }
+
+  addListeners() {
+    listenBreakpointChange(this.onBreakpointChange);
   }
 
   async connectedCallback() {
@@ -114,21 +89,17 @@ export default class ComponentBase extends HTMLElement {
       if (this.dependencies.length > 0) {
         await Promise.all(this.dependencies.map((dep) => start({ name: dep })));
       }
-      this.connected();
-      this.ready();
+      this.connected(); // manipulate the html
+      this.addListeners(); // html is ready add listeners
+      this.ready(); // add extra functionality
       this.setAttribute('initialized', true);
       this.initialized = true;
-      this.dispatchEvent(
-        new CustomEvent('initialized', { detail: { block: this } }),
-      );
+      this.dispatchEvent(new CustomEvent('initialized', { detail: { block: this } }));
     }
   }
 
   async loadFragment(path) {
-    const response = await fetch(
-      `${path}`,
-      window.location.pathname.endsWith(path) ? { cache: 'reload' } : {},
-    );
+    const response = await fetch(`${path}`, window.location.pathname.endsWith(path) ? { cache: 'reload' } : {});
     return this.processFragment(response);
   }
 
@@ -136,14 +107,16 @@ export default class ComponentBase extends HTMLElement {
     if (response.ok) {
       const html = await response.text();
       this.innerHTML = html;
-      return this.querySelectorAll(':scope > div > div').forEach((block) =>
-        startBlock(block),
-      );
+      return this.querySelectorAll(':scope > div > div').forEach((block) => startBlock(block));
     }
     return response;
   }
 
-  connected() { }
+  initSubscriptions() {}
 
-  ready() { }
+  connected() {}
+
+  ready() {}
+
+  disconnectedCallback() {}
 }

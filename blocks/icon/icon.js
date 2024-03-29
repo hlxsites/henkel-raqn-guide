@@ -72,14 +72,8 @@ export default class Icon extends ComponentBase {
           html: this.svg
             // rescope ids and references to avoid clashes across icons;
             .replaceAll(/ id="([^"]+)"/g, (_, id) => ` id="${iconName}-${id}"`)
-            .replaceAll(
-              /="url\(#([^)]+)\)"/g,
-              (_, id) => `="url(#${iconName}-${id})"`,
-            )
-            .replaceAll(
-              / xlink:href="#([^"]+)"/g,
-              (_, id) => ` xlink:href="#${iconName}-${id}"`,
-            ),
+            .replaceAll(/="url\(#([^)]+)\)"/g, (_, id) => `="url(#${iconName}-${id})"`)
+            .replaceAll(/ xlink:href="#([^"]+)"/g, (_, id) => ` xlink:href="#${iconName}-${id}"`),
         };
       } else {
         const dummy = document.createElement('div');
@@ -88,13 +82,7 @@ export default class Icon extends ComponentBase {
         const width = svg.getAttribute('width');
         const height = svg.getAttribute('height');
         const viewBox = svg.getAttribute('viewBox');
-        svg.innerHTML = this.iconTemplate(
-          iconName,
-          svg,
-          viewBox,
-          width,
-          height,
-        );
+        svg.innerHTML = this.iconTemplate(iconName, svg, viewBox, width, height);
         this.cache[iconName].width = width;
         this.cache[iconName].height = height;
         this.cache[iconName].viewBox = viewBox;

@@ -2,7 +2,6 @@ import { config, collectAttributes, loadModule } from './libs.js';
 import ComponentMixin from './component-mixin.js';
 
 export default class ComponentLoader {
-
   constructor(blockName, element) {
     window.raqnComponents = window.raqnComponents || {};
     this.blockName = blockName;
@@ -47,7 +46,7 @@ export default class ComponentLoader {
 
     const initialized = new Promise((resolve) => {
       const initListener = async (event) => {
-        if(event.detail.block === element) {
+        if (event.detail.block === element) {
           element.removeEventListener('initialized', initListener);
           await ComponentMixin.startAll(element);
           resolve();
@@ -69,15 +68,15 @@ export default class ComponentLoader {
           const { css, js } = loadModule(this.pathWithoutExtension);
           cssLoaded = css;
           const mod = await js;
-          if(this.isWebComponentClass(mod.default)) {
+          if (this.isWebComponentClass(mod.default)) {
             window.customElements.define(this.webComponentName, mod.default);
           }
           return mod.default;
         })();
       }
       this.handler = await this.handler;
-      if(this.block) {
-        if(this.isWebComponentClass()) {
+      if (this.block) {
+        if (this.isWebComponentClass()) {
           await this.setupElement();
         } else {
           await this.handler(this.block);

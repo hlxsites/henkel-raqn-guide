@@ -6,9 +6,7 @@ export default class Card extends ComponentBase {
 
   ready() {
     if (this.getAttribute('button') === 'true') {
-      Array.from(this.querySelectorAll('a')).forEach((a) =>
-        this.convertLink(a),
-      );
+      Array.from(this.querySelectorAll('a')).forEach((a) => this.convertLink(a));
     }
     this.eager = parseInt(this.getAttribute('eager') || 0, 10);
     this.classList.add('inner');
@@ -39,12 +37,12 @@ export default class Card extends ComponentBase {
     this.style.setProperty('--card-columns', this.area);
   }
 
-  onAttrChanged_columns({ oldValue, newValue }) {
+  onAttributeColumnsChanged({ oldValue, newValue }) {
     if (oldValue === newValue) return;
     this.setupColumns(newValue);
   }
 
-  onAttrChanged_ratio({ oldValue, newValue }) {
+  onAttributeRatioChanged({ oldValue, newValue }) {
     if (oldValue === newValue) return;
     this.setupRatio(newValue);
   }

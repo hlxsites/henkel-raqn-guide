@@ -11,7 +11,7 @@ export default class Hero extends ComponentBase {
     this.setAttribute('aria-label', 'hero');
   }
 
-  onAttrChanged_order({ newValue }) {
+  onAttributeOrderChanged({ newValue }) {
     this.style.setProperty('--hero-hero-order', newValue);
   }
 }

@@ -51,14 +51,8 @@ export default class Accordion extends ComponentBase {
     if (content) {
       content.classList.toggle('active');
       control.classList.toggle('active');
-      control.setAttribute(
-        'aria-expanded',
-        content.classList.contains('active'),
-      );
-      content.setAttribute(
-        'aria-hidden',
-        !content.classList.contains('active'),
-      );
+      control.setAttribute('aria-expanded', content.classList.contains('active'));
+      content.setAttribute('aria-hidden', !content.classList.contains('active'));
     }
   }
 
@@ -72,10 +66,7 @@ export default class Accordion extends ComponentBase {
       content.setAttribute('role', 'region');
       content.setAttribute('aria-hidden', true);
       content.classList.add('accordion-content');
-      content.setAttribute(
-        'aria-labelledby',
-        content.previousElementSibling.id,
-      );
+      content.setAttribute('aria-labelledby', content.previousElementSibling.id);
     });
   }
 }

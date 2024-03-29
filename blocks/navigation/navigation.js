@@ -55,7 +55,7 @@ export default class Navigation extends ComponentBase {
     if (!this.navContentInit) {
       this.navContentInit = true;
       this.setupClasses(this.navContent);
-    };
+    }
 
     this.nav.append(this.navContent);
   }
@@ -66,13 +66,13 @@ export default class Navigation extends ComponentBase {
       start({ name: 'accordion' });
       this.setupClasses(this.navCompactedContent, true);
       this.navCompactedContent.addEventListener('click', (e) => this.activate(e));
-    };
+    }
 
     this.nav.append(this.createButton());
     this.nav.append(this.navCompactedContent);
   }
 
-  onAttrChanged_compact({ newValue }) {
+  onAttributeCompactChanged({ newValue }) {
     if (!this.initialized) return;
     this.isCompact = newValue === 'true';
     this.nav.innerHTML = '';
