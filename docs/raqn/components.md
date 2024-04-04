@@ -185,7 +185,8 @@ A param is set to all viewports.
 
 To set a param only to a specific viewport, prefix it with the viewport key:
 
-1. **s**: 0 to 767,
+1. **xs**: 0 to 479,
+1. **s**: 480 to 767,
 2. **m**: 768 to 1023,
 3. **l**: 1024 to 1279,
 4. **xl**: 1280 to 1919,

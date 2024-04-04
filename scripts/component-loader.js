@@ -1,8 +1,7 @@
-import { collectParams, loadModule } from './libs.js';
+import { config, collectAttributes, loadModule } from './libs.js';
 import ComponentMixin from './component-mixin.js';
 
 export default class ComponentLoader {
-
   constructor(blockName, element) {
     window.raqnComponents = window.raqnComponents || {};
     this.blockName = blockName;
@@ -31,14 +30,23 @@ export default class ComponentLoader {
 
   async setupElement() {
     const element = document.createElement(this.webComponentName);
+    element.blockName = this.blockName;
+    element.webComponentName = this.webComponentName;
     element.append(...this.block.children);
-    const params = collectParams(this.blockName, this.block.classList, await ComponentMixin.getMixins(), this.handler && this.handler.knownAttributes);
-    Object.keys(params).forEach((key) => {
-      element.setAttribute(key, params[key]);
+    const { currentAttributes } = collectAttributes(
+      this.blockName,
+      this.block.classList,
+      await ComponentMixin.getMixins(),
+      this?.handler?.knownAttributes,
+      element,
+    );
+    Object.keys(currentAttributes).forEach((key) => {
+      element.setAttribute(key, currentAttributes[key]);
     });
+
     const initialized = new Promise((resolve) => {
       const initListener = async (event) => {
-        if(event.detail.block === element) {
+        if (event.detail.block === element) {
           element.removeEventListener('initialized', initListener);
           await ComponentMixin.startAll(element);
           resolve();
@@ -46,7 +54,9 @@ export default class ComponentLoader {
       };
       element.addEventListener('initialized', initListener);
     });
-    this.block.replaceWith(element);
+    const isSemanticElement = config.semanticBlocks.includes(this.block.tagName.toLowerCase());
+    const addComponentMethod = isSemanticElement ? 'append' : 'replaceWith';
+    this.block[addComponentMethod](element);
     await initialized;
   }
 
@@ -58,15 +68,15 @@ export default class ComponentLoader {
           const { css, js } = loadModule(this.pathWithoutExtension);
           cssLoaded = css;
           const mod = await js;
-          if(this.isWebComponentClass(mod.default)) {
-            customElements.define(this.webComponentName, mod.default);
+          if (this.isWebComponentClass(mod.default)) {
+            window.customElements.define(this.webComponentName, mod.default);
           }
           return mod.default;
         })();
       }
       this.handler = await this.handler;
-      if(this.block) {
-        if(this.isWebComponentClass()) {
+      if (this.block) {
+        if (this.isWebComponentClass()) {
           await this.setupElement();
         } else {
           await this.handler(this.block);

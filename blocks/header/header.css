@@ -1,8 +1,10 @@
 raqn-header {
   --scope-background: var(--scope-header-background, #fff);
   --scope-color: var(--scope-header-color, #000);
+  --scope-top: var(--scope-header-top, 0);
 
   position: fixed;
+  top: var(--scope-top);
   width: 100%;
   min-height: var(--scope-header-height, 64px);
   display: grid;

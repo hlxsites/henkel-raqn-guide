@@ -62,14 +62,14 @@ caption {
   color: currentcolor;
 }
 
-header {
+/* header {
   --scope-background: var(--scope-header-background, #fff);
   --scope-color: var(--scope-header-color, #000);
 
   min-height: var(--scope-header-height, 64px);
   display: grid;
   background: var(--scope-header-background, #fff);
-}
+} */
 
 main {
   margin-top: var(--scope-header-height, 64px);

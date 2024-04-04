@@ -17,10 +17,7 @@ export default class Router extends ComponentBase {
     document.addEventListener(
       'click',
       (event) => {
-        if (
-          event.target.tagName === 'A' &&
-          event.target.href.startsWith(window.location.origin)
-        ) {
+        if (event.target.tagName === 'A' && event.target.href.startsWith(window.location.origin)) {
           event.preventDefault();
           this.setAttribute('external', event.target.href);
         }

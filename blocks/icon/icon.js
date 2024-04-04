@@ -28,6 +28,8 @@ export default class Icon extends ComponentBase {
   }
 
   async connected() {
+    this.setAttribute('aria-hidden', 'true');
+
     this.iconName = this.getAttribute('icon');
     if (!this.cache[this.iconName]) {
       this.cache[this.iconName] = {
@@ -52,7 +54,7 @@ export default class Icon extends ComponentBase {
         return '';
       })
       .join(' ');
-    return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ${attributes}><use xlink:href="#icons-sprite-${this.iconName}"/></svg>`;
+    return `<svg focusable="false" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ${attributes}><use xlink:href="#icons-sprite-${this.iconName}"/></svg>`;
   }
 
   iconTemplate(iconName, svg, viewBox, width, height) {
@@ -70,14 +72,8 @@ export default class Icon extends ComponentBase {
           html: this.svg
             // rescope ids and references to avoid clashes across icons;
             .replaceAll(/ id="([^"]+)"/g, (_, id) => ` id="${iconName}-${id}"`)
-            .replaceAll(
-              /="url\(#([^)]+)\)"/g,
-              (_, id) => `="url(#${iconName}-${id})"`,
-            )
-            .replaceAll(
-              / xlink:href="#([^"]+)"/g,
-              (_, id) => ` xlink:href="#${iconName}-${id}"`,
-            ),
+            .replaceAll(/="url\(#([^)]+)\)"/g, (_, id) => `="url(#${iconName}-${id})"`)
+            .replaceAll(/ xlink:href="#([^"]+)"/g, (_, id) => ` xlink:href="#${iconName}-${id}"`),
         };
       } else {
         const dummy = document.createElement('div');
@@ -86,13 +82,7 @@ export default class Icon extends ComponentBase {
         const width = svg.getAttribute('width');
         const height = svg.getAttribute('height');
         const viewBox = svg.getAttribute('viewBox');
-        svg.innerHTML = this.iconTemplate(
-          iconName,
-          svg,
-          viewBox,
-          width,
-          height,
-        );
+        svg.innerHTML = this.iconTemplate(iconName, svg, viewBox, width, height);
         this.cache[iconName].width = width;
         this.cache[iconName].height = height;
         this.cache[iconName].viewBox = viewBox;

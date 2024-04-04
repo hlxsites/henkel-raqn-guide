@@ -2,9 +2,7 @@ import ComponentLoader from './component-loader.js';
 import ComponentMixin from './component-mixin.js';
 import {
   config,
-  debounce,
   eagerImage,
-  getBreakPoint,
   getMeta,
 } from './libs.js';
 
@@ -57,14 +55,15 @@ async function init() {
   ComponentMixin.getMixins();
 
   // mechanism of retrieving lang to be used in the app
-  document.documentElement.lang = document.documentElement.lang || 'en';
+  // TODO - set this based on url structure or meta tag for current path
+  document.documentElement.lang ||= 'en';
 
   initEagerImages();
 
   const blocks = [
     document.body.querySelector(config.semanticBlocks[0]),
     ...document.querySelectorAll('[class]:not([class^=style]'),
-    document.body.querySelector(config.semanticBlocks.slice(1).join(',')),
+    ...document.body.querySelectorAll(config.semanticBlocks.slice(1).join(',')),
   ];
 
   const data = getInfos(blocks);
@@ -80,18 +79,6 @@ async function init() {
   });
   // timeout for the rest to proper prioritize in case of stalled loading
   lazy.map(({ name, el }) => setTimeout(() => start({ name, el })));
-
-  // reload on breakpoint change to reset params and variables
-  window.raqnBreakpoint = getBreakPoint();
-  window.addEventListener(
-    'resize',
-    debounce(() => {
-      // only on width / breakpoint changes
-      if (window.raqnBreakpoint !== getBreakPoint()) {
-        window.location.reload();
-      }
-    }, 100),
-  );
 }
 
 init();

@@ -1,4 +1,4 @@
-import { collectParams } from '../../scripts/libs.js';
+import { collectAttributes } from '../../scripts/libs.js';
 import ComponentBase from '../../scripts/component-base.js';
 import ComponentMixin from '../../scripts/component-mixin.js';
 
@@ -7,13 +7,13 @@ export default class SectionMetadata extends ComponentBase {
     const classes = [...this.querySelectorAll(':scope > div > div:first-child')]
       .map((keyCell) => `${keyCell.textContent.trim()}-${keyCell.nextElementSibling.textContent.trim()}`);
     
-    const params = collectParams('section-metadata', classes, await ComponentMixin.getMixins(), this.knownAttributes);
+    const { currentAttributes } = collectAttributes('section-metadata', classes, await ComponentMixin.getMixins(), this.knownAttributes, this);
     const section = this.parentElement;
-    Object.keys(params).forEach((key) => {
+    Object.keys(currentAttributes).forEach((key) => {
       if(key === 'class') {
-        section.setAttribute(key, params[key]);
+        section.setAttribute(key, currentAttributes[key]);
       } else {
-        section.setAttribute(`data-${key}`, params[key]);
+        section.setAttribute(`data-${key}`, currentAttributes[key]);
       }
     });
     await ComponentMixin.startAll(section);

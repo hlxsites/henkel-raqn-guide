@@ -9,6 +9,9 @@ export default class Hero extends ComponentBase {
     this.classList.add('full-width');
     this.setAttribute('role', 'banner');
     this.setAttribute('aria-label', 'hero');
-    this.style.setProperty('--hero-hero-order', this.getAttribute('order'));
+  }
+
+  onAttributeOrderChanged({ newValue }) {
+    this.style.setProperty('--hero-hero-order', newValue);
   }
 }
