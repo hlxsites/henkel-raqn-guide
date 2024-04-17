@@ -15,7 +15,7 @@ export default class Accordion extends ComponentBase {
       }
       return child;
     });
-    // console.log(children)
+
     this.setupControls(children.filter((_, ind) => ind % 2 === 0));
     this.setupContent(children.filter((_, ind) => ind % 2 === 1));
   }
@@ -25,7 +25,7 @@ export default class Accordion extends ComponentBase {
       const icon = document.createElement('raqn-icon');
       icon.setAttribute('icon', 'chevron-right');
       const children = Array.from(control.children);
-      if (children.length === 0) {
+      if (!children.length) {
         const child = document.createElement('span');
         child.textContent = control.textContent;
         control.innerHTML = '';

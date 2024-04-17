@@ -1,5 +1,6 @@
-import { start, startBlock } from './init.js';
-import { getBreakPoints, listenBreakpointChange, camelCaseAttr, capitalizeCaseAttr } from './libs.js';
+import component from './init.js';
+
+import { getBreakPoints, listenBreakpointChange, camelCaseAttr, capitalizeCaseAttr, deepMerge } from './libs.js';
 
 export default class ComponentBase extends HTMLElement {
   static get knownAttributes() {
@@ -8,15 +9,63 @@ export default class ComponentBase extends HTMLElement {
 
   constructor() {
     super();
-    this.blockName = null; // set by component loader
+    this.componentName = null; // set by component loader
     this.webComponentName = null; // set by component loader
     this.fragment = false;
-    this.dependencies = [];
     this.breakpoints = getBreakPoints();
     this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
     this.attributesValues = {}; // the values are set by the component loader
-    this.config = {};
+    this.nestedComponents = [];
+    this.setConfig();
     this.setBinds();
+  }
+
+  static loaderConfig = {
+    targetsSelectorsPrefix: null,
+    targetsSelectors: null,
+    selectorTest: null, // a function to filter elements matched by targetsSelectors
+    targetsSelectorsLimit: null,
+    targetsAsContainers: false,
+  };
+
+  static async earlyStopRender() {
+    return false;
+  }
+
+  attributesValues = {}; // the values are set by the component loader
+
+  config = {
+    addToTargetMethod: 'replaceWith',
+    contentFromTargets: true,
+    targetsAsContainers: {
+      addToTargetMethod: 'replaceWith',
+    },
+  };
+
+  nestedComponentsConfig = {
+    image: {
+      componentName: 'image',
+    },
+    button: {
+      componentName: 'button',
+    },
+    columns: {
+      componentName: 'columns',
+      active: false,
+      loaderConfig: {
+        targetsAsContainers: false,
+      },
+    },
+  };
+
+  setConfig() {
+    const configs = this.extendConfig();
+    if (!configs.length) return;
+    this.config = deepMerge({}, ...configs);
+  }
+
+  extendConfig() {
+    return [...(super.extendConfig?.() || []), this.config];
   }
 
   setBinds() {
@@ -29,6 +78,7 @@ export default class ComponentBase extends HTMLElement {
     }
   }
 
+  // TODO change to dataset attributes
   setBreakpointAttributesValues(e) {
     Object.entries(this.attributesValues).forEach(([attribute, breakpointsValues]) => {
       const isAttribute = attribute !== 'class';
@@ -83,33 +133,50 @@ export default class ComponentBase extends HTMLElement {
     this.initSubscriptions(); // must subscribe each time the element is added to the document
     if (!this.initialized) {
       this.setAttribute('id', this.uuid);
-      if (this.fragment) {
-        await this.loadFragment(this.fragment);
-      }
-      if (this.dependencies.length > 0) {
-        await Promise.all(this.dependencies.map((dep) => start({ name: dep })));
-      }
-      this.connected(); // manipulate the html
+      await this.loadFragment(this.fragment);
+      await this.connected(); // manipulate/create the html
+      await this.initNestedComponents();
       this.addListeners(); // html is ready add listeners
-      this.ready(); // add extra functionality
+      await this.ready(); // add extra functionality
       this.setAttribute('initialized', true);
       this.initialized = true;
-      this.dispatchEvent(new CustomEvent('initialized', { detail: { block: this } }));
+      this.dispatchEvent(new CustomEvent('initialized', { detail: { element: this } }));
     }
   }
 
+  async initNestedComponents() {
+    const nested = await Promise.all(
+      Object.values(this.nestedComponentsConfig).flatMap(async (setting) => {
+        if (!setting.active) return [];
+        const s = this.fragment
+          ? {
+              // Content can contain blocks which are going to init their own nestedComponents.
+              targetsSelectorsPrefix: ':scope > div >', // Limit only to default content, exclude blocks.
+              ...setting,
+            }
+          : setting;
+        return component.init(s);
+      }),
+    );
+    this.nestedElements = nested.flat();
+  }
+
   async loadFragment(path) {
-    const response = await fetch(`${path}`, window.location.pathname.endsWith(path) ? { cache: 'reload' } : {});
-    return this.processFragment(response);
+    if (!path) return;
+    const response = await this.getFragment(path);
+    await this.processFragment(response);
+  }
+
+  getFragment(path) {
+    return fetch(`${path}`, window.location.pathname.endsWith(path) ? { cache: 'reload' } : {});
   }
 
   async processFragment(response) {
     if (response.ok) {
       const html = await response.text();
       this.innerHTML = html;
-      return this.querySelectorAll(':scope > div > div').forEach((block) => startBlock(block));
+      await Promise.all([...this.querySelectorAll('div[class]')].map((block) => component.init({ targets: [block] })));
     }
-    return response;
   }
 
   initSubscriptions() {}

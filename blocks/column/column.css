@@ -1,0 +1,5 @@
+raqn-column {
+  margin: var(--scope-margin, 0);
+  width: 100%;
+  display: grid;
+}

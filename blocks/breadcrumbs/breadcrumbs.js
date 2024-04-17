@@ -1,17 +1,31 @@
 import ComponentBase from '../../scripts/component-base.js';
+import { getBaseUrl } from '../../scripts/libs.js';
 
-export default class BreadCrumbs extends ComponentBase {
-  capitalize(string) {
-    return string
-      .split('-')
-      .map((str) => str.charAt(0).toUpperCase() + str.slice(1))
-      .join(' ');
+export default class Breadcrumbs extends ComponentBase {
+  static loaderConfig = {
+    ...ComponentBase.loaderConfig,
+    targetsSelectors: 'main > div',
+    targetsSelectorsLimit: 1,
+    targetsAsContainers: true,
+  };
+
+  extendConfig() {
+    return [
+      ...super.extendConfig(),
+      {
+        contentFromTargets: false,
+        addToTargetMethod: 'replaceWith',
+        targetsAsContainers: {
+          addToTargetMethod: 'prepend',
+        },
+      },
+    ];
   }
 
-  ready() {
+  connected() {
     this.classList.add('full-width');
     this.classList.add('breadcrumbs');
-    this.path = window.location.pathname.split('/');
+    this.path = window.location.href.split(getBaseUrl()).join('/').split('/');
     this.innerHTML = `
     <ul>
         ${this.path
@@ -27,5 +41,12 @@ export default class BreadCrumbs extends ComponentBase {
           })
           .join('<li class="separator">›</li>')}
     </ul>`;
+  }
+
+  capitalize(string) {
+    return string
+      .split('-')
+      .map((str) => str.charAt(0).toUpperCase() + str.slice(1))
+      .join(' ');
   }
 }

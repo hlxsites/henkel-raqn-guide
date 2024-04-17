@@ -8,20 +8,9 @@ raqn-card {
   padding: var(--scope-padding, 20px 0);
 }
 
-raqn-card a {
-  font-size: var(--raqn-font-size-3, 1.2em);
-  font-weight: bold;
-}
-
-raqn-card p a {
-  margin-block: 0;
-}
-
-raqn-card > picture {
-  grid-column: span var(--card-columns, 1fr);
-}
-
 raqn-card > div {
+  display: flex;
+  gap: var(--scope-gap, 20px);
   position: relative;
   background: var(--scope-inner-background, transparent);
   padding: var(--scope-inner-padding, 20px);
@@ -31,33 +20,42 @@ raqn-card > div {
   border-inline-end: var(--scope-border-inline-end, none);
 }
 
-raqn-card > div div:last-child > a {
-  position: absolute;
-  inset-inline-start: 0;
-  inset-block-start: 0;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
-  text-indent: -10000px;
-  margin: 0;
-  padding: 0;
+raqn-card :where(a, button) {
+  position: relative;
+  z-index: 2;
 }
 
-raqn-card > div:has(raqn-icon) {
-  padding-block-end: 0;
-  padding-block-end: var(--scope-icon-size, 20px);
-}
-
-raqn-card p:has(raqn-icon) {
-  display: inline-grid;
-}
-
-raqn-card raqn-icon {
-  width: 100%;
-  display: flex;
+/* Make entire item clickable */
+raqn-card div > div:first-child > p > em:only-child > a:only-child {
   position: absolute;
   inset-block-end: 0;
   inset-inline-end: 0;
-  box-sizing: border-box;
-  padding: var(--scope-inner-padding, 20px);
+  width: 100%;
+  height: 100%;
+  color: transparent;
+  user-select: none;
+  z-index: 1;
+}
+
+raqn-card div > div:first-child > p:has(> em:only-child > a:only-child) {
+  margin: 0;
+}
+
+
+raqn-card div > div {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  inset-block-end: 0;
+  inset-inline-end: 0;
+}
+
+raqn-card div > div p:last-child:has(> raqn-button, raqn-icon) {
+  flex-grow: 1;
+  display: flex;
+  align-items: flex-end;
+}
+
+raqn-card div > div p:last-child:has(> raqn-icon) {
+  justify-content: flex-end;
 }

@@ -1,18 +1,26 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <script>
-      const meta = document.querySelector(`meta[name="basepath"]`);
-      if (meta) {
+      const baseMeta = document.querySelector('meta[name="basepath"]');
+      if (baseMeta) {
         const base = document.createElement('base');
-        base.href = `${meta.content || ''}/`;
+        base.href = `${baseMeta.content || ''}/`;
         document.head.appendChild(base);
       }
-      document.querySelectorAll(`a[href^="http://~/"]`).forEach((a) => {
+      document.querySelectorAll('a[href^="http://~/"]').forEach((a) => {
         a.href = a.href.replace('http://~/', '');
       });
+      
+      const headerMeta = document.querySelector('meta[name="header"]');
+      const link = document.createElement('link');
+      link.setAttribute('rel', 'preload');
+      link.setAttribute('as', 'fetch');
+      link.setAttribute('crossorigin', 'anonymous');
+      const url = headerMeta?.content.trim();
+      link.href = url ? `${url}.plain.html` : 'header.plain.html';
+      document.head.appendChild(link);
     </script>
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <style>body { display: none; }</style>
-    <link rel="preload" href="header.plain.html" as="fetch" crossorigin="anonymous"/>
     <link rel="stylesheet" href="/styles/styles.css" />
     <script src="/scripts/pubsub.js" type="module"></script>
     <script src="/scripts/component-mixin.js" type="module"></script>
@@ -20,4 +28,4 @@
     <script src="/scripts/component-loader.js" type="module"></script>
     <script src="/scripts/libs.js" type="module"></script>
     <script src="/scripts/init.js" type="module"></script>
-    <template class="theme"></template>
+    <template class="theming"></template>

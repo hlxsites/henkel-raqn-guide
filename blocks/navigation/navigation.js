@@ -1,8 +1,35 @@
-import { start } from '../../scripts/init.js';
+import component from '../../scripts/init.js';
 import ComponentBase from '../../scripts/component-base.js';
 
 export default class Navigation extends ComponentBase {
   static observedAttributes = ['icon', 'compact'];
+
+  static loaderConfig = {
+    ...ComponentBase.loaderConfig,
+    targetsSelectors: ':scope > :is(:first-child)',
+  };
+
+  // extendConfig() {
+  //   return [
+  //     ...super.extendConfig(),
+  //     {
+  //       targetsAsContainers: {
+  //         addToTargetMethod: 'append',
+  //       },
+  //     },
+  //   ];
+  // }
+
+  /* nestedComponentsConfig = {
+    columns: {
+      componentName: 'columns',
+      // targets: [this],
+      active: false,
+      loaderConfig: {
+        targetsAsContainers: false,
+      },
+    },
+  }; */
 
   attributesValues = {
     compact: {
@@ -29,7 +56,7 @@ export default class Navigation extends ComponentBase {
     return this.navButton;
   }
 
-  ready() {
+  async ready() {
     this.active = {};
     this.navContent = this.querySelector('ul');
     this.innerHTML = '';
@@ -45,7 +72,7 @@ export default class Navigation extends ComponentBase {
     this.isCompact = this.getAttribute('compact') === 'true';
 
     if (this.isCompact) {
-      this.setupCompactedNav();
+      await this.setupCompactedNav();
     } else {
       this.setupNav();
     }
@@ -60,10 +87,11 @@ export default class Navigation extends ComponentBase {
     this.nav.append(this.navContent);
   }
 
-  setupCompactedNav() {
+  async setupCompactedNav() {
     if (!this.navCompactedContentInit) {
       this.navCompactedContentInit = true;
-      start({ name: 'accordion' });
+      await Promise.all([component.init({ componentName: 'accordion' }), component.init({ componentName: 'icon' })]);
+
       this.setupClasses(this.navCompactedContent, true);
       this.navCompactedContent.addEventListener('click', (e) => this.activate(e));
     }
@@ -81,7 +109,7 @@ export default class Navigation extends ComponentBase {
       this.setupCompactedNav();
     } else {
       this.classList.remove('active');
-      this.navButton.removeAttribute('aria-expanded');
+      this.navButton?.removeAttribute('aria-expanded');
       this.setupNav();
     }
   }
@@ -93,10 +121,18 @@ export default class Navigation extends ComponentBase {
   }
 
   createAccordion(replaceChildrenElement) {
-    const accordion = document.createElement('raqn-accordion');
-    const children = Array.from(replaceChildrenElement.children);
-    accordion.append(...children);
-    replaceChildrenElement.append(accordion);
+    component.init({
+      componentName: 'accordion',
+      targets: [replaceChildrenElement],
+      config: {
+        addToTargetMethod: 'append',
+      },
+    });
+
+    // const accordion = document.createElement('raqn-accordion');
+    // const children = Array.from(replaceChildrenElement.children);
+    // accordion.append(...children);
+    // replaceChildrenElement.append(accordion);
   }
 
   setupClasses(ul, isCompact, level = 1) {

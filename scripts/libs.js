@@ -1,4 +1,4 @@
-export const config = {
+export const globalConfig = {
   semanticBlocks: ['header', 'footer'],
   breakpoints: {
     xs: 0,
@@ -35,7 +35,7 @@ export function getBreakPoints() {
   // return if already set
   if (window.raqnBreakpoints.ordered.length) return window.raqnBreakpoints;
 
-  window.raqnBreakpoints.ordered = Object.entries(config.breakpoints)
+  window.raqnBreakpoints.ordered = Object.entries(globalConfig.breakpoints)
     .sort((a, b) => a[1] - b[1])
     .map(([breakpointMinName, breakpointMin], index, arr) => {
       const [, breakpointNext] = arr[index + 1] || [];
@@ -60,9 +60,9 @@ export function getBreakPoints() {
 export function listenBreakpointChange(callback) {
   const breakpoints = getBreakPoints();
   let { active } = breakpoints;
-
+  const listeners = [];
   breakpoints.ordered.forEach((breakpoint) => {
-    breakpoint.matchMedia.addEventListener('change', (e) => {
+    const fn = (e) => {
       e.raqnBreakpoint = { ...breakpoint };
 
       if (e.matches) {
@@ -74,8 +74,16 @@ export function listenBreakpointChange(callback) {
       }
 
       callback?.(e);
-    });
+    };
+    listeners.push({ media: breakpoint.matchMedia, callback: fn });
+    breakpoint.matchMedia.addEventListener('change', fn);
   });
+
+  return {
+    removeBreakpointListeners: () => {
+      listeners.forEach((listener) => listener.media.removeEventListener('change', listener.callback));
+    },
+  };
 }
 
 export const debounce = (func, wait, immediate) => {
@@ -107,32 +115,86 @@ export const eagerImage = (block, length = 1) => {
   });
 };
 
+export function stringToJsVal(string) {
+  switch (string.trim()) {
+    case 'true':
+      return true;
+    case 'false':
+      return false;
+    case 'null':
+      return null;
+    case 'undefined':
+      return undefined;
+    default:
+      return string;
+  }
+}
+
 export function getMeta(name) {
   const meta = document.querySelector(`meta[name="${name}"]`);
   if (!meta) {
     return null;
   }
-  return meta.content;
+  return stringToJsVal(meta.content);
 }
 
-export function collectAttributes(blockName, classes, mixins, knownAttributes = [], element = null) {
+export function getMetaGroup(group) {
+  const prefix = `${group}-`;
+  const metaGroup = [...document.querySelectorAll(`meta[name^="${prefix}"]`)];
+  return metaGroup.map((meta) => ({
+    name: meta.name.replace(new RegExp(`^${prefix}`), ''),
+    content: stringToJsVal(meta.content),
+  }));
+}
+
+export function collectAttributes(componentName, classes, mixins, knownAttributes = [], element = null) {
+  const classesList = [];
   const mediaAttributes = {};
-  // inherit default param values
   const attributesValues = element?.attributesValues || {};
+  const nestedComponents = {};
+  /**
+   * 1. get all nested components config names
+   * 2. get all the classes prefixed with the config name
+   */
+  const nestPrefix = 'nest-';
+  classes.forEach((c) => {
+    const isNested = c.startsWith(nestPrefix);
+    if (isNested) {
+      const name = c.slice(nestPrefix.length);
+      nestedComponents[name] = {
+        componentName: name,
+        active: true,
+        /* targets: [element] */
+      };
+    } else {
+      classesList.push(c);
+    }
+  });
+
+  const nestedComponentsNames = Object.keys(nestedComponents);
 
   const mixinKnownAttributes = mixins.flatMap((mixin) => mixin.observedAttributes || []);
-  const attrs = Array.from(classes)
-    .filter((c) => c !== blockName && c !== 'block')
+  const attrs = classesList
+    .filter((c) => c !== componentName && c !== 'block')
     .reduce((acc, c) => {
       let value = c;
       let isKnownAttribute = null;
       let isMixinKnownAttributes = null;
 
-      const classBreakpoint = Object.keys(config.breakpoints).find((b) => c.startsWith(`${b}-`));
+      const classBreakpoint = Object.keys(globalConfig.breakpoints).find((b) => c.startsWith(`${b}-`));
       const activeBreakpoint = getBreakPoints().active.name;
 
       if (classBreakpoint) {
         value = value.slice(classBreakpoint.length + 1);
+      }
+
+      const nested = nestedComponentsNames.find((prefix) => value.startsWith(prefix));
+      if (nested) {
+        nestedComponents[nested].rawClasses ??= '';
+        nestedComponents[nested].rawClasses += `${classBreakpoint ? `${classBreakpoint}-` : ''}${value.slice(
+          nested.length + 1,
+        )} `;
+        return acc;
       }
 
       let key = 'class';
@@ -160,11 +222,12 @@ export function collectAttributes(blockName, classes, mixins, knownAttributes = 
         }
         if (isKnownAttribute) attributesValues[camelCaseKey][classBreakpoint] = value;
         if (isClass) {
-          if (attributesValues[camelCaseKey][classBreakpoint]) {
-            attributesValues[camelCaseKey][classBreakpoint] += ` ${value}`;
-          } else {
-            attributesValues[camelCaseKey][classBreakpoint] = value;
-          }
+          attributesValues[camelCaseKey][classBreakpoint] ??= '';
+          // if (attributesValues[camelCaseKey][classBreakpoint]) {
+          attributesValues[camelCaseKey][classBreakpoint] += `${value} `;
+          // } else {
+          // attributesValues[camelCaseKey][classBreakpoint] = value;
+          // }
         }
         // support multivalue attributes
       } else if (acc[key]) {
@@ -173,13 +236,12 @@ export function collectAttributes(blockName, classes, mixins, knownAttributes = 
         acc[key] = value;
       }
 
-      if (isKnownAttribute || isClass) attributesValues[camelCaseKey].all = acc[key];
+      if ((isKnownAttribute || isClass) && acc[key]) attributesValues[camelCaseKey].all = acc[key];
 
       return acc;
     }, {});
 
   return {
-    // TODO improve how classes are collected and merged.
     currentAttributes: {
       ...attrs,
       ...mediaAttributes,
@@ -188,6 +250,7 @@ export function collectAttributes(blockName, classes, mixins, knownAttributes = 
       }),
     },
     attributesValues,
+    nestedComponents,
   };
 }
 
@@ -211,4 +274,43 @@ export function loadModule(urlWithoutExtension) {
   );
 
   return { css, js };
+}
+
+export function mergeUniqueArrays(...arrays) {
+  const mergedArrays = arrays.reduce((acc, arr) => [...acc, ...(arr || [])], []);
+  return [...new Set(mergedArrays)];
+}
+
+export function getBaseUrl() {
+  return document.head.querySelector('base').href;
+}
+
+export function isHomePage(url) {
+  return getBaseUrl() === (url || window.location.href);
+}
+
+export function isObject(item) {
+  return item && typeof item === 'object' && !Array.isArray(item);
+}
+
+export function isObjectNotWindow(item) {
+  return isObject(item) && item !== window;
+}
+
+export function deepMerge(origin, ...toMerge) {
+  if (!toMerge.length) return origin;
+  const merge = toMerge.shift();
+
+  if (isObjectNotWindow(origin) && isObjectNotWindow(merge)) {
+    Object.keys(merge).forEach((key) => {
+      if (isObjectNotWindow(merge[key])) {
+        if (!origin[key]) Object.assign(origin, { [key]: {} });
+        deepMerge(origin[key], merge[key]);
+      } else {
+        Object.assign(origin, { [key]: merge[key] });
+      }
+    });
+  }
+
+  return deepMerge(origin, ...toMerge);
 }

@@ -2,7 +2,6 @@ raqn-button {
   width: 100%;
   display: grid;
   align-content: center;
-  justify-content: center;
   align-items: center;
   justify-items: var(--scope-justify, start);
 }
