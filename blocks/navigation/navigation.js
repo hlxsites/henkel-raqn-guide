@@ -9,28 +9,6 @@ export default class Navigation extends ComponentBase {
     targetsSelectors: ':scope > :is(:first-child)',
   };
 
-  // extendConfig() {
-  //   return [
-  //     ...super.extendConfig(),
-  //     {
-  //       targetsAsContainers: {
-  //         addToTargetMethod: 'append',
-  //       },
-  //     },
-  //   ];
-  // }
-
-  /* nestedComponentsConfig = {
-    columns: {
-      componentName: 'columns',
-      // targets: [this],
-      active: false,
-      loaderConfig: {
-        targetsAsContainers: false,
-      },
-    },
-  }; */
-
   attributesValues = {
     compact: {
       xs: 'true',
@@ -47,7 +25,6 @@ export default class Navigation extends ComponentBase {
     this.navButton.setAttribute('aria-controls', 'navigation');
     this.navButton.setAttribute('aria-haspopup', 'true');
     this.navButton.setAttribute('type', 'button');
-    // this.navButton.setAttribute('tabindex', '0');
     this.navButton.innerHTML = '<raqn-icon icon=menu></raqn-icon>';
     this.navButton.addEventListener('click', () => {
       this.classList.toggle('active');
@@ -90,7 +67,7 @@ export default class Navigation extends ComponentBase {
   async setupCompactedNav() {
     if (!this.navCompactedContentInit) {
       this.navCompactedContentInit = true;
-      await Promise.all([component.init({ componentName: 'accordion' }), component.init({ componentName: 'icon' })]);
+      await Promise.all([component.loadAndDefine('accordion'), component.loadAndDefine('icon')]);
 
       this.setupClasses(this.navCompactedContent, true);
       this.navCompactedContent.addEventListener('click', (e) => this.activate(e));
@@ -120,19 +97,28 @@ export default class Navigation extends ComponentBase {
     return icon;
   }
 
-  createAccordion(replaceChildrenElement) {
+  addIcon(elem) {
     component.init({
-      componentName: 'accordion',
-      targets: [replaceChildrenElement],
+      componentName: 'icon',
+      targets: [elem],
+      rawClasses: 'icon-chevron-right',
       config: {
         addToTargetMethod: 'append',
       },
     });
+  }
 
-    // const accordion = document.createElement('raqn-accordion');
-    // const children = Array.from(replaceChildrenElement.children);
-    // accordion.append(...children);
-    // replaceChildrenElement.append(accordion);
+  createAccordion(elem) {
+    component.init({
+      componentName: 'accordion',
+      targets: [elem],
+      config: {
+        addToTargetMethod: 'append',
+      },
+      nestedComponentsConfig: {
+        button: { active: false },
+      },
+    });
   }
 
   setupClasses(ul, isCompact, level = 1) {
@@ -148,7 +134,7 @@ export default class Navigation extends ComponentBase {
         if (isCompact) {
           this.createAccordion(child);
         } else if (level === 1) {
-          anchor.append(this.createIcon('chevron-right'));
+          this.addIcon(anchor);
         }
         child.classList.add('has-children');
         this.setupClasses(hasChildren, isCompact, level + 1);

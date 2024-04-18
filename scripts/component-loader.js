@@ -4,7 +4,7 @@ import { collectAttributes, loadModule, deepMerge, mergeUniqueArrays } from './l
 import ComponentMixin from './component-mixin.js';
 
 export default class ComponentLoader {
-  constructor({ componentName, targets = [], loaderConfig, rawClasses, config, active: isNested }) {
+  constructor({ componentName, targets = [], loaderConfig, rawClasses, config, nestedComponentsConfig, active }) {
     window.raqnComponents ??= {};
     if (!componentName) {
       // eslint-disable-next-line no-console
@@ -16,11 +16,12 @@ export default class ComponentLoader {
     this.loaderConfig = loaderConfig;
     this.rawClasses = rawClasses?.trim?.().split?.(' ') || [];
     this.config = config;
+    this.nestedComponentsConfig = nestedComponentsConfig;
     this.pathWithoutExtension = `/blocks/${this.componentName}/${this.componentName}`;
     this.isWebComponent = null;
     this.isClass = null;
     this.isFn = null;
-    this.isNested = isNested;
+    this.active = active;
   }
 
   get Handler() {
@@ -42,6 +43,7 @@ export default class ComponentLoader {
   }
 
   async init() {
+    if (this.active === false) return null;
     if (!this.componentName) return null;
     const loaded = await this.loadAndDefine();
     if (!loaded) return null;
@@ -135,7 +137,11 @@ export default class ComponentLoader {
       componentElem.setAttribute(key, currentAttributes[key]);
     });
 
-    componentElem.nestedComponentsConfig = deepMerge(nestedComponentsConfig, nestedComponents);
+    componentElem.nestedComponentsConfig = deepMerge(
+      componentElem.nestedComponentsConfig,
+      this.nestedComponentsConfig,
+      nestedComponents,
+    );
 
     Object.keys(nestedComponentsConfig).forEach((key) => {
       const defaults = {

@@ -9,6 +9,8 @@ export default class Breadcrumbs extends ComponentBase {
     targetsAsContainers: true,
   };
 
+  nestedComponentsConfig = {};
+
   extendConfig() {
     return [
       ...super.extendConfig(),

@@ -12,11 +12,12 @@ export default class ComponentBase extends HTMLElement {
     this.componentName = null; // set by component loader
     this.webComponentName = null; // set by component loader
     this.fragment = false;
+    this.dependencies = [];
     this.breakpoints = getBreakPoints();
     this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
     this.attributesValues = {}; // the values are set by the component loader
-    this.nestedComponents = [];
-    this.setConfig();
+    this.setConfig('config', 'extendConfig');
+    this.setConfig('nestedComponentsConfig', 'extendNestedConfig');
     this.setBinds();
   }
 
@@ -58,14 +59,18 @@ export default class ComponentBase extends HTMLElement {
     },
   };
 
-  setConfig() {
-    const configs = this.extendConfig();
-    if (!configs.length) return;
-    this.config = deepMerge({}, ...configs);
+  setConfig(config, method) {
+    const conf = this[method]?.();
+    if (!conf.length) return;
+    this[config] = deepMerge({}, ...conf);
   }
 
   extendConfig() {
     return [...(super.extendConfig?.() || []), this.config];
+  }
+
+  extendNestedConfig() {
+    return [...(super.extendNestedConfig?.() || []), this.nestedComponentsConfig];
   }
 
   setBinds() {
@@ -133,7 +138,7 @@ export default class ComponentBase extends HTMLElement {
     this.initSubscriptions(); // must subscribe each time the element is added to the document
     if (!this.initialized) {
       this.setAttribute('id', this.uuid);
-      await this.loadFragment(this.fragment);
+      await Promise.all([this.loadFragment(this.fragment), this.loadDependencies()]);
       await this.connected(); // manipulate/create the html
       await this.initNestedComponents();
       this.addListeners(); // html is ready add listeners
@@ -149,16 +154,22 @@ export default class ComponentBase extends HTMLElement {
       Object.values(this.nestedComponentsConfig).flatMap(async (setting) => {
         if (!setting.active) return [];
         const s = this.fragment
-          ? {
+          ? deepMerge({}, setting, {
               // Content can contain blocks which are going to init their own nestedComponents.
-              targetsSelectorsPrefix: ':scope > div >', // Limit only to default content, exclude blocks.
-              ...setting,
-            }
+              loaderConfig: {
+                targetsSelectorsPrefix: ':scope > div >', // Limit only to default content, exclude blocks.
+              },
+            })
           : setting;
         return component.init(s);
       }),
     );
     this.nestedElements = nested.flat();
+  }
+
+  async loadDependencies() {
+    if (!this.dependencies.length) return;
+    await Promise.all(this.dependencies.map((dep) => component.loadAndDefine(dep)));
   }
 
   async loadFragment(path) {

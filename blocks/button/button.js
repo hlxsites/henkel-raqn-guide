@@ -6,6 +6,8 @@ export default class Button extends ComponentBase {
     targetsSelectors: ':is(p,div):has(> a:only-child)',
     selectorTest: (el) => el.childNodes.length === 1,
   };
+  
+  nestedComponentsConfig = {};
 
   extendConfig() {
     return [

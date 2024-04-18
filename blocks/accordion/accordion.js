@@ -3,6 +3,23 @@ import ComponentBase from '../../scripts/component-base.js';
 export default class Accordion extends ComponentBase {
   dependencies = ['icon'];
 
+  // extendNestedConfig() {
+  //   return [
+  //     ...super.extendNestedConfig(),
+  //     {
+  //       button: {
+  //         componentName: 'button',
+  //         // active: false,
+  //         loaderConfig: {
+  //           targetsSelectorsPrefix: ':not(.accordion-control) >',
+  //         },
+  //       },
+  //     },
+  //   ];
+  // }
+
+  // nestedComponentsConfig = {};
+
   ready() {
     this.setAttribute('role', 'navigation');
     let children = Array.from(this.children);
@@ -25,7 +42,7 @@ export default class Accordion extends ComponentBase {
       const icon = document.createElement('raqn-icon');
       icon.setAttribute('icon', 'chevron-right');
       const children = Array.from(control.children);
-      if (!children.length) {
+      if (children.length === 0) {
         const child = document.createElement('span');
         child.textContent = control.textContent;
         control.innerHTML = '';
