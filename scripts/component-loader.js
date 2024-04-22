@@ -134,7 +134,7 @@ export default class ComponentLoader {
     );
 
     Object.keys(currentAttributes).forEach((key) => {
-      componentElem.setAttribute(key, currentAttributes[key]);
+      componentElem.setAttribute(key, currentAttributes[key].trim());
     });
 
     componentElem.nestedComponentsConfig = deepMerge(

@@ -1,7 +1,6 @@
 import ComponentBase from '../../scripts/component-base.js';
 
-// ! Solution 1 to remove mixins
-export default class ColumnN extends ComponentBase {
+export default class Column extends ComponentBase {
   static observedAttributes = ['position', 'size', 'justify'];
 
   connected() {

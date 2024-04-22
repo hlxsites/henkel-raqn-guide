@@ -6,8 +6,16 @@ export default class Button extends ComponentBase {
     targetsSelectors: ':is(p,div):has(> a:only-child)',
     selectorTest: (el) => el.childNodes.length === 1,
   };
-  
-  nestedComponentsConfig = {};
+
+  nestedComponentsConfig = {
+    columns: {
+      componentName: 'columns',
+      active: false,
+      loaderConfig: {
+        targetsAsContainers: false,
+      },
+    },
+  };
 
   extendConfig() {
     return [

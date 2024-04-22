@@ -1,6 +1,5 @@
 import { collectAttributes } from '../../scripts/libs.js';
 
-// ! Solution 2 to remove mixins
 export default class Columns {
   static observedAttributes = ['position', 'size', 'justify'];
 

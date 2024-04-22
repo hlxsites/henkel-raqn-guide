@@ -3,22 +3,19 @@ import ComponentBase from '../../scripts/component-base.js';
 export default class Accordion extends ComponentBase {
   dependencies = ['icon'];
 
-  // extendNestedConfig() {
-  //   return [
-  //     ...super.extendNestedConfig(),
-  //     {
-  //       button: {
-  //         componentName: 'button',
-  //         // active: false,
-  //         loaderConfig: {
-  //           targetsSelectorsPrefix: ':not(.accordion-control) >',
-  //         },
-  //       },
-  //     },
-  //   ];
-  // }
-
-  // nestedComponentsConfig = {};
+  extendNestedConfig() {
+    return [
+      ...super.extendNestedConfig(),
+      {
+        button: {
+          componentName: 'button',
+          loaderConfig: {
+            targetsSelectorsPrefix: ':scope > :is(:nth-child(even)) >',
+          },
+        },
+      },
+    ];
+  }
 
   ready() {
     this.setAttribute('role', 'navigation');
