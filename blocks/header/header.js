@@ -18,7 +18,7 @@ export default class Header extends ComponentBase {
   }
 
   static earlyStopRender() {
-    return metaFragment === false;
+    return metaHeader === false;
   }
 
   connected() {
