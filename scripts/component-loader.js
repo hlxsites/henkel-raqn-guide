@@ -1,7 +1,4 @@
 import { collectAttributes, loadModule, deepMerge, mergeUniqueArrays } from './libs.js';
-// import ComponentBase from './component-base.js';
-
-import ComponentMixin from './component-mixin.js';
 
 export default class ComponentLoader {
   constructor({ componentName, targets = [], loaderConfig, rawClasses, config, nestedComponentsConfig, active }) {
@@ -128,7 +125,6 @@ export default class ComponentLoader {
     const { currentAttributes, nestedComponents } = collectAttributes(
       this.componentName,
       data.rawClasses,
-      await ComponentMixin.getMixins(),
       this?.Handler?.knownAttributes,
       componentElem,
     );
@@ -172,7 +168,6 @@ export default class ComponentLoader {
       const initListener = async (event) => {
         if (event.detail.element === componentElem) {
           componentElem.removeEventListener('initialized', initListener);
-          await ComponentMixin.startAll(componentElem);
           componentElem.removeAttribute('isloading');
           resolve(componentElem);
         }

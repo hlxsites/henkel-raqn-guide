@@ -6,7 +6,6 @@ export default class Breadcrumbs extends ComponentBase {
     ...ComponentBase.loaderConfig,
     targetsSelectors: 'main > div',
     targetsSelectorsLimit: 1,
-    targetsAsContainers: true,
   };
 
   nestedComponentsConfig = {};

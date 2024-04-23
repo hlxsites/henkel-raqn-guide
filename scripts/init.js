@@ -1,5 +1,4 @@
 import ComponentLoader from './component-loader.js';
-import ComponentMixin from './component-mixin.js';
 import { globalConfig, eagerImage, getMeta, getMetaGroup } from './libs.js';
 
 const component = {
@@ -105,8 +104,7 @@ const onLoadComponents = {
 
   findLcp(data) {
     return (
-      this.lcp.find(({ componentName }) => componentName === data.componentName) ||
-      data.lcp /* ||
+      this.lcp.find(({ componentName }) => componentName === data.componentName) || data.lcp /* ||
       [...document.querySelectorAll('main > div > [class]:nth-child(-n+2)')].find((el) => el === data.block) */
     );
   },
@@ -127,14 +125,9 @@ const onLoadComponents = {
 
 const globalInit = {
   async init() {
-    this.loadMixins();
     this.setLang();
     this.initEagerImages();
     onLoadComponents.init();
-  },
-
-  loadMixins() {
-    ComponentMixin.getMixins();
   },
 
   // TODO - maybe take this from the url structure.

@@ -9,7 +9,6 @@ export default class Columns {
     const { currentAttributes } = collectAttributes(
       data.componentName,
       data.rawClasses,
-      [],
       Columns.observedAttributes,
       this.element,
     );
@@ -32,9 +31,7 @@ export default class Columns {
       const parent = this.element.parentElement;
       const children = Array.from(parent.children);
       parent.classList.add('raqn-grid');
-      let parentGridTemplateColumns = parent.style.getPropertyValue(
-        '--grid-template-columns',
-      );
+      let parentGridTemplateColumns = parent.style.getPropertyValue('--grid-template-columns');
       if (!parentGridTemplateColumns) {
         // we have no grid template columns yet
         parentGridTemplateColumns = children
@@ -46,10 +43,7 @@ export default class Columns {
           })
           .join(' ');
         // set the new grid template columns
-        parent.style.setProperty(
-          '--grid-template-columns',
-          parentGridTemplateColumns,
-        );
+        parent.style.setProperty('--grid-template-columns', parentGridTemplateColumns);
       } else {
         const { position } = this;
         const prio = children.indexOf(this.element) + 1;
@@ -74,10 +68,7 @@ export default class Columns {
           })
           .join(' ');
         // set the new grid template columns
-        parent.style.setProperty(
-          '--grid-template-columns',
-          parentGridTemplateColumns,
-        );
+        parent.style.setProperty('--grid-template-columns', parentGridTemplateColumns);
       }
       this.element.style.gridColumn = this.position;
       this.element.style.gridRow = 1;
@@ -85,9 +76,6 @@ export default class Columns {
   }
 
   getAttribute(name) {
-    return (
-      this.element.getAttribute(name) ||
-      this.element.getAttribute(`data-${name}`)
-    );
+    return this.element.getAttribute(name) || this.element.getAttribute(`data-${name}`);
   }
 }

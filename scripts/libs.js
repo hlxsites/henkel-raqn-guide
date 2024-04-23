@@ -147,7 +147,7 @@ export function getMetaGroup(group) {
   }));
 }
 
-export function collectAttributes(componentName, classes, mixins, knownAttributes = [], element = null) {
+export function collectAttributes(componentName, classes, knownAttributes = [], element = null) {
   const classesList = [];
   const mediaAttributes = {};
   const attributesValues = element?.attributesValues || {};
@@ -173,13 +173,11 @@ export function collectAttributes(componentName, classes, mixins, knownAttribute
 
   const nestedComponentsNames = Object.keys(nestedComponents);
 
-  const mixinKnownAttributes = mixins.flatMap((mixin) => mixin.observedAttributes || []);
   const attrs = classesList
     .filter((c) => c !== componentName && c !== 'block')
     .reduce((acc, c) => {
       let value = c;
       let isKnownAttribute = null;
-      let isMixinKnownAttributes = null;
 
       const classBreakpoint = Object.keys(globalConfig.breakpoints).find((b) => c.startsWith(`${b}-`));
       const activeBreakpoint = getBreakPoints().active.name;
@@ -203,11 +201,9 @@ export function collectAttributes(componentName, classes, mixins, knownAttribute
         value = value.slice(key.length + 1);
       } else {
         isKnownAttribute = knownAttributes.find((attribute) => value.startsWith(`${attribute}-`));
-        isMixinKnownAttributes = mixinKnownAttributes.find((attribute) => value.startsWith(`${attribute}-`));
-        const getKnownAttribute = isKnownAttribute || isMixinKnownAttributes;
-        if (getKnownAttribute) {
-          key = getKnownAttribute;
-          value = value.slice(getKnownAttribute.length + 1);
+        if (isKnownAttribute) {
+          key = isKnownAttribute;
+          value = value.slice(isKnownAttribute.length + 1);
         }
       }
 
@@ -223,11 +219,7 @@ export function collectAttributes(componentName, classes, mixins, knownAttribute
         if (isKnownAttribute) attributesValues[camelCaseKey][classBreakpoint] = value;
         if (isClass) {
           attributesValues[camelCaseKey][classBreakpoint] ??= '';
-          // if (attributesValues[camelCaseKey][classBreakpoint]) {
           attributesValues[camelCaseKey][classBreakpoint] += `${value} `;
-          // } else {
-          // attributesValues[camelCaseKey][classBreakpoint] = value;
-          // }
         }
         // support multivalue attributes
       } else if (acc[key]) {
