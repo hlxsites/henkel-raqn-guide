@@ -1,8 +1,13 @@
-import { start } from '../../scripts/init.js';
+import component from '../../scripts/init.js';
 import ComponentBase from '../../scripts/component-base.js';
 
 export default class Navigation extends ComponentBase {
   static observedAttributes = ['icon', 'compact'];
+
+  static loaderConfig = {
+    ...ComponentBase.loaderConfig,
+    targetsSelectors: ':scope > :is(:first-child)',
+  };
 
   attributesValues = {
     compact: {
@@ -20,7 +25,6 @@ export default class Navigation extends ComponentBase {
     this.navButton.setAttribute('aria-controls', 'navigation');
     this.navButton.setAttribute('aria-haspopup', 'true');
     this.navButton.setAttribute('type', 'button');
-    // this.navButton.setAttribute('tabindex', '0');
     this.navButton.innerHTML = '<raqn-icon icon=menu></raqn-icon>';
     this.navButton.addEventListener('click', () => {
       this.classList.toggle('active');
@@ -29,7 +33,7 @@ export default class Navigation extends ComponentBase {
     return this.navButton;
   }
 
-  ready() {
+  async ready() {
     this.active = {};
     this.navContent = this.querySelector('ul');
     this.innerHTML = '';
@@ -45,7 +49,7 @@ export default class Navigation extends ComponentBase {
     this.isCompact = this.getAttribute('compact') === 'true';
 
     if (this.isCompact) {
-      this.setupCompactedNav();
+      await this.setupCompactedNav();
     } else {
       this.setupNav();
     }
@@ -60,10 +64,11 @@ export default class Navigation extends ComponentBase {
     this.nav.append(this.navContent);
   }
 
-  setupCompactedNav() {
+  async setupCompactedNav() {
     if (!this.navCompactedContentInit) {
       this.navCompactedContentInit = true;
-      start({ name: 'accordion' });
+      await Promise.all([component.loadAndDefine('accordion'), component.loadAndDefine('icon')]);
+
       this.setupClasses(this.navCompactedContent, true);
       this.navCompactedContent.addEventListener('click', (e) => this.activate(e));
     }
@@ -81,7 +86,7 @@ export default class Navigation extends ComponentBase {
       this.setupCompactedNav();
     } else {
       this.classList.remove('active');
-      this.navButton.removeAttribute('aria-expanded');
+      this.navButton?.removeAttribute('aria-expanded');
       this.setupNav();
     }
   }
@@ -92,11 +97,28 @@ export default class Navigation extends ComponentBase {
     return icon;
   }
 
-  createAccordion(replaceChildrenElement) {
-    const accordion = document.createElement('raqn-accordion');
-    const children = Array.from(replaceChildrenElement.children);
-    accordion.append(...children);
-    replaceChildrenElement.append(accordion);
+  addIcon(elem) {
+    component.init({
+      componentName: 'icon',
+      targets: [elem],
+      rawClasses: 'icon-chevron-right',
+      config: {
+        addToTargetMethod: 'append',
+      },
+    });
+  }
+
+  createAccordion(elem) {
+    component.init({
+      componentName: 'accordion',
+      targets: [elem],
+      config: {
+        addToTargetMethod: 'append',
+      },
+      nestedComponentsConfig: {
+        button: { active: false },
+      },
+    });
   }
 
   setupClasses(ul, isCompact, level = 1) {
@@ -112,7 +134,7 @@ export default class Navigation extends ComponentBase {
         if (isCompact) {
           this.createAccordion(child);
         } else if (level === 1) {
-          anchor.append(this.createIcon('chevron-right'));
+          this.addIcon(anchor);
         }
         child.classList.add('has-children');
         this.setupClasses(hasChildren, isCompact, level + 1);

@@ -1,8 +1,23 @@
 import ComponentBase from '../../scripts/component-base.js';
+import { getMeta } from '../../scripts/libs.js';
 
+const metaFooter = getMeta('footer');
+const metaFragment = !!metaFooter && `${metaFooter}.plain.html`;
 export default class Footer extends ComponentBase {
-  // keep as it is
-  fragment = 'footer.plain.html';
+  fragment = metaFragment || 'footer.plain.html';
+
+  extendConfig() {
+    return [
+      ...super.extendConfig(),
+      {
+        addToTargetMethod: 'append',
+      },
+    ];
+  }
+
+  static earlyStopRender() {
+    return metaFragment === false;
+  }
 
   ready() {
     const child = this.children[0];

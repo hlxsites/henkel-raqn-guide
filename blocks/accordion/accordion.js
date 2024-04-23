@@ -3,6 +3,20 @@ import ComponentBase from '../../scripts/component-base.js';
 export default class Accordion extends ComponentBase {
   dependencies = ['icon'];
 
+  extendNestedConfig() {
+    return [
+      ...super.extendNestedConfig(),
+      {
+        button: {
+          componentName: 'button',
+          loaderConfig: {
+            targetsSelectorsPrefix: ':scope > :is(:nth-child(even)) >',
+          },
+        },
+      },
+    ];
+  }
+
   ready() {
     this.setAttribute('role', 'navigation');
     let children = Array.from(this.children);
@@ -15,7 +29,7 @@ export default class Accordion extends ComponentBase {
       }
       return child;
     });
-    // console.log(children)
+
     this.setupControls(children.filter((_, ind) => ind % 2 === 0));
     this.setupContent(children.filter((_, ind) => ind % 2 === 1));
   }

@@ -1,84 +1,156 @@
 import ComponentLoader from './component-loader.js';
 import ComponentMixin from './component-mixin.js';
-import {
-  config,
-  eagerImage,
-  getMeta,
-} from './libs.js';
+import { globalConfig, eagerImage, getMeta, getMetaGroup } from './libs.js';
 
-function getInfo(block) {
-  const el = block;
-  const tagName = el.tagName.toLowerCase();
-  let name = tagName;
-  if (!config.semanticBlocks.includes(tagName)) {
-    [name] = Array.from(el.classList);
-  }
-  return {
-    name,
-    el,
-  };
-}
+const component = {
+  async init(settings) {
+    return new ComponentLoader({
+      ...settings,
+      componentName: settings.componentName ?? this.getBlockData(settings?.targets?.[0]).componentName,
+    }).init();
+  },
 
-function getInfos(blocks) {
-  return blocks.map((block) => getInfo(block));
-}
+  async loadAndDefine(componentName) {
+    await new ComponentLoader({ componentName }).loadAndDefine();
+  },
 
-export async function start({ name, el }) {
-  const loader = new ComponentLoader(name, el);
-  return loader.start();
-}
+  getBlockData(block) {
+    const tagName = block.tagName.toLowerCase();
+    const lcp = block.classList.contains('lcp');
+    let componentName = tagName;
+    if (!globalConfig.semanticBlocks.includes(tagName)) {
+      componentName = block.classList.item(0);
+    }
+    return { block, componentName, lcp };
+  },
+};
 
-export async function startBlock(block) {
-  return start(getInfo(block));
-}
+const onLoadComponents = {
+  staticStructureComponents: [
+    {
+      componentName: 'image',
+      block: document,
+      loaderConfig: {
+        targetsAsContainers: true,
+        targetsSelectorsPrefix: 'main > div >',
+      },
+    },
+    {
+      componentName: 'button',
+      block: document,
+      loaderConfig: {
+        targetsAsContainers: true,
+        targetsSelectorsPrefix: 'main > div >',
+      },
+    },
+  ],
 
-function initEagerImages() {
-  const eagerImages = getMeta('eager-images');
-  if (eagerImages) {
-    const length = parseInt(eagerImages, 10);
-    eagerImage(document.body, length);
-  }
-}
+  async init() {
+    this.setLcp();
+    this.setStructure();
+    this.queryAllBlocks();
+    this.setBlocksData();
+    this.setLcpBlocks();
+    this.setLazyBlocks();
+    this.initBlocks();
+  },
 
-function getLcp() {
-  const lcpMeta = getMeta('lcp');
-  return lcpMeta
-    ? lcpMeta.split(',').map((name) => ({ name: name.trim() }))
-    : [];
-}
+  queryAllBlocks() {
+    this.blocks = [
+      document.body.querySelector(globalConfig.semanticBlocks[0]),
+      ...document.querySelectorAll('[class]:not([class^=style]'),
+      ...document.body.querySelectorAll(globalConfig.semanticBlocks.slice(1).join(',')),
+    ];
+  },
 
-function includesInfo(infos, search) {
-  return infos.find(({ name }) => name === search);
-}
+  setBlocksData() {
+    const structureData = this.structureComponents.map(({ componentName }) => ({
+      componentName,
+      block: document,
+      loaderConfig: {
+        targetsAsContainers: true,
+      },
+    }));
+    structureData.push(...this.staticStructureComponents);
 
-async function init() {
-  ComponentMixin.getMixins();
+    const blocksData = this.blocks.map((block) => component.getBlockData(block));
+    this.blocksData = [...structureData, ...blocksData];
+  },
 
-  // mechanism of retrieving lang to be used in the app
-  // TODO - set this based on url structure or meta tag for current path
-  document.documentElement.lang ||= 'en';
+  setLcp() {
+    const lcpMeta = getMeta('lcp');
+    const defaultLcp = ['theme', 'header', 'breadcrumbs'];
+    this.lcp = lcpMeta?.length
+      ? lcpMeta.split(',').map((componentName) => ({ componentName: componentName.trim() }))
+      : defaultLcp;
+  },
 
-  initEagerImages();
+  setStructure() {
+    const structureComponents = getMetaGroup('structure');
+    this.structureComponents = structureComponents.flatMap(({ name, content }) => {
+      if (content !== true) return [];
+      return {
+        componentName: name.trim(),
+      };
+    });
+  },
 
-  const blocks = [
-    document.body.querySelector(config.semanticBlocks[0]),
-    ...document.querySelectorAll('[class]:not([class^=style]'),
-    ...document.body.querySelectorAll(config.semanticBlocks.slice(1).join(',')),
-  ];
+  setLcpBlocks() {
+    this.lcpBlocks = this.blocksData.filter((data) => !!this.findLcp(data));
+  },
 
-  const data = getInfos(blocks);
-  const lcp = getLcp().map(({ name }) => includesInfo(data, name) || { name });
-  const delay = window.raqnLCPDelay || [];
-  const lazy = data.filter(
-    ({ name }) => !includesInfo(lcp, name) && !includesInfo(delay, name),
-  );
+  setLazyBlocks() {
+    this.lazyBlocks = this.blocksData.filter((data) => !this.findLcp(data));
+  },
 
-  // start with lcp
-  Promise.all(lcp.map(({ name, el }) => start({ name, el }))).then(() => {
-    document.body.style.display = 'unset';
-  });
-  // timeout for the rest to proper prioritize in case of stalled loading
-  lazy.map(({ name, el }) => setTimeout(() => start({ name, el })));
-}
+  findLcp(data) {
+    return (
+      this.lcp.find(({ componentName }) => componentName === data.componentName) ||
+      data.lcp /* ||
+      [...document.querySelectorAll('main > div > [class]:nth-child(-n+2)')].find((el) => el === data.block) */
+    );
+  },
 
-init();
+  initBlocks() {
+    Promise.all(
+      this.lcpBlocks.map(async ({ componentName, block, loaderConfig }) =>
+        component.init({ componentName, targets: [block], loaderConfig }),
+      ),
+    ).then(() => {
+      document.body.style.display = 'unset';
+    });
+    this.lazyBlocks.map(({ componentName, block, loaderConfig }) =>
+      setTimeout(() => component.init({ componentName, targets: [block], loaderConfig })),
+    );
+  },
+};
+
+const globalInit = {
+  async init() {
+    this.loadMixins();
+    this.setLang();
+    this.initEagerImages();
+    onLoadComponents.init();
+  },
+
+  loadMixins() {
+    ComponentMixin.getMixins();
+  },
+
+  // TODO - maybe take this from the url structure.
+  setLang() {
+    document.documentElement.lang ||= 'en';
+  },
+
+  initEagerImages() {
+    const eagerImages = getMeta('eager-images');
+    if (eagerImages) {
+      const length = parseInt(eagerImages, 10);
+      eagerImage(document.body, length);
+    }
+  },
+};
+
+globalInit.init();
+
+export default component;

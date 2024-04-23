@@ -1,14 +1,19 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { config, getMeta } from '../../scripts/libs.js';
+import { globalConfig, getMeta } from '../../scripts/libs.js';
 // minify alias
+const metaTheming = getMeta('theming');
+const metaFragment = metaTheming && `${metaTheming}.json`;
 const k = Object.keys;
 
-export default class Theme extends ComponentBase {
+export default class Theming extends ComponentBase {
+  
+  nestedComponentsConfig = {};
+
   constructor() {
     super();
     this.scapeDiv = document.createElement('div');
     // keep as it is
-    this.fragment = 'theme.json';
+    this.fragment = metaFragment || 'theming.json';
     this.skip = ['tags'];
     this.toTags = [
       'font-size',
@@ -30,7 +35,7 @@ export default class Theme extends ComponentBase {
       const params = rest.pop().split('.');
       const format = params.pop();
       const lastBit = params.pop();
-      const fontWeight = config.fontWeights[lastBit] || 'regular';
+      const fontWeight = globalConfig.fontWeights[lastBit] || 'regular';
       const fontStyle = lastBit === 'italic' ? lastBit : 'normal';
       // eslint-disable-next-line max-len
       return `@font-face {font-family: ${name};font-weight: ${fontWeight};font-display: swap;font-style: ${fontStyle};src: url('/fonts/${fontFace}') format(${format});}`;

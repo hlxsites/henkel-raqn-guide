@@ -5,9 +5,6 @@ export default class Card extends ComponentBase {
   static observedAttributes = ['columns', 'ratio', 'eager', 'background', 'button'];
 
   ready() {
-    if (this.getAttribute('button') === 'true') {
-      Array.from(this.querySelectorAll('a')).forEach((a) => this.convertLink(a));
-    }
     this.eager = parseInt(this.getAttribute('eager') || 0, 10);
     this.classList.add('inner');
     if (this.eager) {
