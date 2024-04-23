@@ -16,7 +16,7 @@ export default class Footer extends ComponentBase {
   }
 
   static earlyStopRender() {
-    return metaFragment === false;
+    return metaFooter === false;
   }
 
   ready() {
