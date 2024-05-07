@@ -26,7 +26,8 @@ export default class Breadcrumbs extends ComponentBase {
   connected() {
     this.classList.add('full-width');
     this.classList.add('breadcrumbs');
-    this.path = window.location.href.split(getBaseUrl()).join('/').split('/');
+    const { origin, pathname } = window.location;
+    this.path = `${origin}${pathname}`.split(getBaseUrl()).join('/').split('/');
     this.innerHTML = `
     <ul>
         ${this.path
