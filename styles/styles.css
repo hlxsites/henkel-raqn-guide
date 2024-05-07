@@ -71,9 +71,10 @@ header {
   background: var(--scope-header-background, #fff);
 }
 
-/* main {
-  margin-top: var(--scope-header-height, 64px);
-} */
+head:has(meta[name="header"][content="false" i]) + body > header,
+head:has(meta[name="footer"][content="false" i]) + body > footer {
+  display: none;
+}
 
 main > div {
   max-width: var(--scope-max-width, 100%);
@@ -156,6 +157,7 @@ img {
 
 
 [isloading],
+.hide-with-error,
 .hide {
   display: none;
   pointer-events: none;
