@@ -6,7 +6,7 @@ const metaFragment = !!metaHeader && `${metaHeader}.plain.html`;
 export default class Header extends ComponentBase {
   fragment = metaFragment || 'header.plain.html';
 
-  dependencies = ['navigation'];
+  dependencies = ['navigation', 'image'];
 
   extendConfig() {
     return [
