@@ -5,6 +5,15 @@ export default class Icon extends ComponentBase {
 
   nestedComponentsConfig = {};
 
+  extendConfig() {
+    return [
+      ...super.extendConfig(),
+      {
+        contentFromTargets: false,
+      },
+    ];
+  }
+
   constructor() {
     super();
     this.setupSprite();
