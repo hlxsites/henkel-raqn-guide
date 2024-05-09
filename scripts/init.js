@@ -1,16 +1,62 @@
 import ComponentLoader from './component-loader.js';
-import { globalConfig, eagerImage, getMeta, getMetaGroup } from './libs.js';
+import { globalConfig, eagerImage, getMeta, getMetaGroup, mergeUniqueArrays } from './libs.js';
 
 const component = {
   async init(settings) {
-    return new ComponentLoader({
-      ...settings,
-      componentName: settings.componentName ?? this.getBlockData(settings?.targets?.[0]).componentName,
-    }).init();
+    const { componentName = this.getBlockData(settings?.targets?.[0]).componentName } = settings || {};
+    try {
+      const loader = new ComponentLoader({
+        ...settings,
+        componentName,
+      });
+      const instances = await loader.init();
+
+      const init = {
+        componentName,
+        instances: [],
+        failedInstances: [],
+      };
+
+      instances.forEach((data) => {
+        if (data.status === 'fulfilled') init.instances.push(data.value);
+        if (data.reason) init.failedInstances.push(data.reason.elem || data.reason);
+      });
+      return init;
+    } catch (error) {
+      const init = {
+        componentName,
+        initError: error,
+      };
+      // eslint-disable-next-line no-console
+      console.error(`There was an error while initializing the ${componentName} component`, error);
+      return init;
+    }
+  },
+
+  async multiInit(settings) {
+    const initializing = await Promise.allSettled(settings.map((s) => this.init(s)));
+    const initialized = initializing.map((data) => data.value || data.reason);
+    const status = {
+      allInitialized: initialized.every((c) => !(c.initError || c.failedInstances.length)),
+      instances: initialized,
+    };
+    return status;
   },
 
   async loadAndDefine(componentName) {
-    await new ComponentLoader({ componentName }).loadAndDefine();
+    const status = await new ComponentLoader({ componentName }).loadAndDefine();
+    return { componentName, status };
+  },
+
+  async multiLoadAndDefine(componentNames) {
+    const loading = await Promise.allSettled(componentNames.map((n) => this.loadAndDefine(n)));
+    const loaded = loading.map((data) => data.value || data.reason);
+    const status = {
+      allLoaded: loaded.every((m) => m.status.loaded),
+      modules: loaded,
+    };
+
+    return status;
   },
 
   getBlockData(block) {
@@ -20,7 +66,7 @@ const component = {
     if (!globalConfig.semanticBlocks.includes(tagName)) {
       componentName = block.classList.item(0);
     }
-    return { block, componentName, lcp };
+    return { targets: [block], componentName, lcp };
   },
 };
 
@@ -77,11 +123,13 @@ const onLoadComponents = {
   },
 
   setLcp() {
-    const lcpMeta = getMeta('lcp');
-    const defaultLcp = ['theme', 'header', 'breadcrumbs'];
-    this.lcp = lcpMeta?.length
-      ? lcpMeta.split(',').map((componentName) => ({ componentName: componentName.trim() }))
-      : defaultLcp;
+    const lcpMeta = getMeta('lcp', { getArray: true });
+    const defaultLcp = ['theming', 'header', 'breadcrumbs'];
+    const lcp = lcpMeta?.length ? lcpMeta : defaultLcp;
+    // theming must be in LCP to prevent CLS
+    this.lcp = mergeUniqueArrays(lcp, ['theming']).map((componentName) => ({
+      componentName: componentName.trim(),
+    }));
   },
 
   setStructure() {
@@ -105,21 +153,15 @@ const onLoadComponents = {
   findLcp(data) {
     return (
       this.lcp.find(({ componentName }) => componentName === data.componentName) || data.lcp /* ||
-      [...document.querySelectorAll('main > div > [class]:nth-child(-n+2)')].find((el) => el === data.block) */
+      [...document.querySelectorAll('main > div > [class]:nth-child(-n+1)')].find((el) => el === data?.targets?.[0]) */
     );
   },
 
   initBlocks() {
-    Promise.all(
-      this.lcpBlocks.map(async ({ componentName, block, loaderConfig }) =>
-        component.init({ componentName, targets: [block], loaderConfig }),
-      ),
-    ).then(() => {
-      document.body.style.display = 'unset';
+    component.multiInit(this.lcpBlocks).then(() => {
+      document.body.style.setProperty('display', 'unset');
     });
-    this.lazyBlocks.map(({ componentName, block, loaderConfig }) =>
-      setTimeout(() => component.init({ componentName, targets: [block], loaderConfig })),
-    );
+    component.multiInit(this.lazyBlocks);
   },
 };
 

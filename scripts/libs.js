@@ -116,7 +116,7 @@ export const eagerImage = (block, length = 1) => {
 };
 
 export function stringToJsVal(string) {
-  switch (string.trim()) {
+  switch (string?.trim().toLowerCase()) {
     case 'true':
       return true;
     case 'false':
@@ -130,12 +130,18 @@ export function stringToJsVal(string) {
   }
 }
 
-export function getMeta(name) {
+export function getMeta(name, settings) {
+  const { getArray = false } = settings || {};
   const meta = document.querySelector(`meta[name="${name}"]`);
   if (!meta) {
     return null;
   }
-  return stringToJsVal(meta.content);
+  const val = stringToJsVal(meta.content);
+  if (getArray) {
+    if (!val?.length) return [];
+    return val.split(',').map((x) => x.trim());
+  }
+  return val;
 }
 
 export function getMetaGroup(group) {
@@ -262,7 +268,7 @@ export function loadModule(urlWithoutExtension) {
     }
   }).catch((error) =>
     // eslint-disable-next-line no-console
-    console.trace('could not load module style', urlWithoutExtension, error),
+    console.error('could not load module style', urlWithoutExtension, error),
   );
 
   return { css, js };

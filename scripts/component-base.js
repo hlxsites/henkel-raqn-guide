@@ -9,12 +9,13 @@ export default class ComponentBase extends HTMLElement {
 
   constructor() {
     super();
+    this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
     this.componentName = null; // set by component loader
     this.webComponentName = null; // set by component loader
     this.fragment = false;
     this.dependencies = [];
     this.breakpoints = getBreakPoints();
-    this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
+    this.initError = null;
     this.attributesValues = {}; // the values are set by the component loader
     this.setConfig('config', 'extendConfig');
     this.setConfig('nestedComponentsConfig', 'extendNestedConfig');
@@ -36,6 +37,8 @@ export default class ComponentBase extends HTMLElement {
   attributesValues = {}; // the values are set by the component loader
 
   config = {
+    hideOnInitError: true,
+    hideOnNestedError: false,
     addToTargetMethod: 'replaceWith',
     contentFromTargets: true,
     targetsAsContainers: {
@@ -43,6 +46,7 @@ export default class ComponentBase extends HTMLElement {
     },
   };
 
+  // Default values are set by component loader
   nestedComponentsConfig = {
     image: {
       componentName: 'image',
@@ -114,12 +118,17 @@ export default class ComponentBase extends HTMLElement {
    * In some cases a check for `this.initialized` inside `onAttribute${capitalizedAttr}Changed` might be required
    */
   attributeChangedCallback(name, oldValue, newValue) {
-    const camelAttr = camelCaseAttr(name);
-    const capitalizedAttr = capitalizeCaseAttr(name);
-    // handle case when attribute is removed from the element
-    // default to attribute breakpoint value
-    const defaultNewVal = newValue === null ? this.getBreakpointAttrVal(camelAttr) ?? null : newValue;
-    this[`onAttribute${capitalizedAttr}Changed`]?.({ oldValue, newValue: defaultNewVal });
+    try {
+      const camelAttr = camelCaseAttr(name);
+      const capitalizedAttr = capitalizeCaseAttr(name);
+      // handle case when attribute is removed from the element
+      // default to attribute breakpoint value
+      const defaultNewVal = newValue === null ? this.getBreakpointAttrVal(camelAttr) ?? null : newValue;
+      this[`onAttribute${capitalizedAttr}Changed`]?.({ oldValue, newValue: defaultNewVal });
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(`There was an error while processing the '${name}' attribute change:`, this, error);
+    }
   }
 
   getBreakpointAttrVal(attr) {
@@ -134,42 +143,51 @@ export default class ComponentBase extends HTMLElement {
   }
 
   async connectedCallback() {
-    this.initialized = this.getAttribute('initialized');
-    this.initSubscriptions(); // must subscribe each time the element is added to the document
-    if (!this.initialized) {
-      this.setAttribute('id', this.uuid);
-      await Promise.all([this.loadFragment(this.fragment), this.loadDependencies()]);
-      await this.connected(); // manipulate/create the html
-      await this.initNestedComponents();
-      this.addListeners(); // html is ready add listeners
-      await this.ready(); // add extra functionality
-      this.setAttribute('initialized', true);
-      this.initialized = true;
-      this.dispatchEvent(new CustomEvent('initialized', { detail: { element: this } }));
+    try {
+      this.initialized = this.getAttribute('initialized');
+      this.initSubscriptions(); // must subscribe each time the element is added to the document
+      if (!this.initialized) {
+        this.setAttribute('id', this.uuid);
+        this.loadDependencies(); // do not wait for dependencies;
+        await this.loadFragment(this.fragment);
+        await this.connected(); // manipulate/create the html
+        await this.initNestedComponents();
+        this.addListeners(); // html is ready add listeners
+        await this.ready(); // add extra functionality
+        this.setAttribute('initialized', true);
+        this.initialized = true;
+        this.dispatchEvent(new CustomEvent(`initialized:${this.uuid}`, { detail: { element: this } }));
+      }
+    } catch (error) {
+      this.dispatchEvent(new CustomEvent(`initialized:${this.uuid}`, { detail: { error } }));
+      this.initError = error;
+      this.hideWithError(this.config.hideOnInitError, 'has-nested-error');
     }
   }
 
   async initNestedComponents() {
-    const nested = await Promise.all(
-      Object.values(this.nestedComponentsConfig).flatMap(async (setting) => {
-        if (!setting.active) return [];
-        const s = this.fragment
-          ? deepMerge({}, setting, {
-              // Content can contain blocks which are going to init their own nestedComponents.
-              loaderConfig: {
-                targetsSelectorsPrefix: ':scope > div >', // Limit only to default content, exclude blocks.
-              },
-            })
-          : setting;
-        return component.init(s);
-      }),
-    );
-    this.nestedElements = nested.flat();
+    const settings = Object.values(this.nestedComponentsConfig).flatMap((setting) => {
+      if (!setting.active) return [];
+      return this.fragment
+        ? deepMerge({}, setting, {
+            // Content can contain blocks which are going to init their own nestedComponents.
+            loaderConfig: {
+              targetsSelectorsPrefix: ':scope > div >', // Limit only to default content, exclude blocks.
+            },
+          })
+        : setting;
+    });
+    this.nestedComponents = await component.multiInit(settings);
+    const {
+      nestedComponents: { allInitialized },
+      config: { hideOnNestedError },
+    } = this;
+    this.hideWithError(!allInitialized && hideOnNestedError, 'has-nested-error');
   }
 
   async loadDependencies() {
     if (!this.dependencies.length) return;
-    await Promise.all(this.dependencies.map((dep) => component.loadAndDefine(dep)));
+    component.multiLoadAndDefine(this.dependencies);
   }
 
   async loadFragment(path) {
@@ -186,7 +204,18 @@ export default class ComponentBase extends HTMLElement {
     if (response.ok) {
       const html = await response.text();
       this.innerHTML = html;
-      await Promise.all([...this.querySelectorAll('div[class]')].map((block) => component.init({ targets: [block] })));
+      const fragmentNested = await component.multiInit(
+        [...this.querySelectorAll('div[class]')].map((block) => ({ targets: [block] })),
+      );
+      const { allInitialized } = fragmentNested;
+      this.hideWithError(!allInitialized && this.config.hideOnNestedError, 'has-nested-error');
+    }
+  }
+
+  hideWithError(check, statusAttr) {
+    if (check) {
+      this.classList.add('hide-with-error');
+      this.setAttribute(statusAttr, '');
     }
   }
 

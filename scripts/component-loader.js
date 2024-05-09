@@ -4,9 +4,7 @@ export default class ComponentLoader {
   constructor({ componentName, targets = [], loaderConfig, rawClasses, config, nestedComponentsConfig, active }) {
     window.raqnComponents ??= {};
     if (!componentName) {
-      // eslint-disable-next-line no-console
-      console.error('`componentName` is required');
-      return;
+      throw new Error('`componentName` is required');
     }
     this.componentName = componentName;
     this.targets = targets.map((target) => ({ target }));
@@ -40,39 +38,74 @@ export default class ComponentLoader {
   }
 
   async init() {
-    if (this.active === false) return null;
-    if (!this.componentName) return null;
-    const loaded = await this.loadAndDefine();
-    if (!loaded) return null;
+    if (this.active === false) return [];
+    if (!this.componentName) return [];
+    const {loaded, error} = await this.loadAndDefine();
+    if (!loaded) throw new Error(error);
     this.setHandlerType();
-    if (await this.Handler?.earlyStopRender?.()) return this.Handler;
-    if (!this.targets?.length) return this.Handler;
+    if (await this.Handler?.earlyStopRender?.()) return [];
+    if (!this.targets?.length) return [];
 
     this.setTargets();
-    return Promise.all(
+    return Promise.allSettled(
       this.targets.map(async (target) => {
+        let returnVal = null;
         const data = this.getTargetData(target);
         if (this.isWebComponent) {
-          const elem = await this.createElementAndConfigure(data);
-          data.componentElem = elem;
-          this.addContentFromTarget(data);
-          await this.connectComponent(data);
-          return elem;
+          returnVal = this.initWebComponent(data);
         }
 
         if (this.isClass) {
-          return new this.Handler({
-            componentName: this.componentName,
-            ...data,
-          });
+          returnVal = this.initClass(data);
         }
 
         if (this.isFn) {
-          return this.Handler(data);
+          returnVal = this.initFn(data);
         }
-        return null;
+        return returnVal;
       }),
     );
+  }
+
+  async initWebComponent(data) {
+    let returnVal = null;
+    try {
+      const elem = await this.createElementAndConfigure(data);
+      data.componentElem = elem;
+      returnVal = elem;
+      this.addContentFromTarget(data);
+      await this.connectComponent(data);
+    } catch (error) {
+      const err = new Error(error);
+      err.elem = returnVal;
+      // eslint-disable-next-line no-console
+      console.error(`There was an error while initializing the '${this.componentName}' webComponent:`, returnVal, error);
+      throw err;
+    }
+    return returnVal;
+  }
+
+  async initClass(data) {
+    try {
+      return new this.Handler({
+        componentName: this.componentName,
+        ...data,
+      });
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(`There was an error while initializing the '${this.componentName}' class:`, data.target, error);
+      throw error;
+    }
+  }
+
+  async initFn(data) {
+    try {
+      return this.Handler(data);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.error(`There was an error while initializing the '${this.componentName}' function:`, data.target, error);
+      throw error;
+    }
   }
 
   getTargetData({ target, container }) {
@@ -158,21 +191,24 @@ export default class ComponentLoader {
     const { contentFromTargets } = componentElem.config;
     if (!contentFromTargets) return;
 
-    componentElem.append(...target.children);
+    componentElem.append(...target.childNodes);
   }
 
   async connectComponent(data) {
     const { componentElem } = data;
+    const { uuid } = componentElem;
     componentElem.setAttribute('isloading', '');
-    const initialized = new Promise((resolve) => {
+    const initialized = new Promise((resolve, reject) => {
       const initListener = async (event) => {
-        if (event.detail.element === componentElem) {
-          componentElem.removeEventListener('initialized', initListener);
-          componentElem.removeAttribute('isloading');
-          resolve(componentElem);
+        const { error } = event.detail;
+        componentElem.removeEventListener(`initialized:${uuid}`, initListener);
+        componentElem.removeAttribute('isloading');
+        if (error) {
+          reject(error);
         }
+        resolve(componentElem);
       };
-      componentElem.addEventListener('initialized', initListener);
+      componentElem.addEventListener(`initialized:${uuid}`, initListener);
     });
     const { targetsAsContainers } = this.loaderConfig;
     const conf = componentElem.config;
@@ -198,11 +234,11 @@ export default class ComponentLoader {
       }
       this.Handler = await this.Handler;
       await cssLoaded;
-      return true;
+      return { loaded: true };
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error(`failed to load module for ${this.componentName}`, error);
-      return false;
+      console.error(`Failed to load module for ${this.componentName}:`, error);
+      return { loaded: false, error };
     }
   }
 }

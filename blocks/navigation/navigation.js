@@ -67,8 +67,7 @@ export default class Navigation extends ComponentBase {
   async setupCompactedNav() {
     if (!this.navCompactedContentInit) {
       this.navCompactedContentInit = true;
-      await Promise.all([component.loadAndDefine('accordion'), component.loadAndDefine('icon')]);
-
+      await component.multiLoadAndDefine(['accordion', 'icon']);
       this.setupClasses(this.navCompactedContent, true);
       this.navCompactedContent.addEventListener('click', (e) => this.activate(e));
     }
