@@ -40,7 +40,7 @@ export default class ComponentLoader {
   async init() {
     if (this.active === false) return [];
     if (!this.componentName) return [];
-    const {loaded, error} = await this.loadAndDefine();
+    const { loaded, error } = await this.loadAndDefine();
     if (!loaded) throw new Error(error);
     this.setHandlerType();
     if (await this.Handler?.earlyStopRender?.()) return [];
@@ -79,7 +79,11 @@ export default class ComponentLoader {
       const err = new Error(error);
       err.elem = returnVal;
       // eslint-disable-next-line no-console
-      console.error(`There was an error while initializing the '${this.componentName}' webComponent:`, returnVal, error);
+      console.error(
+        `There was an error while initializing the '${this.componentName}' webComponent:`,
+        returnVal,
+        error,
+      );
       throw err;
     }
     return returnVal;
@@ -158,12 +162,13 @@ export default class ComponentLoader {
     const { currentAttributes, nestedComponents } = collectAttributes(
       this.componentName,
       data.rawClasses,
-      this?.Handler?.knownAttributes,
+      this?.Handler?.observedAttributes,
       componentElem,
     );
 
     Object.keys(currentAttributes).forEach((key) => {
-      componentElem.setAttribute(key, currentAttributes[key].trim());
+      const attr = key === 'class' ? key : `data-${key}`;
+      componentElem.setAttribute(attr, currentAttributes[key].trim());
     });
 
     componentElem.nestedComponentsConfig = deepMerge(

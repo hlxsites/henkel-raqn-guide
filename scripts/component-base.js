@@ -3,9 +3,6 @@ import component from './init.js';
 import { getBreakPoints, listenBreakpointChange, camelCaseAttr, capitalizeCaseAttr, deepMerge } from './libs.js';
 
 export default class ComponentBase extends HTMLElement {
-  static get knownAttributes() {
-    return [...(Object.getPrototypeOf(this).knownAttributes || []), ...(this.observedAttributes || [])];
-  }
 
   constructor() {
     super();
@@ -96,10 +93,10 @@ export default class ComponentBase extends HTMLElement {
         // this will trigger the `attributeChangedCallback` and a `onAttribute${capitalizedAttr}Changed` method
         // should be defined to handle the attribute value change
         if (newValue ?? false) {
-          if (this.getAttribute(attribute) === newValue) return;
-          this.setAttribute(attribute, newValue);
+          if (this.dataset[attribute] === newValue) return;
+          this.dataset[attribute] = newValue;
         } else {
-          this.removeAttribute(attribute, newValue);
+          delete this.dataset[attribute];
         }
       } else {
         const prevClasses = (breakpointsValues[e.previousRaqnBreakpoint.name] ?? '').split(' ').filter((x) => x);
@@ -119,8 +116,9 @@ export default class ComponentBase extends HTMLElement {
    */
   attributeChangedCallback(name, oldValue, newValue) {
     try {
-      const camelAttr = camelCaseAttr(name);
-      const capitalizedAttr = capitalizeCaseAttr(name);
+      const simpleName = name.replace(/^data-/, '');
+      const camelAttr = camelCaseAttr(simpleName);
+      const capitalizedAttr = capitalizeCaseAttr(simpleName);
       // handle case when attribute is removed from the element
       // default to attribute breakpoint value
       const defaultNewVal = newValue === null ? this.getBreakpointAttrVal(camelAttr) ?? null : newValue;

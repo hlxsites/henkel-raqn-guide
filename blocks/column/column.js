@@ -1,39 +1,33 @@
 import ComponentBase from '../../scripts/component-base.js';
 
 export default class Column extends ComponentBase {
-  static observedAttributes = ['position', 'size', 'justify'];
+  static observedAttributes = ['data-position', 'data-size', 'data-justify'];
 
   connected() {
-    this.position = parseInt(this.getAttribute('position'), 10);
-    this.size = this.getAttribute('size');
-    this.justify = this.getAttribute('justify') || 'stretch';
+    this.position = parseInt(this.dataset.position, 10);
+    this.dataset.justify ??= 'stretch';
     this.calculateGridTemplateColumns();
   }
 
   calculateGridTemplateColumns() {
-    this.style.setProperty('justify-content', this.justify);
+    this.style.setProperty('justify-content', this.dataset.justify);
     if (this.position) {
       const parent = this.parentElement;
       const children = Array.from(parent.children);
       parent.classList.add('raqn-grid');
-      let parentGridTemplateColumns = parent.style.getPropertyValue(
-        '--grid-template-columns',
-      );
+      let parentGridTemplateColumns = parent.style.getPropertyValue('--grid-template-columns');
       if (!parentGridTemplateColumns) {
         // we have no grid template columns yet
         parentGridTemplateColumns = children
           .map((child, index) => {
             if (this.position === index + 1) {
-              return this.size || 'auto';
+              return this.dataset.size;
             }
             return 'auto';
           })
           .join(' ');
         // set the new grid template columns
-        parent.style.setProperty(
-          '--grid-template-columns',
-          parentGridTemplateColumns,
-        );
+        parent.style.setProperty('--grid-template-columns', parentGridTemplateColumns);
       } else {
         const { position } = this;
         const prio = children.indexOf(this) + 1;
@@ -48,20 +42,17 @@ export default class Column extends ComponentBase {
             const isBeforePrio = i + 1 <= prio;
             // we have a non standard value for this position and we are at the position
             if (!hasValue && isPosition) {
-              return this.size || 'auto';
+              return this.dataset.size;
             }
             // we have a non standard value for this position and we are at a position before the prio
             if (hasValue && isPosition && isBeforePrio) {
-              return this.size || size;
+              return this.dataset.size || size;
             }
             return size;
           })
           .join(' ');
         // set the new grid template columns
-        parent.style.setProperty(
-          '--grid-template-columns',
-          parentGridTemplateColumns,
-        );
+        parent.style.setProperty('--grid-template-columns', parentGridTemplateColumns);
       }
       this.style.gridColumn = this.position;
       this.style.gridRow = 1;

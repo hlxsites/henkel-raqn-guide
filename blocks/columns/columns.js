@@ -1,7 +1,7 @@
 import { collectAttributes } from '../../scripts/libs.js';
 
 export default class Columns {
-  static observedAttributes = ['position', 'size', 'justify'];
+  static observedAttributes = ['data-position', 'data-size', 'data-justify'];
 
   constructor(data) {
     this.element = data.target;
@@ -17,9 +17,8 @@ export default class Columns {
       this.element.setAttribute(key, currentAttributes[key]);
     });
 
-    this.position = parseInt(this.getAttribute('position'), 10);
-    this.size = this.getAttribute('size');
-    this.justify = this.getAttribute('justify') || 'stretch';
+    this.position = parseInt(this.element.dataset.position, 10);
+    this.element.dataset.justify ??= 'stretch';
     this.calculateGridTemplateColumns();
   }
 
@@ -37,7 +36,7 @@ export default class Columns {
         parentGridTemplateColumns = children
           .map((child, index) => {
             if (this.position === index + 1) {
-              return this.size || 'auto';
+              return this.element.dataset.size || 'auto';
             }
             return 'auto';
           })
@@ -58,11 +57,11 @@ export default class Columns {
             const isBeforePrio = i + 1 <= prio;
             // we have a non standard value for this position and we are at the position
             if (!hasValue && isPosition) {
-              return this.size || 'auto';
+              return this.element.dataset.size || 'auto';
             }
             // we have a non standard value for this position and we are at a position before the prio
             if (hasValue && isPosition && isBeforePrio) {
-              return this.size || size;
+              return this.element.dataset.size || size;
             }
             return size;
           })
@@ -73,9 +72,5 @@ export default class Columns {
       this.element.style.gridColumn = this.position;
       this.element.style.gridRow = 1;
     }
-  }
-
-  getAttribute(name) {
-    return this.element.getAttribute(name) || this.element.getAttribute(`data-${name}`);
   }
 }

@@ -2,7 +2,7 @@ import component from '../../scripts/init.js';
 import ComponentBase from '../../scripts/component-base.js';
 
 export default class Navigation extends ComponentBase {
-  static observedAttributes = ['icon', 'compact'];
+  static observedAttributes = ['data-icon', 'data-compact'];
 
   static loaderConfig = {
     ...ComponentBase.loaderConfig,
@@ -25,7 +25,7 @@ export default class Navigation extends ComponentBase {
     this.navButton.setAttribute('aria-controls', 'navigation');
     this.navButton.setAttribute('aria-haspopup', 'true');
     this.navButton.setAttribute('type', 'button');
-    this.navButton.innerHTML = '<raqn-icon icon=menu></raqn-icon>';
+    this.navButton.innerHTML = '<raqn-icon data-icon=menu></raqn-icon>';
     this.navButton.addEventListener('click', () => {
       this.classList.toggle('active');
       this.navButton.setAttribute('aria-expanded', this.classList.contains('active'));
@@ -44,9 +44,9 @@ export default class Navigation extends ComponentBase {
     this.append(this.nav);
     this.setAttribute('role', 'navigation');
 
-    this.icon = this.getAttribute('icon') || 'menu';
+    this.dataset.icon ??= 'menu';
 
-    this.isCompact = this.getAttribute('compact') === 'true';
+    this.isCompact = this.dataset.compact === 'true';
 
     if (this.isCompact) {
       await this.setupCompactedNav();

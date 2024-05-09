@@ -1,7 +1,7 @@
 import ComponentBase from '../../scripts/component-base.js';
 
 export default class Router extends ComponentBase {
-  static observedAttributes = ['external'];
+  static observedAttributes = ['data-external'];
 
   getPlainUrl(url) {
     if (url.indexOf('.html') >= 0) {

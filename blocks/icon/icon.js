@@ -1,7 +1,7 @@
 import ComponentBase from '../../scripts/component-base.js';
 
 export default class Icon extends ComponentBase {
-  static observedAttributes = ['icon'];
+  static observedAttributes = ['data-icon'];
 
   nestedComponentsConfig = {};
 
@@ -40,7 +40,7 @@ export default class Icon extends ComponentBase {
   async connected() {
     this.setAttribute('aria-hidden', 'true');
 
-    this.iconName = this.getAttribute('icon');
+    this.iconName = this.dataset.icon;
     if (!this.cache[this.iconName]) {
       this.cache[this.iconName] = {
         loading: new Promise((resolve) => {

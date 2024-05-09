@@ -1,7 +1,7 @@
 import ComponentBase from '../../scripts/component-base.js';
 
 export default class External extends ComponentBase {
-  static observedAttributes = ['external', 'folder'];
+  static observedAttributes = ['data-external', 'data-folder'];
 
   link = false;
 
