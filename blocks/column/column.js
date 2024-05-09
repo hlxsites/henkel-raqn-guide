@@ -21,7 +21,7 @@ export default class Column extends ComponentBase {
         parentGridTemplateColumns = children
           .map((child, index) => {
             if (this.position === index + 1) {
-              return this.dataset.size;
+              return this.dataset.size || 'auto';
             }
             return 'auto';
           })
@@ -42,7 +42,7 @@ export default class Column extends ComponentBase {
             const isBeforePrio = i + 1 <= prio;
             // we have a non standard value for this position and we are at the position
             if (!hasValue && isPosition) {
-              return this.dataset.size;
+              return this.dataset.size || 'auto';
             }
             // we have a non standard value for this position and we are at a position before the prio
             if (hasValue && isPosition && isBeforePrio) {
