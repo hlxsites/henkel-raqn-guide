@@ -2,10 +2,10 @@ import ComponentBase from '../../scripts/component-base.js';
 import { eagerImage } from '../../scripts/libs.js';
 
 export default class Card extends ComponentBase {
-  static observedAttributes = ['columns', 'ratio', 'eager', 'background', 'button'];
+  static observedAttributes = ['data-columns', 'data-ratio', 'data-eager', 'data-background', 'data-button'];
 
   ready() {
-    this.eager = parseInt(this.getAttribute('eager') || 0, 10);
+    this.eager = parseInt(this.dataset.eager || 0, 10);
     this.classList.add('inner');
     if (this.eager) {
       eagerImage(this, this.eager);

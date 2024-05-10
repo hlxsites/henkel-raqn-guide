@@ -206,7 +206,11 @@ export function collectAttributes(componentName, classes, knownAttributes = [], 
       if (isClassValue) {
         value = value.slice(key.length + 1);
       } else {
-        isKnownAttribute = knownAttributes.find((attribute) => value.startsWith(`${attribute}-`));
+        [isKnownAttribute] = knownAttributes.flatMap((attribute) => {
+          const noDataPrefix = attribute.replace(/^data-/, '');
+          if (!value.startsWith(`${noDataPrefix}-`)) return [];
+          return noDataPrefix;
+        });
         if (isKnownAttribute) {
           key = isKnownAttribute;
           value = value.slice(isKnownAttribute.length + 1);

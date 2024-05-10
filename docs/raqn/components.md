@@ -98,15 +98,14 @@ Let's bring that custom element to life:
 import ComponentBase from '../../scripts/component-base.js';
 
 export default class Hero extends ComponentBase {
-  static observedAttributes = ['order'];
+  static observedAttributes = ['data-order'];
 
   ready() {
-    this.order = this.getAttribute('order');
     // Add some extra classes
     this.classList.add('full-width');
     this.setAttribute('role', 'banner');
     // Set up a CSS variable
-    this.style.setProperty('--hero-hero-order', this.getAttribute('order'));
+    this.style.setProperty('--hero-hero-order', this.dataset.order);
   }
 }
 ```

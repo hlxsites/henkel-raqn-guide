@@ -9,7 +9,12 @@ export default class SectionMetadata extends ComponentBase {
       (keyCell) => `${keyCell.textContent.trim()}-${keyCell.nextElementSibling.textContent.trim()}`,
     );
 
-    const { currentAttributes } = collectAttributes('section-metadata', classes, this.knownAttributes, this);
+    const { currentAttributes } = collectAttributes(
+      'section-metadata',
+      classes,
+      SectionMetadata.observedAttributes,
+      this,
+    );
     const section = this.parentElement;
     Object.keys(currentAttributes).forEach((key) => {
       if (key === 'class') {

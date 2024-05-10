@@ -37,7 +37,7 @@ export default class Accordion extends ComponentBase {
   setupControls(controls) {
     controls.forEach((control, index) => {
       const icon = document.createElement('raqn-icon');
-      icon.setAttribute('icon', 'chevron-right');
+      icon.dataset.icon = 'chevron-right';
       const children = Array.from(control.children);
       if (children.length === 0) {
         const child = document.createElement('span');
