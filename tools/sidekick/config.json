@@ -4,7 +4,7 @@
     {
       "id": "themeediting",
       "title": "Theme Editing",
-      "environments": ["edit", "preview"],
+      "environments": ["edit", "preview", "development"],
       "isPalette": true,
       "url": "http://localhost:8888/@henkel/theme-interface/external.html",
       "includePaths": ["**.docx**"]
