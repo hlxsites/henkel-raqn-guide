@@ -17,6 +17,15 @@
       "url": "/tools/sidekick/block-library.html",
       "excludePaths": ["**"],
       "includePaths": ["**.docx**", "/document/**"]
+    },
+    {
+      "id": "palette",
+      "title": "Tools",
+      "environments": [ "edit" ],
+      "isPalette": true,
+      "paletteRect": "top: auto; bottom: 25px; left: 25px; height: 388px; width: 360px;",
+      "url": "/tools/palette",
+      "includePaths": [ "**.docx**" ]
     }
   ]
 }
