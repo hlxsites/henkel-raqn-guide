@@ -6,6 +6,8 @@
       "title": "Theme Editing",
       "environments": ["any", "dev", "admin", "edit", "preview"],
       "isPalette": true,
+      "passConfig": true,
+      "passReferrer": true,
       "url": "http://localhost:8888/@henkel/theme-interface/external.html",
       "includePaths": ["**.docx**"]
     },
@@ -15,8 +17,6 @@
       "environments": ["edit"],
       "url": "/tools/sidekick/block-library.html",
       "excludePaths": ["**"],
-      "passConfig": true,
-      "passReferrer": true,
       "includePaths": ["**.docx**", "/document/**"]
     }
   ]
