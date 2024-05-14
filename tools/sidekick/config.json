@@ -2,6 +2,14 @@
   "project": "Henkel",
   "plugins": [
     {
+      "id": "themeediting",
+      "title": "Theme Editing",
+      "environments": ["edit", "preview"],
+      "isPalette": true,
+      "url": "http://localhost:8888/@henkel/theme-interface/external.html",
+      "includePaths": ["**.docx**"]
+    },
+    {
       "id": "block-library",
       "title": "Block Library",
       "environments": ["edit"],
