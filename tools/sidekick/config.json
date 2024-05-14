@@ -15,6 +15,8 @@
       "environments": ["edit"],
       "url": "/tools/sidekick/block-library.html",
       "excludePaths": ["**"],
+      "passConfig": true,
+      "passReferrer": true,
       "includePaths": ["**.docx**", "/document/**"]
     }
   ]
