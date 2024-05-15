@@ -1,0 +1,51 @@
+main > div > raqn-sidekick-tools-palette {
+  display: block;
+  width: 360px;
+  max-width: unset;
+  min-width: unset;
+  height: 360px;
+  overflow: hidden;
+}
+
+raqn-sidekick-tools-palette ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow: scroll;
+  transition: transform .2s ease-in-out;
+}
+
+raqn-sidekick-tools-palette h2,
+raqn-sidekick-tools-palette h3 {
+  padding: 0;
+  margin: 0;
+  line-height: 36px;
+}
+
+raqn-sidekick-tools-palette h2.hidden,
+raqn-sidekick-tools-palette h3.hidden {
+    display: none;
+}
+
+raqn-sidekick-tools-palette .menu-wrapper {
+  position: relative;
+  height: calc(100% - 36px);
+}
+
+raqn-sidekick-tools-palette ul:first-child.hidden {
+  transform: translateX(-360px);
+}
+
+raqn-sidekick-tools-palette .submenu {
+  position: absolute;
+  inset: 0;
+  transform: translateX(0);
+}
+
+raqn-sidekick-tools-palette .submenu.hidden {
+  transform: translateX(360px);
+}
+
+raqn-sidekick-tools-palette li {
+  padding: 5px;
+}
