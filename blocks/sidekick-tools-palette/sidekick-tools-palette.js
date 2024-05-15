@@ -225,33 +225,39 @@ function getHtml(container) {
 
 export default class SidekickToolsPalette extends ComponentBase {
 
-  async initBlocks(header, menuRoot) {
+  createEntry(name) {
     const subHeader = document.createElement('h3');
     subHeader.classList.add('hidden');
-    subHeader.innerText = 'Blocks';
-    header.after(subHeader);
+    subHeader.innerText = name;
+    this.header.after(subHeader);
     
     const menuItem = document.createElement('li');
-    menuItem.innerText = 'Blocks';
-    menuRoot.append(menuItem);
+    menuItem.innerText = name;
+    this.menuRoot.append(menuItem);
 
     const subMenu = document.createElement('ul');
     subMenu.classList.add('submenu');
     subMenu.classList.add('hidden');
-    menuRoot.after(subMenu);
+    this.menuRoot.after(subMenu);
 
     menuItem.addEventListener('click', () => {
-      menuRoot.classList.add('hidden');
+      this.menuRoot.classList.add('hidden');
       subMenu.classList.remove('hidden');
-      header.classList.add('hidden');
+      this.header.classList.add('hidden');
       subHeader.classList.remove('hidden');
     });
     subHeader.addEventListener('click', () => {
-      menuRoot.classList.remove('hidden');
+      this.menuRoot.classList.remove('hidden');
       subMenu.classList.add('hidden');
-      header.classList.remove('hidden');
+      this.header.classList.remove('hidden');
       subHeader.classList.add('hidden');
     });
+
+    return subMenu;
+  }
+
+  async initBlocks() {
+    const subMenu = this.createEntry('Blocks');
 
     const blocksResponse = await fetch('/tools/sidekick/blocks.json');
     if(!blocksResponse.ok) return;
@@ -264,22 +270,59 @@ export default class SidekickToolsPalette extends ComponentBase {
       const parser = new DOMParser();
       const doc = parser.parseFromString(html, 'text/html');
       const containers = getContainers(doc);
+      if(!containers.length) return;
       const item = document.createElement('li');
-      item.innerHTML = `<h4>${block.name}</h4><ul></ul>`;
+      item.innerHTML = `<h4>${block.name}</h4><ul class="hidden"></ul>`;
+      const itemHeader = item.querySelector('h4');
       const wrapper = item.querySelector('ul');
+      itemHeader.addEventListener('click', () => {
+        if(itemHeader.classList.contains('active')) {
+          itemHeader.classList.remove('active');
+          wrapper.classList.add('hidden');
+        } else {
+          subMenu.querySelectorAll('h4').forEach((h) => h.classList.remove('active'));
+          subMenu.querySelectorAll('ul').forEach((ul) => ul.classList.add('hidden'));
+          itemHeader.classList.add('active');
+          wrapper.classList.remove('hidden');
+        }
+      });
       containers.forEach((container) => {
         const copyOption = document.createElement('li');
-        copyOption.textContent = getContainerName(container);
+        copyOption.innerHTML = `<span>${getContainerName(container)}</span>`;
         wrapper.append(copyOption);
         copyOption.addEventListener('click', () => {
           const blob = new Blob([`<br>${getHtml(container)}<br>`], { type: 'text/html' });
           const data = [new ClipboardItem({ [blob.type]: blob })];
           navigator.clipboard.write(data);
+          copyOption.classList.add('copied');
+          setTimeout(() => copyOption.classList.remove('copied'), 1000);
         });
       });
       subMenu.append(item);
     }));
     
+  }
+
+  async initPlaceholders() {
+    const subMenu = this.createEntry('Placeholders');
+
+    const placeholdersResponse = await fetch('/placeholders.json');
+    if(!placeholdersResponse.ok) return;
+    const placeholders = await placeholdersResponse.json();
+
+    placeholders.data.forEach((placeholder) => {
+      const item = document.createElement('li');
+      item.innerHTML = `<div class="selectable"><p>${placeholder.text}</p><p class="details">(${placeholder.key})<p></div>`;
+      subMenu.append(item);
+      const selectable = item.querySelector('.selectable');
+      selectable.addEventListener('click', () => {
+        const blob = new Blob([`{{${placeholder.key}}}`], { type: 'text/plain' });
+        const data = [new ClipboardItem({ [blob.type]: blob })];
+        navigator.clipboard.write(data);
+        selectable.classList.add('copied');
+        setTimeout(() => selectable.classList.remove('copied'), 1000);
+      });
+    });
   }
 
   connected() {
@@ -290,8 +333,9 @@ export default class SidekickToolsPalette extends ComponentBase {
   </ul>
 </div>`;
 
-    const header = this.querySelector('h2');
-    const menuRoot = this.querySelector('ul');
-    this.initBlocks(header, menuRoot);
+    this.header = this.querySelector('h2');
+    this.menuRoot = this.querySelector('ul');
+    this.initBlocks();
+    this.initPlaceholders();
   }
 }

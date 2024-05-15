@@ -16,10 +16,16 @@ raqn-sidekick-tools-palette ul {
 }
 
 raqn-sidekick-tools-palette h2,
-raqn-sidekick-tools-palette h3 {
+raqn-sidekick-tools-palette h3,
+raqn-sidekick-tools-palette h4 {
   padding: 0;
   margin: 0;
   line-height: 36px;
+}
+
+raqn-sidekick-tools-palette li {
+  line-height: 24px;
+  padding: 5px;
 }
 
 raqn-sidekick-tools-palette h2.hidden,
@@ -36,6 +42,65 @@ raqn-sidekick-tools-palette ul:first-child.hidden {
   transform: translateX(-360px);
 }
 
+raqn-sidekick-tools-palette ul:first-child li::after,
+raqn-sidekick-tools-palette h4::after {
+  content: '';
+  border: solid #777;
+  border-width: 0 3px 3px 0;
+  display: inline-block;
+  padding: 3px;
+  position: absolute;
+  right: 14px;
+  transition: transform .2s ease-in-out;
+  transform: rotate(-45deg);
+}
+
+raqn-sidekick-tools-palette h4.active::after {
+  transform: rotate(45deg);
+}
+
+raqn-sidekick-tools-palette ul:first-child li::after {
+  margin-top: 8px;
+}
+
+raqn-sidekick-tools-palette h4::after {
+  margin-top: 13px;
+}
+
+raqn-sidekick-tools-palette h3::before {
+  content: '';
+  border: solid #777;
+  border-width: 3px 0 0 3px;
+  display: inline-block;
+  padding: 3px;
+  margin: auto 10px;
+  transition: transform .2s ease-in-out;
+  transform: rotate(-45deg);
+}
+
+raqn-sidekick-tools-palette .submenu ul.hidden {
+  display: none;
+}
+
+raqn-sidekick-tools-palette ul:first-child li:hover,
+raqn-sidekick-tools-palette h3:hover, 
+raqn-sidekick-tools-palette h4:hover, 
+raqn-sidekick-tools-palette .submenu ul li:hover,
+raqn-sidekick-tools-palette .submenu .selectable:hover {
+  cursor: pointer;
+  background-color: rgb(0 0 0 / 5%);
+}
+
+raqn-sidekick-tools-palette .submenu .selectable.copied::before,
+raqn-sidekick-tools-palette .submenu ul li.copied::before {
+  content: 'Copied.';
+}
+
+raqn-sidekick-tools-palette .submenu .selectable.copied p,
+raqn-sidekick-tools-palette .submenu ul li.copied span {
+  display: none;
+}
+
 raqn-sidekick-tools-palette .submenu {
   position: absolute;
   inset: 0;
@@ -46,6 +111,11 @@ raqn-sidekick-tools-palette .submenu.hidden {
   transform: translateX(360px);
 }
 
-raqn-sidekick-tools-palette li {
-  padding: 5px;
+raqn-sidekick-tools-palette .submenu p {
+  padding: 0;
+  margin: 0;
+}
+
+raqn-sidekick-tools-palette .submenu p.details {
+  font-size: .8rem;
 }
