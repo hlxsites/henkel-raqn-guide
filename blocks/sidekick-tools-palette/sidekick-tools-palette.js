@@ -229,7 +229,7 @@ export default class SidekickToolsPalette extends ComponentBase {
     const subHeader = document.createElement('h3');
     subHeader.classList.add('hidden');
     subHeader.innerText = name;
-    this.header.after(subHeader);
+    this.menuWrapper.before(subHeader);
     
     const menuItem = document.createElement('li');
     menuItem.innerText = name;
@@ -243,23 +243,21 @@ export default class SidekickToolsPalette extends ComponentBase {
     menuItem.addEventListener('click', () => {
       this.menuRoot.classList.add('hidden');
       subMenu.classList.remove('hidden');
-      this.header.classList.add('hidden');
       subHeader.classList.remove('hidden');
     });
     subHeader.addEventListener('click', () => {
       this.menuRoot.classList.remove('hidden');
       subMenu.classList.add('hidden');
-      this.header.classList.remove('hidden');
       subHeader.classList.add('hidden');
     });
 
     return subMenu;
   }
 
-  async initBlocks() {
-    const subMenu = this.createEntry('Blocks');
+  async initBlocks({ title, url }) {
+    const subMenu = this.createEntry(title);
 
-    const blocksResponse = await fetch('/tools/sidekick/blocks.json');
+    const blocksResponse = await fetch(url);
     if(!blocksResponse.ok) return;
     const blocks = await blocksResponse.json();
     await Promise.all(blocks.data.map(async (block) => {
@@ -303,10 +301,10 @@ export default class SidekickToolsPalette extends ComponentBase {
     
   }
 
-  async initPlaceholders() {
-    const subMenu = this.createEntry('Placeholders');
+  async initPlaceholders({ title, url }) {
+    const subMenu = this.createEntry(title);
 
-    const placeholdersResponse = await fetch('/placeholders.json');
+    const placeholdersResponse = await fetch(url);
     if(!placeholdersResponse.ok) return;
     const placeholders = await placeholdersResponse.json();
 
@@ -325,17 +323,51 @@ export default class SidekickToolsPalette extends ComponentBase {
     });
   }
 
-  connected() {
+  async init() {
+    const { searchParams } = new URL(window.location.href);
+    this.innerHTML = 'loading ...';
+    if(!searchParams.has('ref') || !searchParams.has('repo') || !searchParams.has('owner')) {
+      this.innerHTML = 'loading ... failed.';
+      return;
+    }
+    const configResponse = await fetch(`https://admin.hlx.page/sidekick/${searchParams.get('owner')}/${searchParams.get('repo')}/${searchParams.get('ref')}/config.json`);
+    if(!configResponse.ok) {
+      this.innerHTML = 'loading ... failed.';
+      return;
+    }
+    const config = await configResponse.json();
+
     this.innerHTML = `
-<h2>Tools</h2>
 <div class="menu-wrapper">
   <ul>
   </ul>
 </div>`;
 
-    this.header = this.querySelector('h2');
+    this.menuWrapper = this.querySelector('.menu-wrapper');
     this.menuRoot = this.querySelector('ul');
-    this.initBlocks();
-    this.initPlaceholders();
+
+    const thisPlugin = config.plugins.find((plugin) => 
+      plugin.url === window.location.pathname || plugin.url === `${window.location.origin}${window.location.pathname}`);
+    if(!thisPlugin) {
+      this.innerHTML = 'loading ... failed.';
+      return;
+    }
+    config.plugins.filter((plugin) => plugin.containerId === thisPlugin.id).forEach((plugin) => {
+      switch (plugin.id) {
+        case `${thisPlugin.id}-blocks`:
+          this.initBlocks(plugin);
+          break;
+        case `${thisPlugin.id}-placeholders`:
+          this.initPlaceholders(plugin);
+          break;
+        default:
+          console.warn('failed to load plugin', plugin);
+          break;
+      }
+    });
+  }
+
+  connected() {
+    this.init();
   }
 }

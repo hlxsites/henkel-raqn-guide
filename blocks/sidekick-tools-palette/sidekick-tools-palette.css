@@ -15,7 +15,6 @@ raqn-sidekick-tools-palette ul {
   transition: transform .2s ease-in-out;
 }
 
-raqn-sidekick-tools-palette h2,
 raqn-sidekick-tools-palette h3,
 raqn-sidekick-tools-palette h4 {
   padding: 0;
@@ -28,7 +27,6 @@ raqn-sidekick-tools-palette li {
   padding: 5px;
 }
 
-raqn-sidekick-tools-palette h2.hidden,
 raqn-sidekick-tools-palette h3.hidden {
     display: none;
 }
