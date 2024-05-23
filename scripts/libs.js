@@ -256,26 +256,32 @@ export function collectAttributes(componentName, classes, knownAttributes = [], 
   };
 }
 
-export function loadModule(urlWithoutExtension) {
-  const js = import(`${urlWithoutExtension}.js`);
-  const css = new Promise((resolve, reject) => {
-    const cssHref = `${urlWithoutExtension}.css`;
-    if (!document.querySelector(`head > link[href="${cssHref}"]`)) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = cssHref;
-      link.onload = resolve;
-      link.onerror = reject;
-      document.head.append(link);
-    } else {
-      resolve();
-    }
-  }).catch((error) =>
-    // eslint-disable-next-line no-console
-    console.error('could not load module style', urlWithoutExtension, error),
-  );
+export function loadModule(urlWithoutExtension, loadCSS = true) {
+  try {
+    const js = import(`${urlWithoutExtension}.js`);
+    if (!loadCSS) return { js, css: Promise.resolve() };
+    const css = new Promise((resolve, reject) => {
+      const cssHref = `${urlWithoutExtension}.css`;
+      if (!document.querySelector(`head > link[href="${cssHref}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = cssHref;
+        link.onload = resolve;
+        link.onerror = reject;
+        document.head.append(link);
+      } else {
+        resolve();
+      }
+    }).catch((error) =>
+      // eslint-disable-next-line no-console
+      console.log('could not load module style', urlWithoutExtension, error),
+    );
 
-  return { css, js };
+    return { css, js };
+  } catch (error) {
+    console.log('could not load module', urlWithoutExtension, error);
+  }
+  return { css: Promise.resolve(), js: Promise.resolve() };
 }
 
 export function mergeUniqueArrays(...arrays) {

@@ -3,9 +3,9 @@ import component from './init.js';
 import { getBreakPoints, listenBreakpointChange, camelCaseAttr, capitalizeCaseAttr, deepMerge } from './libs.js';
 
 export default class ComponentBase extends HTMLElement {
-
   constructor() {
     super();
+    // window.raqnInstances = window.raqnInstances || {};
     this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
     this.componentName = null; // set by component loader
     this.webComponentName = null; // set by component loader

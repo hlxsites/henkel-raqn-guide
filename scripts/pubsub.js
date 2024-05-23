@@ -53,12 +53,11 @@ export const unsubscribeAll = (options = {}) => {
     return;
   }
 
-  Object.keys(actions)
-    .forEach((key) => {
-      if (exactFit ? key === message : key.includes(message)) {
-        delete actions[key];
-      }
-    });
+  Object.keys(actions).forEach((key) => {
+    if (exactFit ? key === message : key.includes(message)) {
+      delete actions[key];
+    }
+  });
 };
 
 export const callStack = (message, params, options) => {
@@ -94,14 +93,16 @@ export const postMessage = (message, params, options = {}) => {
 
   let data = { message };
   try {
-    data = JSON.parse(JSON.stringify({ message, params }));
+    data = { message, params: JSON.parse(JSON.stringify(params)) };
   } catch (error) {
     // some objects cannot be passed by post messages like when passing htmlElements.
     // for those that can be published but are not compatible with postMessages we don't send params
     // eslint-disable-next-line no-console
     console.warn(error);
   }
-
+  // upward message
+  window.parent.postMessage(data, targetOrigin);
+  // downward message
   window.postMessage(data, targetOrigin);
 };
 
@@ -111,6 +112,7 @@ export const publish = (message, params, options = {}) => {
     callStack(message, params, options);
     return;
   }
+  console.log('postMessage', message);
 
   postMessage(message, params, options);
 };

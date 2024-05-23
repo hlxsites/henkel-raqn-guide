@@ -188,4 +188,18 @@ const globalInit = {
 
 globalInit.init();
 
+// init editor if message from parent
+window.addEventListener('message', async (e) => {
+  if (e && e.data) {
+    const { message, params } = e.data;
+    if (message === 'initEditor' && !Array.isArray(params)) {
+      const editor = await import('./editor.js');
+      const { origin, target } = params;
+      setTimeout(() => {
+        editor.default(origin, target);
+      }, 2000);
+    }
+  }
+});
+
 export default component;

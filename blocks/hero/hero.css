@@ -12,6 +12,11 @@ raqn-hero {
   align-items: center;
   grid-template-columns: var(--hero-grid-template-columns, 1fr);
   padding-block: var(--hero-padding-block);
+
+  > * {
+    --scope-color: var(--hero-color);
+    --scope-headings-color: var(--hero-headings-color, var(--hero-color));
+  }
 }
 
 @media screen and (min-width: 767px) {

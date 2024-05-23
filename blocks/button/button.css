@@ -4,6 +4,14 @@ raqn-button {
   align-content: center;
   align-items: center;
   justify-items: var(--scope-justify, start);
+
+  --button-padding-block: var(--scope-button-padding-block, 10px);
+  --button-padding-inline: var(--scope-button-padding-inline, 20px);
+  --scope-border-radius: 0;
+  --scope-border-block-start: 1px solid transparent;
+  --scope-border-block-end: 1px solid transparent;
+  --scope-border-inline-start: 1px solid transparent;
+  --scope-border-inline-end: 1px solid transparent;
 }
 
 raqn-button > * {
@@ -26,7 +34,8 @@ raqn-button > *:hover {
 
 raqn-button a {
   color: var(--scope-accent-color, currentcolor);
-  padding: 10px 20px;
+  padding-block: var(--button-padding-block, 10px);
+  padding-inline: var(--button-padding-inline, 20px);
   text-decoration: none;
 }
 

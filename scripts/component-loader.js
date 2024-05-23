@@ -1,11 +1,14 @@
 import { collectAttributes, loadModule, deepMerge, mergeUniqueArrays } from './libs.js';
 
+window.raqnInstances = window.raqnInstances || {};
+
 export default class ComponentLoader {
   constructor({ componentName, targets = [], loaderConfig, rawClasses, config, nestedComponentsConfig, active }) {
     window.raqnComponents ??= {};
     if (!componentName) {
       throw new Error('`componentName` is required');
     }
+    this.instances = window.raqnInstances;
     this.componentName = componentName;
     this.targets = targets.map((target) => ({ target }));
     this.loaderConfig = loaderConfig;
@@ -74,7 +77,9 @@ export default class ComponentLoader {
       data.componentElem = elem;
       returnVal = elem;
       this.addContentFromTarget(data);
-      await this.connectComponent(data);
+      const { componentElem } = await this.connectComponent(data);
+      this.instances[componentElem.componentName] = this.instances[componentElem.componentName] || [];
+      this.instances[componentElem.componentName].push(await this.connectComponent(data));
     } catch (error) {
       const err = new Error(error);
       err.elem = returnVal;
@@ -220,7 +225,7 @@ export default class ComponentLoader {
     const addToTargetMethod = targetsAsContainers ? conf.targetsAsContainers.addToTargetMethod : conf.addToTargetMethod;
     data.target[addToTargetMethod](componentElem);
 
-    return initialized;
+    return { initialized, componentElem };
   }
 
   async loadAndDefine() {
