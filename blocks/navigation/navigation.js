@@ -9,30 +9,6 @@ export default class Navigation extends ComponentBase {
     targetsSelectors: ':scope > :is(:first-child)',
   };
 
-  attributesValues = {
-    compact: {
-      xs: 'true',
-      s: 'true',
-      m: 'true',
-      all: 'false',
-    },
-  };
-
-  createButton() {
-    this.navButton = document.createElement('button');
-    this.navButton.setAttribute('aria-label', 'Menu');
-    this.navButton.setAttribute('aria-expanded', 'false');
-    this.navButton.setAttribute('aria-controls', 'navigation');
-    this.navButton.setAttribute('aria-haspopup', 'true');
-    this.navButton.setAttribute('type', 'button');
-    this.navButton.innerHTML = '<raqn-icon data-icon=menu></raqn-icon>';
-    this.navButton.addEventListener('click', () => {
-      this.classList.toggle('active');
-      this.navButton.setAttribute('aria-expanded', this.classList.contains('active'));
-    });
-    return this.navButton;
-  }
-
   async ready() {
     this.active = {};
     this.navContent = this.querySelector('ul');
@@ -90,18 +66,34 @@ export default class Navigation extends ComponentBase {
     }
   }
 
-  createIcon(name = this.icon) {
-    const icon = document.createElement('raqn-icon');
-    icon.setAttribute('icon', name);
-    return icon;
+  onAttributeIconChanged({ newValue }) {
+    if (!this.initialized) return;
+    if (!this.isCompact) return;
+    this.navIcon.dataset.icon = newValue;
+  }
+
+  createButton() {
+    this.navButton = document.createElement('button');
+    this.navButton.setAttribute('aria-label', 'Menu');
+    this.navButton.setAttribute('aria-expanded', 'false');
+    this.navButton.setAttribute('aria-controls', 'navigation');
+    this.navButton.setAttribute('aria-haspopup', 'true');
+    this.navButton.setAttribute('type', 'button');
+    this.navButton.innerHTML = `<raqn-icon data-icon=${this.dataset.icon}></raqn-icon>`;
+    this.navIcon = this.navButton.querySelector('raqn-icon');
+    this.navButton.addEventListener('click', () => {
+      this.classList.toggle('active');
+      this.navButton.setAttribute('aria-expanded', this.classList.contains('active'));
+    });
+    return this.navButton;
   }
 
   addIcon(elem) {
     component.init({
       componentName: 'icon',
       targets: [elem],
-      rawClasses: 'icon-chevron-right',
-      config: {
+      configByClasses: 'icon-chevron-right',
+      componentConfig: {
         addToTargetMethod: 'append',
       },
     });
@@ -111,7 +103,7 @@ export default class Navigation extends ComponentBase {
     component.init({
       componentName: 'accordion',
       targets: [elem],
-      config: {
+      componentConfig: {
         addToTargetMethod: 'append',
       },
       nestedComponentsConfig: {

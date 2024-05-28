@@ -1,23 +1,15 @@
 import component from './init.js';
-
-import { getBreakPoints, listenBreakpointChange, camelCaseAttr, capitalizeCaseAttr, deepMerge } from './libs.js';
+import {
+  getBreakPoints,
+  listenBreakpointChange,
+  camelCaseAttr,
+  capitalizeCaseAttr,
+  deepMerge,
+  buildConfig,
+} from './libs.js';
 
 export default class ComponentBase extends HTMLElement {
-
-  constructor() {
-    super();
-    this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
-    this.componentName = null; // set by component loader
-    this.webComponentName = null; // set by component loader
-    this.fragment = false;
-    this.dependencies = [];
-    this.breakpoints = getBreakPoints();
-    this.initError = null;
-    this.attributesValues = {}; // the values are set by the component loader
-    this.setConfig('config', 'extendConfig');
-    this.setConfig('nestedComponentsConfig', 'extendNestedConfig');
-    this.setBinds();
-  }
+  static observedAttributes = [];
 
   static loaderConfig = {
     targetsSelectorsPrefix: null,
@@ -25,42 +17,74 @@ export default class ComponentBase extends HTMLElement {
     selectorTest: null, // a function to filter elements matched by targetsSelectors
     targetsSelectorsLimit: null,
     targetsAsContainers: false,
+    loaderStopInit() {
+      return false;
+    },
   };
 
-  static async earlyStopRender() {
-    return false;
+  get Handler() {
+    return window.raqnComponents[this.componentName];
   }
 
-  attributesValues = {}; // the values are set by the component loader
+  constructor() {
+    super();
+    this.setDefaults();
+    this.extendConfigRunner({ config: 'config', method: 'extendConfig' });
+    this.extendConfigRunner({ config: 'nestedComponentsConfig', method: 'extendNestedConfig' });
+    this.setBinds();
+  }
 
-  config = {
-    hideOnInitError: true,
-    hideOnNestedError: false,
-    addToTargetMethod: 'replaceWith',
-    contentFromTargets: true,
-    targetsAsContainers: {
+  setDefaults() {
+    this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
+    this.webComponentName = this.tagName.toLowerCase();
+    this.componentName = this.webComponentName.replace(/^raqn-/, '');
+    this.fragmentPath = null;
+    this.dependencies = [];
+    this.attributesValues = {};
+    this.childComponents = {
+      // using the nested feature
+      nestedComponents: [],
+      // from inner html blocks
+      innerComponents: [],
+    };
+    this.nestedComponents = [];
+    this.innerBlocks = [];
+    this.innerComponents = [];
+    this.initError = null;
+    this.breakpoints = getBreakPoints();
+
+    // use the this.extendConfig() method to extend the default config
+    this.config = {
+      hideOnInitError: true,
+      hideOnChildrenError: false,
       addToTargetMethod: 'replaceWith',
-    },
-  };
-
-  // Default values are set by component loader
-  nestedComponentsConfig = {
-    image: {
-      componentName: 'image',
-    },
-    button: {
-      componentName: 'button',
-    },
-    columns: {
-      componentName: 'columns',
-      active: false,
-      loaderConfig: {
-        targetsAsContainers: false,
+      contentFromTargets: true,
+      targetsAsContainers: {
+        addToTargetMethod: 'replaceWith',
       },
-    },
-  };
+    };
 
-  setConfig(config, method) {
+    // use the this.extendNestedConfig() method to extend the default config
+    this.nestedComponentsConfig = {
+      image: {
+        componentName: 'image',
+      },
+      button: {
+        componentName: 'button',
+      },
+      columns: {
+        componentName: 'columns',
+        active: false,
+        loaderConfig: {
+          targetsAsContainers: false,
+        },
+      },
+    };
+  }
+
+  // Using the `method` which returns an array of objects it's easier to extend
+  // configs when the components are deeply extended with multiple levels of inheritance;
+  extendConfigRunner({ config, method }) {
     const conf = this[method]?.();
     if (!conf.length) return;
     this[config] = deepMerge({}, ...conf);
@@ -78,13 +102,153 @@ export default class ComponentBase extends HTMLElement {
     this.onBreakpointChange = this.onBreakpointChange.bind(this);
   }
 
+  // ! Needs to be called after the element is created;
+  async init(initOptions) {
+    try {
+      this.initOptions = initOptions || {};
+      const { externalConfigName, configByClasses } = this.initOptions;
+
+      this.externalOptions = await buildConfig(
+        this.componentName,
+        externalConfigName,
+        configByClasses,
+        this.Handler.observedAttributes,
+      );
+      // this.componentName ??= componentName;
+      this.webComponentName ??= this.initOptions.webComponentName;
+      this.mergeConfigs();
+      this.setAttributesClassesAndProps();
+      this.addDefaultsToNestedConfig();
+      // Add extra functionality to be run on init.
+      await this.onInit();
+      this.addContentFromTarget();
+      await this.connectComponent();
+    } catch (error) {
+      if (initOptions.throwInitError) {
+        throw error;
+      } else {
+        // eslint-disable-next-line no-console
+        console.error(`There was an error while initializing the '${this.componentName}' webComponent:`, this, error);
+      }
+    }
+  }
+
+  async connectComponent() {
+    const { uuid } = this;
+    this.setAttribute('isloading', '');
+    const initialized = new Promise((resolve, reject) => {
+      const initListener = async (event) => {
+        const { error } = event.detail;
+        this.removeEventListener(`initialized:${uuid}`, initListener);
+        this.removeAttribute('isloading');
+        if (error) {
+          reject(error);
+        }
+        resolve(this);
+      };
+      this.addEventListener(`initialized:${uuid}`, initListener);
+    });
+    const { targetsAsContainers } = deepMerge({}, this.Handler.loaderConfig, this.loaderConfig);
+    const conf = this.config;
+    const addToTargetMethod = targetsAsContainers ? conf.targetsAsContainers.addToTargetMethod : conf.addToTargetMethod;
+    this.initOptions.target[addToTargetMethod](this);
+
+    return initialized;
+  }
+
+  // Build-in method called after the element is added to the DOM.
+  async connectedCallback() {
+    try {
+      this.initialized = this.getAttribute('initialized');
+      this.initSubscriptions(); // must subscribe each time the element is added to the document
+      if (!this.initialized) {
+        this.setAttribute('id', this.uuid);
+        this.loadDependencies(); // do not wait for dependencies;
+        await this.loadFragment(this.fragmentPath);
+        await this.connected(); // manipulate/create the html
+        await this.initChildComponents();
+        this.addListeners(); // html is ready add listeners
+        await this.ready(); // add extra functionality
+        this.setAttribute('initialized', true);
+        this.initialized = true;
+        this.dispatchEvent(new CustomEvent(`initialized:${this.uuid}`, { detail: { element: this } }));
+      }
+    } catch (error) {
+      this.dispatchEvent(new CustomEvent(`initialized:${this.uuid}`, { detail: { error } }));
+      this.initError = error;
+      this.hideWithError(this.config.hideOnInitError, 'has-init-error');
+      // eslint-disable-next-line no-console
+      console.error(`There was an error after the '${this.componentName}' webComponent was connected:`, this, error);
+    }
+  }
+
+  mergeConfigs() {
+    this.props = deepMerge({}, this.initOptions.props, this.externalOptions.props);
+
+    this.config = deepMerge({}, this.config, this.initOptions.componentConfig, this.externalOptions.config);
+
+    this.attributesValues = deepMerge(
+      this.attributesValues,
+      this.initOptions.attributesValues,
+      this.externalOptions.attributesValues,
+    );
+
+    this.nestedComponentsConfig = deepMerge(
+      this.nestedComponentsConfig,
+      this.initOptions.nestedComponentsConfig,
+      this.externalOptions.nestedComponentsConfig,
+    );
+  }
+
+  setAttributesClassesAndProps() {
+    Object.entries(this.props).forEach(([prop, value]) => {
+      this[prop] = value;
+    });
+    // Set attributes based on attributesValues
+    Object.entries(this.attributesValues).forEach(([attr, attrValues]) => {
+      const isClass = attr === 'class';
+      const val = (attrValues[this.breakpoints.active.name] ?? attrValues.all);
+      if (isClass) {
+        const classes = (attrValues.all ? `${attrValues.all} ` : '') + (attrValues[this.breakpoints.active.name] ?? '');
+        const classesArr = classes.split(' ').flatMap((cls) => {
+          if (cls) return cls.trim();
+          return [];
+        });
+        if (!classesArr.length) return;
+        this.classList.add(...classesArr);
+      } else {
+        this.dataset[attr] = val;
+      }
+    });
+  }
+
+  addDefaultsToNestedConfig() {
+    Object.keys(this.nestedComponentsConfig).forEach((key) => {
+      const defaults = {
+        targets: [this],
+        active: true,
+        loaderConfig: {
+          targetsAsContainers: true,
+        },
+      };
+      this.nestedComponentsConfig[key] = deepMerge(defaults, this.nestedComponentsConfig[key]);
+    });
+  }
+
+  addContentFromTarget() {
+    const { target } = this.initOptions;
+    const { contentFromTargets } = this.config;
+    if (!contentFromTargets) return;
+
+    this.append(...target.childNodes);
+  }
+
   onBreakpointChange(e) {
     if (e.matches) {
       this.setBreakpointAttributesValues(e);
     }
   }
 
-  // TODO change to dataset attributes
   setBreakpointAttributesValues(e) {
     Object.entries(this.attributesValues).forEach(([attribute, breakpointsValues]) => {
       const isAttribute = attribute !== 'class';
@@ -140,47 +304,39 @@ export default class ComponentBase extends HTMLElement {
     listenBreakpointChange(this.onBreakpointChange);
   }
 
-  async connectedCallback() {
-    try {
-      this.initialized = this.getAttribute('initialized');
-      this.initSubscriptions(); // must subscribe each time the element is added to the document
-      if (!this.initialized) {
-        this.setAttribute('id', this.uuid);
-        this.loadDependencies(); // do not wait for dependencies;
-        await this.loadFragment(this.fragment);
-        await this.connected(); // manipulate/create the html
-        await this.initNestedComponents();
-        this.addListeners(); // html is ready add listeners
-        await this.ready(); // add extra functionality
-        this.setAttribute('initialized', true);
-        this.initialized = true;
-        this.dispatchEvent(new CustomEvent(`initialized:${this.uuid}`, { detail: { element: this } }));
-      }
-    } catch (error) {
-      this.dispatchEvent(new CustomEvent(`initialized:${this.uuid}`, { detail: { error } }));
-      this.initError = error;
-      this.hideWithError(this.config.hideOnInitError, 'has-nested-error');
-    }
+  async initChildComponents() {
+    await Promise.allSettled([this.initNestedComponents(), this.initInnerBlocks()]);
   }
 
   async initNestedComponents() {
-    const settings = Object.values(this.nestedComponentsConfig).flatMap((setting) => {
+    if (!Object.keys(this.nestedComponentsConfig).length) return;
+    const nestedSettings = Object.values(this.nestedComponentsConfig).flatMap((setting) => {
       if (!setting.active) return [];
-      return this.fragment
+      return this.innerBlocks.length
         ? deepMerge({}, setting, {
-            // Content can contain blocks which are going to init their own nestedComponents.
+            // Exclude nested components query from innerBlocks. Inner Components will query their own nested components.
             loaderConfig: {
               targetsSelectorsPrefix: ':scope > div >', // Limit only to default content, exclude blocks.
             },
           })
         : setting;
     });
-    this.nestedComponents = await component.multiInit(settings);
-    const {
-      nestedComponents: { allInitialized },
-      config: { hideOnNestedError },
-    } = this;
-    this.hideWithError(!allInitialized && hideOnNestedError, 'has-nested-error');
+
+    this.childComponents.nestedComponents = await component.multiInit(nestedSettings);
+
+    const { allInitialized } = this.childComponents.nestedComponents;
+    const { hideOnChildrenError } = this.config;
+    this.hideWithError(!allInitialized && hideOnChildrenError, 'has-nested-error');
+  }
+
+  async initInnerBlocks() {
+    if (!this.innerBlocks.length) return;
+    const innerBlocksSettings = this.innerBlocks.map((block) => ({ targets: [block] }));
+    this.childComponents.innerComponents = await component.multiInit(innerBlocksSettings);
+
+    const { allInitialized } = this.childComponents.innerComponents;
+    const { hideOnChildrenError } = this.config;
+    this.hideWithError(!allInitialized && hideOnChildrenError, 'has-inner-error');
   }
 
   async loadDependencies() {
@@ -189,7 +345,7 @@ export default class ComponentBase extends HTMLElement {
   }
 
   async loadFragment(path) {
-    if (!path) return;
+    if (typeof path !== 'string') return;
     const response = await this.getFragment(path);
     await this.processFragment(response);
   }
@@ -202,11 +358,8 @@ export default class ComponentBase extends HTMLElement {
     if (response.ok) {
       const html = await response.text();
       this.innerHTML = html;
-      const fragmentNested = await component.multiInit(
-        [...this.querySelectorAll('div[class]')].map((block) => ({ targets: [block] })),
-      );
-      const { allInitialized } = fragmentNested;
-      this.hideWithError(!allInitialized && this.config.hideOnNestedError, 'has-nested-error');
+
+      this.innerBlocks = [...this.querySelectorAll('div[class]')];
     }
   }
 
@@ -218,6 +371,8 @@ export default class ComponentBase extends HTMLElement {
   }
 
   initSubscriptions() {}
+
+  onInit() {}
 
   connected() {}
 
