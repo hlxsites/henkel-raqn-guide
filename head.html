@@ -12,17 +12,18 @@
       });
       
       const headerMeta = document.querySelector('meta[name="header"]');
-      const link = document.createElement('link');
-      link.setAttribute('rel', 'preload');
-      link.setAttribute('as', 'fetch');
-      link.setAttribute('crossorigin', 'anonymous');
       const url = headerMeta?.content.trim();
-      link.href = url ? `${url}.plain.html` : 'header.plain.html';
-      document.head.appendChild(link);
+      if (url.toLowerCase() !== 'false') {
+        const link = document.createElement('link');
+        link.setAttribute('rel', 'preload');
+        link.setAttribute('as', 'fetch');
+        link.setAttribute('crossorigin', 'anonymous');
+        link.href = url ? `${url}.plain.html` : 'header.plain.html';
+        document.head.appendChild(link);
+      }
     </script>
     <style>body { display: none; }</style>
     <link rel="stylesheet" href="/styles/styles.css" />
-    <script src="/scripts/pubsub.js" type="module"></script>
     <script src="/scripts/component-base.js" type="module"></script>
     <script src="/scripts/component-loader.js" type="module"></script>
     <script src="/scripts/libs.js" type="module"></script>
