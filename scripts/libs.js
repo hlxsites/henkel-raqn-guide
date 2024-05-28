@@ -115,7 +115,8 @@ export const eagerImage = (block, length = 1) => {
   });
 };
 
-export function stringToJsVal(string) {
+export function stringToJsVal(string, options) {
+  const { trim = false } = options || {};
   switch (string?.trim().toLowerCase()) {
     case 'true':
       return true;
@@ -126,8 +127,20 @@ export function stringToJsVal(string) {
     case 'undefined':
       return undefined;
     default:
-      return string;
+      return trim ? string.trim() : string;
   }
+}
+
+export function stringToArray(val, options) {
+  const { divider = ',' } = options || {};
+  if (typeof val !== 'string') return [];
+  const cleanVal = val.trim().replace(new RegExp(`^${divider}+|${divider}+$`, 'g'), '');
+  if (!cleanVal?.length) return [];
+  return cleanVal.split(divider).flatMap((x) => {
+    const value = x.trim();
+    if (value === '') return [];
+    return [value];
+  });
 }
 
 export function getMeta(name, settings) {
@@ -138,8 +151,7 @@ export function getMeta(name, settings) {
   }
   const val = stringToJsVal(meta.content);
   if (getArray) {
-    if (!val?.length) return [];
-    return val.split(',').map((x) => x.trim());
+    return stringToArray(val);
   }
   return val;
 }
@@ -153,107 +165,251 @@ export function getMetaGroup(group) {
   }));
 }
 
-export function collectAttributes(componentName, classes, knownAttributes = [], element = null) {
-  const classesList = [];
-  const mediaAttributes = {};
-  const attributesValues = element?.attributesValues || {};
-  const nestedComponents = {};
-  /**
-   * 1. get all nested components config names
-   * 2. get all the classes prefixed with the config name
-   */
-  const nestPrefix = 'nest-';
-  classes.forEach((c) => {
-    const isNested = c.startsWith(nestPrefix);
-    if (isNested) {
-      const name = c.slice(nestPrefix.length);
-      nestedComponents[name] = {
-        componentName: name,
-        active: true,
-        /* targets: [element] */
-      };
-    } else {
-      classesList.push(c);
+export function isObject(item) {
+  return item && typeof item === 'object' && !Array.isArray(item);
+}
+
+export function isObjectNotWindow(item) {
+  return isObject(item) && item !== window;
+}
+
+export function deepMerge(origin, ...toMerge) {
+  if (!toMerge.length) return origin;
+  const merge = toMerge.shift();
+
+  if (isObjectNotWindow(origin) && isObjectNotWindow(merge)) {
+    Object.keys(merge).forEach((key) => {
+      if (isObjectNotWindow(merge[key])) {
+        if (!origin[key]) Object.assign(origin, { [key]: {} });
+        deepMerge(origin[key], merge[key]);
+      } else {
+        Object.assign(origin, { [key]: merge[key] });
+      }
+    });
+  }
+
+  return deepMerge(origin, ...toMerge);
+}
+
+export const externalConfig = {
+  defaultConfig(rawConfig = []) {
+    return { attributesValues: {}, nestedComponentsConfig: {}, props: {}, config: {}, rawConfig };
+  },
+
+  async getConfig(componentName, configName, knownAttributes) {
+    if (!configName) return this.defaultConfig(); // to be removed in the feature and fallback to 'default'
+    const masterConfig = await this.loadConfig();
+    const componentConfig = masterConfig?.[componentName];
+    let parsedConfig = componentConfig?.parsed?.[configName];
+    if (parsedConfig) return parsedConfig;
+    const rawConfig = componentConfig?.data.filter((conf) => conf.configName?.trim() === configName /* ?? 'default' */);
+    if (!rawConfig?.length) {
+      // eslint-disable-next-line no-console
+      console.error(`The config named '${configName}' for '${componentName}' webComponent is not valid.`);
+      return this.defaultConfig();
     }
-  });
+    const safeConfig = JSON.parse(JSON.stringify(rawConfig));
+    parsedConfig = this.parseRawConfig(safeConfig, knownAttributes);
+    componentConfig.parsed ??= {};
+    componentConfig.parsed[configName] = parsedConfig;
 
-  const nestedComponentsNames = Object.keys(nestedComponents);
+    return parsedConfig;
+  },
 
-  const attrs = classesList
-    .filter((c) => c !== componentName && c !== 'block')
-    .reduce((acc, c) => {
+  async loadConfig() {
+    window.raqnComponentsConfig ??= (async () => {
+      const metaConfigPath = getMeta('component-config');
+      const defaultConfig = 'components-config.json';
+      const configPath = (!!metaConfigPath && `${metaConfigPath}.json`) || defaultConfig;
+      let result = null;
+      try {
+        const response = await fetch(`${configPath}`);
+        if (response.ok) {
+          result = await response.json();
+        }
+      } catch (error) {
+        // eslint-disable-next-line no-console
+        console.error(error);
+      }
+      return result;
+    })();
+
+    window.raqnComponentsConfig = await window.raqnComponentsConfig;
+
+    return window.raqnComponentsConfig;
+  },
+
+  parseRawConfig(configArr, knownAttributes) {
+    const parsedConfig = configArr?.reduce((acc, breakpointConfig) => {
+      const breakpoint = breakpointConfig.viewport.toLowerCase();
+      const isMainConfig = breakpoint === 'all';
+
+      Object.entries(breakpointConfig).forEach(([key, val]) => {
+        if (val.trim() === '') return;
+
+        const parsedVal = stringToJsVal(val, { trim: true });
+
+        if (knownAttributes.includes(key) || key === 'class') {
+          this.parseAttrValues(parsedVal, acc, key, breakpoint);
+        } else if (isMainConfig) {
+          const configPrefix = 'config-';
+          const propPrefix = 'prop-';
+          if (key.startsWith(configPrefix)) {
+            this.parseConfig(parsedVal, acc, key, configPrefix);
+          } else if (key.startsWith(propPrefix)) {
+            acc.props[key.slice(propPrefix.length)] = parsedVal;
+          } else if (key === 'nest') {
+            this.parseNestedConfig(val, acc);
+          }
+        }
+      });
+      return acc;
+    }, this.defaultConfig(configArr));
+
+    return parsedConfig;
+  },
+
+  parseAttrValues(parsedVal, acc, key, breakpoint) {
+    const keyProp = key.replace(/^data-/, '');
+    acc.attributesValues[keyProp] ??= {};
+    acc.attributesValues[keyProp][breakpoint] = parsedVal;
+  },
+
+  parseConfig(parsedVal, acc, key, configPrefix) {
+    const configKeys = key.slice(configPrefix.length).split('.');
+    const indexLength = configKeys.length - 1;
+    configKeys.reduce((cof, confKey, index) => {
+      cof[confKey] = index < indexLength ? {} : parsedVal;
+      return cof[confKey];
+    }, acc.config);
+  },
+
+  parseNestedConfig(val, acc) {
+    const parsedVal = stringToArray(val).reduce((nestConf, confVal) => {
+      const [componentName, activeOrConfigName] = confVal.split('=');
+      const parsedActiveOrConfigName = stringToJsVal(activeOrConfigName);
+      const isString = typeof parsedActiveOrConfigName === 'string';
+      nestConf[componentName] ??= {
+        componentName,
+        externalConfigName: isString ? parsedActiveOrConfigName : null,
+        active: isString || parsedActiveOrConfigName,
+      };
+      return nestConf;
+    }, {});
+    acc.nestedComponentsConfig = parsedVal;
+  },
+};
+
+export const configFromClasses = {
+  getConfig(componentName, configByClasses, knownAttributes) {
+    const nestedComponentsConfig = this.nestedConfigFromClasses(configByClasses);
+    const attributesValues = this.attributeValuesFromClasses(componentName, configByClasses, knownAttributes);
+    return {
+      attributesValues,
+      nestedComponentsConfig,
+    };
+  },
+
+  nestedComponentsNames(configByClasses) {
+    const nestPrefix = 'nest-'; //
+
+    return configByClasses.flatMap((c) => (c.startsWith(nestPrefix) ? [c.slice(nestPrefix.length)] : []));
+  },
+
+  nestedConfigFromClasses(configByClasses) {
+    const nestedComponentsNames = this.nestedComponentsNames(configByClasses);
+    const nestedComponentsConfig = configByClasses.reduce((acc, c) => {
       let value = c;
-      let isKnownAttribute = null;
 
-      const classBreakpoint = Object.keys(globalConfig.breakpoints).find((b) => c.startsWith(`${b}-`));
-      const activeBreakpoint = getBreakPoints().active.name;
+      const classBreakpoint = this.classBreakpoint(c);
+      const isBreakpoint = this.isBreakpoint(classBreakpoint);
 
-      if (classBreakpoint) {
-        value = value.slice(classBreakpoint.length + 1);
-      }
+      if (isBreakpoint) value = value.slice(classBreakpoint.length + 1);
 
-      const nested = nestedComponentsNames.find((prefix) => value.startsWith(prefix));
-      if (nested) {
-        nestedComponents[nested].rawClasses ??= '';
-        nestedComponents[nested].rawClasses += `${classBreakpoint ? `${classBreakpoint}-` : ''}${value.slice(
-          nested.length + 1,
-        )} `;
-        return acc;
-      }
-
-      let key = 'class';
-      const isClassValue = value.startsWith(key);
-      if (isClassValue) {
-        value = value.slice(key.length + 1);
-      } else {
-        [isKnownAttribute] = knownAttributes.flatMap((attribute) => {
-          const noDataPrefix = attribute.replace(/^data-/, '');
-          if (!value.startsWith(`${noDataPrefix}-`)) return [];
-          return noDataPrefix;
-        });
-        if (isKnownAttribute) {
-          key = isKnownAttribute;
-          value = value.slice(isKnownAttribute.length + 1);
+      const componentName = nestedComponentsNames.find((prefix) => value.startsWith(prefix));
+      if (componentName) {
+        acc[componentName] ??= { componentName, active: true };
+        const val = value.slice(componentName.length + 1);
+        const active = 'active-';
+        if (val.startsWith(active)) {
+          acc[componentName].active = stringToJsVal(val.slice(active.length));
+        } else {
+          acc[componentName].configByClasses ??= '';
+          acc[componentName].configByClasses += `${isBreakpoint ? `${classBreakpoint}-` : ''}${val} `;
         }
       }
-
-      const isClass = key === 'class';
-      const camelCaseKey = camelCaseAttr(key);
-      if (isKnownAttribute || isClass) attributesValues[camelCaseKey] ??= {};
-
-      // media params always overwrite
-      if (classBreakpoint) {
-        if (classBreakpoint === activeBreakpoint) {
-          mediaAttributes[key] = value;
-        }
-        if (isKnownAttribute) attributesValues[camelCaseKey][classBreakpoint] = value;
-        if (isClass) {
-          attributesValues[camelCaseKey][classBreakpoint] ??= '';
-          attributesValues[camelCaseKey][classBreakpoint] += `${value} `;
-        }
-        // support multivalue attributes
-      } else if (acc[key]) {
-        acc[key] += ` ${value}`;
-      } else {
-        acc[key] = value;
-      }
-
-      if ((isKnownAttribute || isClass) && acc[key]) attributesValues[camelCaseKey].all = acc[key];
-
       return acc;
     }, {});
+    return nestedComponentsConfig;
+  },
 
-  return {
-    currentAttributes: {
-      ...attrs,
-      ...mediaAttributes,
-      ...((attrs.class || mediaAttributes.class) && {
-        class: `${attrs.class ? attrs.class : ''}${mediaAttributes.class ? ` ${mediaAttributes.class}` : ''}`,
-      }),
-    },
-    attributesValues,
-    nestedComponents,
-  };
+  attributeValuesFromClasses(componentName, configByClasses, knownAttributes) {
+    const nestedComponentsNames = this.nestedComponentsNames(configByClasses);
+    const onlyKnownAttributes = knownAttributes.filter((a) => a !== 'class');
+    const attributesValues = configByClasses
+      .filter((c) => c !== componentName && c !== 'block')
+      .reduce((acc, c) => {
+        let value = c;
+        let isKnownAttribute = null;
+
+        const classBreakpoint = this.classBreakpoint(c);
+        const isBreakpoint = this.isBreakpoint(classBreakpoint);
+
+        if (isBreakpoint) value = value.slice(classBreakpoint.length + 1);
+
+        const excludeNested = nestedComponentsNames.find((prefix) => value.startsWith(prefix));
+        if (excludeNested) return acc;
+
+        let key = 'class';
+        const isClassValue = value.startsWith(key);
+        if (isClassValue) {
+          value = value.slice(key.length + 1);
+        } else {
+          [isKnownAttribute] = onlyKnownAttributes.flatMap((attribute) => {
+            const noDataPrefix = attribute.replace(/^data-/, '');
+            if (!value.startsWith(`${noDataPrefix}-`)) return [];
+            return noDataPrefix;
+          });
+          if (isKnownAttribute) {
+            key = isKnownAttribute;
+            value = value.slice(isKnownAttribute.length + 1);
+          }
+        }
+
+        const isClass = key === 'class';
+        const camelCaseKey = camelCaseAttr(key);
+        if (isKnownAttribute || isClass) acc[camelCaseKey] ??= {};
+        if (isKnownAttribute) acc[camelCaseKey][classBreakpoint] = value;
+        if (isClass) {
+          acc[camelCaseKey][classBreakpoint] ??= '';
+          acc[camelCaseKey][classBreakpoint] += `${value} `;
+        }
+        return acc;
+      }, {});
+
+    return attributesValues;
+  },
+  classBreakpoint(c) {
+    return Object.keys(globalConfig.breakpoints).find((b) => c.startsWith(`${b}-`)) || 'all';
+  },
+  isBreakpoint(classBreakpoint) {
+    return classBreakpoint !== 'all';
+  },
+};
+
+export async function buildConfig(componentName, externalConf, configByClasses, knownAttributes = []) {
+  const configPrefix = 'config-';
+  let config;
+  const externalConfigName =
+    configByClasses.find((c) => c.startsWith(configPrefix))?.slice?.(configPrefix.length) || externalConf;
+
+  if (externalConfigName) {
+    config = await externalConfig.getConfig(componentName, externalConfigName, knownAttributes);
+  } else {
+    config = configFromClasses.getConfig(componentName, configByClasses, knownAttributes);
+  }
+
+  return config;
 }
 
 export function loadModule(urlWithoutExtension) {
@@ -289,30 +445,4 @@ export function getBaseUrl() {
 
 export function isHomePage(url) {
   return getBaseUrl() === (url || window.location.href);
-}
-
-export function isObject(item) {
-  return item && typeof item === 'object' && !Array.isArray(item);
-}
-
-export function isObjectNotWindow(item) {
-  return isObject(item) && item !== window;
-}
-
-export function deepMerge(origin, ...toMerge) {
-  if (!toMerge.length) return origin;
-  const merge = toMerge.shift();
-
-  if (isObjectNotWindow(origin) && isObjectNotWindow(merge)) {
-    Object.keys(merge).forEach((key) => {
-      if (isObjectNotWindow(merge[key])) {
-        if (!origin[key]) Object.assign(origin, { [key]: {} });
-        deepMerge(origin[key], merge[key]);
-      } else {
-        Object.assign(origin, { [key]: merge[key] });
-      }
-    });
-  }
-
-  return deepMerge(origin, ...toMerge);
 }

@@ -39,8 +39,15 @@ export default class Icon extends ComponentBase {
 
   async connected() {
     this.setAttribute('aria-hidden', 'true');
+  }
 
-    this.iconName = this.dataset.icon;
+  onAttributeIconChanged({ oldValue, newValue }) {
+    if (oldValue === newValue) return;
+    this.loadIcon(newValue);
+  }
+
+  async loadIcon(icon) {
+    this.iconName = icon;
     if (!this.cache[this.iconName]) {
       this.cache[this.iconName] = {
         loading: new Promise((resolve) => {

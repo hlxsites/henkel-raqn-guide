@@ -5,7 +5,7 @@ export default class Image extends ComponentBase {
   static loaderConfig = {
     ...ComponentBase.loaderConfig,
     targetsSelectors: 'p:has(>picture:only-child) + p:has(> em:only-child > a:only-child)',
-    selectorTest: (el) => [el.childNodes.length, el.childNodes[0].childNodes.length].every(len => len === 1),
+    selectorTest: (el) => [el.childNodes.length, el.childNodes[0].childNodes.length].every((len) => len === 1),
     targetsAsContainers: true,
   };
 

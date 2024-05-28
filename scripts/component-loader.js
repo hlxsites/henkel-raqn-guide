@@ -1,7 +1,18 @@
-import { collectAttributes, loadModule, deepMerge, mergeUniqueArrays } from './libs.js';
+import { loadModule, deepMerge, mergeUniqueArrays, getBreakPoints } from './libs.js';
 
 export default class ComponentLoader {
-  constructor({ componentName, targets = [], loaderConfig, rawClasses, config, nestedComponentsConfig, active }) {
+  constructor({
+    componentName,
+    targets = [],
+    loaderConfig,
+    configByClasses,
+    attributesValues,
+    externalConfigName,
+    componentConfig,
+    props,
+    nestedComponentsConfig,
+    active,
+  }) {
     window.raqnComponents ??= {};
     if (!componentName) {
       throw new Error('`componentName` is required');
@@ -9,10 +20,14 @@ export default class ComponentLoader {
     this.componentName = componentName;
     this.targets = targets.map((target) => ({ target }));
     this.loaderConfig = loaderConfig;
-    this.rawClasses = rawClasses?.trim?.().split?.(' ') || [];
-    this.config = config;
+    this.configByClasses = configByClasses?.trim?.().split?.(' ') || [];
+    this.attributesValues = attributesValues;
+    this.externalConfigName = externalConfigName;
+    this.breakpoints = getBreakPoints();
+    this.componentConfig = componentConfig;
     this.nestedComponentsConfig = nestedComponentsConfig;
     this.pathWithoutExtension = `/blocks/${this.componentName}/${this.componentName}`;
+    this.props = props ?? {};
     this.isWebComponent = null;
     this.isClass = null;
     this.isFn = null;
@@ -41,16 +56,17 @@ export default class ComponentLoader {
     if (this.active === false) return [];
     if (!this.componentName) return [];
     const { loaded, error } = await this.loadAndDefine();
-    if (!loaded) throw new Error(error);
+    if (!loaded) throw error;
     this.setHandlerType();
-    if (await this.Handler?.earlyStopRender?.()) return [];
+    this.loaderConfig = deepMerge({}, this.Handler.loaderConfig, this.loaderConfig);
+    if (await this.loaderConfig?.loaderStopInit?.()) return [];
     if (!this.targets?.length) return [];
 
     this.setTargets();
     return Promise.allSettled(
-      this.targets.map(async (target) => {
+      this.targets.map(async (targetData) => {
         let returnVal = null;
-        const data = this.getTargetData(target);
+        const data = this.getInitData(targetData);
         if (this.isWebComponent) {
           returnVal = this.initWebComponent(data);
         }
@@ -68,25 +84,22 @@ export default class ComponentLoader {
   }
 
   async initWebComponent(data) {
-    let returnVal = null;
+    let elem = null;
     try {
-      const elem = await this.createElementAndConfigure(data);
-      data.componentElem = elem;
-      returnVal = elem;
-      this.addContentFromTarget(data);
-      await this.connectComponent(data);
+      elem = await this.createElementAndConfigure(data);
     } catch (error) {
-      const err = new Error(error);
-      err.elem = returnVal;
+      error.elem ??= elem;
+      elem?.classList.add('hide-with-error');
+      elem?.setAttribute('has-loader-error', '');
       // eslint-disable-next-line no-console
       console.error(
         `There was an error while initializing the '${this.componentName}' webComponent:`,
-        returnVal,
+        error.elem,
         error,
       );
-      throw err;
+      throw error;
     }
-    return returnVal;
+    return elem;
   }
 
   async initClass(data) {
@@ -112,17 +125,22 @@ export default class ComponentLoader {
     }
   }
 
-  getTargetData({ target, container }) {
+  getInitData({ target, container }) {
     return {
+      throwInitError: true,
       target,
       container,
-      rawClasses: !container ? mergeUniqueArrays(this.rawClasses, target.classList) : this.rawClasses,
-      // content: target?.childNodes,
+      configByClasses: !container ? mergeUniqueArrays(this.configByClasses, target.classList) : this.configByClasses,
+      props: this.props,
+      componentConfig: this.componentConfig,
+      externalConfigName: this.externalConfigName,
+      attributesValues: this.attributesValues,
+      nestedComponentsConfig: this.nestedComponentsConfig,
+      loaderConfig: this.loaderConfig,
     };
   }
 
   setTargets() {
-    this.loaderConfig = deepMerge({}, this.Handler.loaderConfig, this.loaderConfig);
     const { targetsSelectorsPrefix, targetsSelectors, targetsSelectorsLimit, targetsAsContainers, selectorTest } =
       this.loaderConfig;
     const selector = `${targetsSelectorsPrefix || ''} ${targetsSelectors}`;
@@ -154,95 +172,33 @@ export default class ComponentLoader {
 
   async createElementAndConfigure(data) {
     const componentElem = document.createElement(this.webComponentName);
-
-    componentElem.componentName = this.componentName;
-    componentElem.webComponentName = this.webComponentName;
-    componentElem.config = deepMerge({}, componentElem.config, this.config);
-    const { nestedComponentsConfig } = componentElem;
-    const { currentAttributes, nestedComponents } = collectAttributes(
-      this.componentName,
-      data.rawClasses,
-      this?.Handler?.observedAttributes,
-      componentElem,
-    );
-
-    Object.keys(currentAttributes).forEach((key) => {
-      const attr = key === 'class' ? key : `data-${key}`;
-      componentElem.setAttribute(attr, currentAttributes[key].trim());
-    });
-
-    componentElem.nestedComponentsConfig = deepMerge(
-      componentElem.nestedComponentsConfig,
-      this.nestedComponentsConfig,
-      nestedComponents,
-    );
-
-    Object.keys(nestedComponentsConfig).forEach((key) => {
-      const defaults = {
-        targets: [componentElem],
-        active: true,
-        loaderConfig: {
-          targetsAsContainers: true,
-        },
-      };
-      nestedComponentsConfig[key] = deepMerge(defaults, nestedComponentsConfig[key]);
-    });
-
+    try {
+      await componentElem.init(data);
+    } catch (error) {
+      error.elem = componentElem;
+      throw error;
+    }
     return componentElem;
-  }
-
-  addContentFromTarget(data) {
-    const { componentElem, target } = data;
-    const { contentFromTargets } = componentElem.config;
-    if (!contentFromTargets) return;
-
-    componentElem.append(...target.childNodes);
-  }
-
-  async connectComponent(data) {
-    const { componentElem } = data;
-    const { uuid } = componentElem;
-    componentElem.setAttribute('isloading', '');
-    const initialized = new Promise((resolve, reject) => {
-      const initListener = async (event) => {
-        const { error } = event.detail;
-        componentElem.removeEventListener(`initialized:${uuid}`, initListener);
-        componentElem.removeAttribute('isloading');
-        if (error) {
-          reject(error);
-        }
-        resolve(componentElem);
-      };
-      componentElem.addEventListener(`initialized:${uuid}`, initListener);
-    });
-    const { targetsAsContainers } = this.loaderConfig;
-    const conf = componentElem.config;
-    const addToTargetMethod = targetsAsContainers ? conf.targetsAsContainers.addToTargetMethod : conf.addToTargetMethod;
-    data.target[addToTargetMethod](componentElem);
-
-    return initialized;
   }
 
   async loadAndDefine() {
     try {
       let cssLoaded = Promise.resolve();
-      if (!this.Handler) {
-        this.Handler = (async () => {
-          const { css, js } = loadModule(this.pathWithoutExtension);
-          cssLoaded = css;
-          const mod = await js;
-          if (mod.default.prototype instanceof HTMLElement) {
-            window.customElements.define(this.webComponentName, mod.default);
-          }
-          return mod.default;
-        })();
-      }
+      this.Handler ??= (async () => {
+        const { css, js } = loadModule(this.pathWithoutExtension);
+        cssLoaded = css;
+        const mod = await js;
+        if (mod.default.prototype instanceof HTMLElement) {
+          window.customElements.define(this.webComponentName, mod.default);
+        }
+        return mod.default;
+      })();
       this.Handler = await this.Handler;
       await cssLoaded;
       return { loaded: true };
     } catch (error) {
       // eslint-disable-next-line no-console
-      console.error(`Failed to load module for ${this.componentName}:`, error);
+      console.error(`Failed to load module for the '${this.componentName}' component:`, error);
       return { loaded: false, error };
     }
   }
