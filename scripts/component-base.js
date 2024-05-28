@@ -114,8 +114,7 @@ export default class ComponentBase extends HTMLElement {
         configByClasses,
         this.Handler.observedAttributes,
       );
-      // this.componentName ??= componentName;
-      this.webComponentName ??= this.initOptions.webComponentName;
+
       this.mergeConfigs();
       this.setAttributesClassesAndProps();
       this.addDefaultsToNestedConfig();

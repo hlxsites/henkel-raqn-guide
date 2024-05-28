@@ -326,7 +326,6 @@ export const configFromClasses = {
 
       if (isBreakpoint) value = value.slice(classBreakpoint.length + 1);
 
-      // this should be done outside and run through the methods
       const componentName = nestedComponentsNames.find((prefix) => value.startsWith(prefix));
       if (componentName) {
         acc[componentName] ??= { componentName, active: true };

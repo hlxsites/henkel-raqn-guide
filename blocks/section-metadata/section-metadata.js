@@ -1,4 +1,3 @@
-// import { collectAttributes } from '../../scripts/libs.js';
 import ComponentBase from '../../scripts/component-base.js';
 import { stringToArray } from '../../scripts/libs.js';
 

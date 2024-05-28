@@ -5,7 +5,7 @@ export default class ComponentLoader {
     componentName,
     targets = [],
     loaderConfig,
-    configByClasses, // To be replaced with `attributesValues`
+    configByClasses,
     attributesValues,
     externalConfigName,
     componentConfig,
