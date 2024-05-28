@@ -7,7 +7,7 @@ export default class Footer extends ComponentBase {
   static loaderConfig = {
     ...ComponentBase.loaderConfig,
     loaderStopInit() {
-      return metaFragment === false;
+      return metaFooter === false;
     },
   };
 

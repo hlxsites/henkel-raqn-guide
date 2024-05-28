@@ -58,7 +58,8 @@ export default class ComponentLoader {
     const { loaded, error } = await this.loadAndDefine();
     if (!loaded) throw error;
     this.setHandlerType();
-    if (await this.Handler?.loaderStopInit?.()) return [];
+    this.loaderConfig = deepMerge({}, this.Handler.loaderConfig, this.loaderConfig);
+    if (await this.loaderConfig?.loaderStopInit?.()) return [];
     if (!this.targets?.length) return [];
 
     this.setTargets();
@@ -140,7 +141,6 @@ export default class ComponentLoader {
   }
 
   setTargets() {
-    this.loaderConfig = deepMerge({}, this.Handler.loaderConfig, this.loaderConfig);
     const { targetsSelectorsPrefix, targetsSelectors, targetsSelectorsLimit, targetsAsContainers, selectorTest } =
       this.loaderConfig;
     const selector = `${targetsSelectorsPrefix || ''} ${targetsSelectors}`;

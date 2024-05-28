@@ -13,7 +13,7 @@
       
       const headerMeta = document.querySelector('meta[name="header"]');
       const url = headerMeta?.content.trim();
-      if (url.toLowerCase() !== 'false') {
+      if (url?.toLowerCase() !== 'false') {
         const link = document.createElement('link');
         link.setAttribute('rel', 'preload');
         link.setAttribute('as', 'fetch');
