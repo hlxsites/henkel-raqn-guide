@@ -28,7 +28,7 @@ const component = {
         initError: error,
       };
       // eslint-disable-next-line no-console
-      console.error(`There was an error while initializing the ${componentName} component`, error);
+      console.error(`There was an error while initializing the '${componentName}' component`, error);
       return init;
     }
   },
@@ -71,10 +71,11 @@ const component = {
 };
 
 const onLoadComponents = {
+  // default content
   staticStructureComponents: [
     {
       componentName: 'image',
-      block: document,
+      targets: [document],
       loaderConfig: {
         targetsAsContainers: true,
         targetsSelectorsPrefix: 'main > div >',
@@ -82,7 +83,7 @@ const onLoadComponents = {
     },
     {
       componentName: 'button',
-      block: document,
+      targets: [document],
       loaderConfig: {
         targetsAsContainers: true,
         targetsSelectorsPrefix: 'main > div >',
@@ -111,7 +112,7 @@ const onLoadComponents = {
   setBlocksData() {
     const structureData = this.structureComponents.map(({ componentName }) => ({
       componentName,
-      block: document,
+      targets: [document],
       loaderConfig: {
         targetsAsContainers: true,
       },
@@ -158,6 +159,7 @@ const onLoadComponents = {
   },
 
   initBlocks() {
+    // Keep the page hidden until specific components are initialized to prevent CLS
     component.multiInit(this.lcpBlocks).then(() => {
       document.body.style.setProperty('display', 'unset');
     });

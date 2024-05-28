@@ -4,7 +4,14 @@ import { getMeta } from '../../scripts/libs.js';
 const metaFooter = getMeta('footer');
 const metaFragment = !!metaFooter && `${metaFooter}.plain.html`;
 export default class Footer extends ComponentBase {
-  fragment = metaFragment || 'footer.plain.html';
+  static loaderConfig = {
+    ...ComponentBase.loaderConfig,
+    loaderStopInit() {
+      return metaFooter === false;
+    },
+  };
+
+  fragmentPath = metaFragment || 'footer.plain.html';
 
   extendConfig() {
     return [
@@ -13,10 +20,6 @@ export default class Footer extends ComponentBase {
         addToTargetMethod: 'append',
       },
     ];
-  }
-
-  static earlyStopRender() {
-    return metaFooter === false;
   }
 
   ready() {

@@ -9,11 +9,11 @@ export default class Theming extends ComponentBase {
   
   nestedComponentsConfig = {};
 
-  constructor() {
-    super();
+  setDefaults() {
+    super.setDefaults();
     this.scapeDiv = document.createElement('div');
     // keep as it is
-    this.fragment = metaFragment || 'theming.json';
+    this.fragmentPath = metaFragment || 'theming.json';
     this.skip = ['tags'];
     this.toTags = [
       'font-size',

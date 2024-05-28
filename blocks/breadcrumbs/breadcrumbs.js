@@ -4,7 +4,7 @@ import { getBaseUrl } from '../../scripts/libs.js';
 export default class Breadcrumbs extends ComponentBase {
   static loaderConfig = {
     ...ComponentBase.loaderConfig,
-    targetsSelectors: 'main > div',
+    targetsSelectors: 'main > div:first-child',
     targetsSelectorsLimit: 1,
   };
 
