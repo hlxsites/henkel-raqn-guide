@@ -1,14 +1,38 @@
 import { loadModule } from './libs.js';
 import { publish } from './pubsub.js';
 
-let origin = null;
-let target = null;
+window.raqnEditor = window.raqnEditor || {};
 
-window.raqnEditors = window.raqnEditors || {};
+export const MessagesEvents = {
+  init: 'raqn:editor:start',
+  loaded: 'raqn:editor:loaded',
+  active: 'raqn:editor:active',
+  disabled: 'raqn:editor:disabled',
+  render: 'raqn:editor:render',
+  select: 'raqn:editor:select',
+};
+
+export function refresh(id) {
+  const bodyRect = window.document.body.getBoundingClientRect();
+  Object.keys(window.raqnEditor).forEach((name) => {
+    window.raqnEditor[name].instances = window.raqnInstances[name].map((item) =>
+      // eslint-disable-next-line no-use-before-define
+      getComponentValues(window.raqnEditor[name].dialog, item),
+    );
+  });
+
+  console.log('renderd', window.raqnEditor, bodyRect);
+
+  publish(
+    MessagesEvents.render,
+    { components: window.raqnEditor, bodyRect, uuid: id },
+    { usePostMessage: true, targetOrigin: '*' },
+  );
+}
 
 export function updateComponent(params) {
   const { uuid, name, option } = params;
-  const dialog = window.raqnEditors[name];
+  // const dialog = window.raqnEditor[name];
   const component = window.raqnInstances[name].find((item) => item.componentElem.uuid === uuid);
   const { componentElem } = component;
   const { variables, attributes } = option;
@@ -22,58 +46,64 @@ export function updateComponent(params) {
       componentElem.setAttribute(attribute, attributes[attribute]);
     });
   }
-  const bodyRect = window.document.body.getBoundingClientRect();
-  // eslint-disable-next-line no-use-before-define
-  const instance = getComponentValues(dialog, component);
-  // eslint-disable-next-line no-use-before-define
-  initEditor(origin, target, false);
-  publish('editor:rendered', { instance, dialog, bodyRect }, { usePostMessage: true, targetOrigin: '*' });
+
+  refresh(uuid);
 }
 
 export function getComponentValues(dialog, item) {
   const domRect = item.componentElem.getBoundingClientRect();
-  console.log('dialog.variables', dialog.variables, item.componentElem);
-  dialog.variables = Object.keys(dialog.variables).reduce((data, variable) => {
+  let { variables = {}, attributes = {} } = dialog;
+  const { selection = {} } = dialog;
+  variables = Object.keys(variables).reduce((data, variable) => {
     const value = getComputedStyle(item.componentElem).getPropertyValue(variable);
-    console.log('value', data);
-    data[variable] = { ...dialog.variables[variable], value };
-    console.log('value', data);
+
+    data[variable] = { ...variables[variable], value };
+
+    return data;
+  }, {});
+  attributes = Object.keys(attributes).reduce((data, attribute) => {
+    const value = item.componentElem.getAttribute(attribute);
+
+    data[attribute] = { ...attributes[attribute], value };
     return data;
   }, {});
   const cleanData = Object.fromEntries(Object.entries(item.componentElem));
   delete cleanData.nestedComponents;
   delete cleanData.nestedComponentsConfig;
-  return { ...cleanData, domRect };
+  return { ...cleanData, domRect, editor: { variables, attributes, selection } };
 }
 
-export default function initEditor(o, t, listeners = true) {
-  origin = o;
-  target = t;
-
-  Object.keys(window.raqnComponents).forEach(async (componentName) => {
-    try {
-      const editor = await loadModule(`/blocks/${componentName}/${componentName}.editor`, false);
-      const mod = await editor.js;
-
-      if (mod && mod.default) {
-        const dialog = mod.default();
-        window.raqnEditors[componentName] = dialog;
-        const instances = window.raqnInstances[componentName].map((item) => getComponentValues(dialog, item));
-
-        const bodyRect = window.document.body.getBoundingClientRect();
-
-        publish(
-          'editor:loaded',
-          { componentName, dialog, instances, bodyRect },
-          {
-            usePostMessage: true,
-            targetOrigin: '*',
-          },
-        );
-      }
-    } catch (error) {
-      //   console.log(error);
-    }
+export default function initEditor(listeners = true) {
+  Promise.all(
+    Object.keys(window.raqnComponents).map(
+      (componentName) =>
+        new Promise((resolve) => {
+          setTimeout(async () => {
+            try {
+              const component = await loadModule(`/blocks/${componentName}/${componentName}.editor`, false);
+              const mod = await component.js;
+              if (mod && mod.default) {
+                const dialog = await mod.default();
+                // available dialog and component instances
+                window.raqnEditor[componentName] = { dialog, instances: [], name: componentName };
+                window.raqnEditor[componentName].instances = window.raqnInstances[componentName].map((item) =>
+                  getComponentValues(dialog, item),
+                );
+              }
+              resolve();
+            } catch (error) {
+              resolve();
+            }
+          });
+        }),
+    ),
+  ).finally(() => {
+    const bodyRect = window.document.body.getBoundingClientRect();
+    publish(
+      MessagesEvents.loaded,
+      { components: window.raqnEditor, bodyRect },
+      { usePostMessage: true, targetOrigin: '*' },
+    );
   });
   if (listeners) {
     // init editor if message from parent
@@ -81,7 +111,7 @@ export default function initEditor(o, t, listeners = true) {
       if (e && e.data) {
         const { message, params } = e.data;
         switch (message) {
-          case 'editor:select':
+          case MessagesEvents.select:
             updateComponent(params);
             break;
 

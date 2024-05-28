@@ -192,12 +192,21 @@ globalInit.init();
 window.addEventListener('message', async (e) => {
   if (e && e.data) {
     const { message, params } = e.data;
-    if (message === 'initEditor' && !Array.isArray(params)) {
-      const editor = await import('./editor.js');
-      const { origin, target } = params;
-      setTimeout(() => {
-        editor.default(origin, target);
-      }, 2000);
+    if (!Array.isArray(params)) {
+      switch (message) {
+        case 'raqn:editor:start':
+          (async function startEditor() {
+            const editor = await import('./editor.js');
+            const { origin, target } = params;
+            setTimeout(() => {
+              editor.default(origin, target);
+            }, 2000);
+          })();
+          break;
+        // other cases?
+        default:
+          break;
+      }
     }
   }
 });

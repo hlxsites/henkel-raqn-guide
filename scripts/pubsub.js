@@ -68,19 +68,9 @@ export const callStack = (message, params, options) => {
   if (actions[message]) {
     const messageCallStack = Array.from(actions[message]); // copy array
     // call all actions by last one registered
-    let prevent = false;
 
-    // Some current usages of `publish` are not passing `params` as an object.
-    // For these cases the option to `stopImmediatePropagation` will not be available.
-    if (params && typeof params === 'object' && !Array.isArray(params)) {
-      params.stopImmediatePropagation = () => {
-        prevent = true;
-      };
-    }
-
-    // run the call stack unless `stopImmediatePropagation()` was called in previous action (prevent further actions to run)
     const callStackMethod = callStackAscending ? 'shift' : 'pop';
-    while (!prevent && messageCallStack.length > 0) {
+    while (messageCallStack.length > 0) {
       const action = messageCallStack[callStackMethod]();
       action(params);
     }
@@ -100,6 +90,7 @@ export const postMessage = (message, params, options = {}) => {
     // eslint-disable-next-line no-console
     console.warn(error);
   }
+  console.log('postMessage', data);
   // upward message
   window.parent.postMessage(data, targetOrigin);
   // downward message
