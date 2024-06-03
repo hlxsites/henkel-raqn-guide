@@ -15,13 +15,12 @@ export const MessagesEvents = {
 export function refresh(id) {
   const bodyRect = window.document.body.getBoundingClientRect();
   Object.keys(window.raqnEditor).forEach((name) => {
+    console.log('name', name);
     window.raqnEditor[name].instances = window.raqnInstances[name].map((item) =>
       // eslint-disable-next-line no-use-before-define
       getComponentValues(window.raqnEditor[name].dialog, item),
     );
   });
-
-  console.log('renderd', window.raqnEditor, bodyRect);
 
   publish(
     MessagesEvents.render,
@@ -33,7 +32,7 @@ export function refresh(id) {
 export function updateComponent(params) {
   const { uuid, name, option } = params;
   // const dialog = window.raqnEditor[name];
-  const component = window.raqnInstances[name].find((item) => item.componentElem.uuid === uuid);
+  const component = window.raqnInstances[name].find((element) => element.uuid === uuid);
   const { componentElem } = component;
   const { variables, attributes } = option;
   if (variables) {
@@ -50,24 +49,26 @@ export function updateComponent(params) {
   refresh(uuid);
 }
 
-export function getComponentValues(dialog, item) {
-  const domRect = item.componentElem.getBoundingClientRect();
+export function getComponentValues(dialog, element) {
+  const domRect = element.getBoundingClientRect();
   let { variables = {}, attributes = {} } = dialog;
   const { selection = {} } = dialog;
   variables = Object.keys(variables).reduce((data, variable) => {
-    const value = getComputedStyle(item.componentElem).getPropertyValue(variable);
+    const value = getComputedStyle(element).getPropertyValue(variable);
 
     data[variable] = { ...variables[variable], value };
 
     return data;
   }, {});
   attributes = Object.keys(attributes).reduce((data, attribute) => {
-    const value = item.componentElem.getAttribute(attribute);
+    const value = element.getAttribute(attribute);
 
     data[attribute] = { ...attributes[attribute], value };
     return data;
   }, {});
-  const cleanData = Object.fromEntries(Object.entries(item.componentElem));
+  const cleanData = Object.fromEntries(Object.entries(element));
+  delete cleanData.initOptions;
+  delete cleanData.childComponents;
   delete cleanData.nestedComponents;
   delete cleanData.nestedComponentsConfig;
   return { ...cleanData, domRect, editor: { variables, attributes, selection } };
