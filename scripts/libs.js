@@ -452,3 +452,31 @@ export function getBaseUrl() {
 export function isHomePage(url) {
   return getBaseUrl() === (url || window.location.href);
 }
+
+export const flat = (obj = {}, alreadyFlat = '') =>
+  Object.entries(obj).reduce((acc, [key, value]) => {
+    const newKey = `${alreadyFlat ? `${alreadyFlat}-` : ''}${key}`;
+    if (isObject(value)) {
+      Object.assign(acc, flat(value, newKey));
+    } else {
+      acc[newKey] = value;
+    }
+    return acc;
+  }, {});
+
+export const unflat = (obj = {}) => {
+  const un = {};
+  Object.keys(obj).forEach((k) => {
+    const keys = k.split('-');
+    keys.reduce((acc, key, index) => {
+      if (index === keys.length - 1) {
+        acc[key] = obj[k];
+      } else {
+        acc[key] ??= {};
+        return acc[key];
+      }
+      return acc;
+    }, un);
+  });
+  return un;
+};

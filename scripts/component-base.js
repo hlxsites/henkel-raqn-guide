@@ -238,7 +238,6 @@ export default class ComponentBase extends HTMLElement {
     const { target } = this.initOptions;
     const { contentFromTargets } = this.config;
     if (!contentFromTargets) return;
-
     this.append(...target.childNodes);
   }
 

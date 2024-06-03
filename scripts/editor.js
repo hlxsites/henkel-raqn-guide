@@ -2,6 +2,7 @@ import { loadModule } from './libs.js';
 import { publish } from './pubsub.js';
 
 window.raqnEditor = window.raqnEditor || {};
+let watcher = false;
 
 export const MessagesEvents = {
   init: 'raqn:editor:start',
@@ -105,6 +106,12 @@ export default function initEditor(listeners = true) {
       { components: window.raqnEditor, bodyRect },
       { usePostMessage: true, targetOrigin: '*' },
     );
+    if (!watcher) {
+      window.addEventListener('resize', () => {
+        refresh();
+      });
+      watcher = true;
+    }
   });
   if (listeners) {
     // init editor if message from parent
