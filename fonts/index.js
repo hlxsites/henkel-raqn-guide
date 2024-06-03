@@ -1,7 +1,7 @@
 {
   "roboto": {
-    "regular": "roboto-regular.woff",
-    "bold": "roboto-bold.woff"
+    "regular": "roboto-regular.woff2",
+    "bold": "roboto-bold.woff2"
   },
   "segoe-ui": {
     "regular": "segoe-ui-regular.woff",
