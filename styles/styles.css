@@ -21,6 +21,12 @@ body {
   margin: 0;
   padding: 0;
   color: var(--text, #000);
+  font-family: var(--p-font-family, roboto);
+  font-size: var(--p-font-size, 16px);
+  font-weight: var(--p-font-weight, normal);
+  font-style: var(--p-font-style, normal);
+  line-height: var(--p-line-height, 1.2em);
+  margin-block: var(--p-margin-block, 1.2em);
 }
 
 body {
