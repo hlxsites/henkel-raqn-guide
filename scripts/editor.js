@@ -11,6 +11,8 @@ export const MessagesEvents = {
   disabled: 'raqn:editor:disabled',
   render: 'raqn:editor:render',
   select: 'raqn:editor:select',
+  theme: 'raqn:editor:theme',
+  themeUpdate: 'raqn:editor:theme:update',
 };
 
 export function refresh(id) {
@@ -106,6 +108,7 @@ export default function initEditor(listeners = true) {
       { components: window.raqnEditor, bodyRect },
       { usePostMessage: true, targetOrigin: '*' },
     );
+
     if (!watcher) {
       window.addEventListener('resize', () => {
         refresh();

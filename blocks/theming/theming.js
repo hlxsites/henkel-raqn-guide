@@ -9,7 +9,7 @@ export default class Theming extends ComponentBase {
   setDefaults() {
     super.setDefaults();
     this.scapeDiv = document.createElement('div');
-    this.themeJson = { data: [] };
+    this.themeJson = {};
 
     this.globalsVar = ['c-', 'global'];
     this.toTags = [];
@@ -99,7 +99,6 @@ export default class Theming extends ComponentBase {
     const t = data.reduce(
       (ac, item, i) =>
         keys.reduce((acc, key) => {
-          delete item.key;
           if (!this.themesKeys) {
             this.themesKeys = k(item);
           }
@@ -157,10 +156,12 @@ export default class Theming extends ComponentBase {
   async processFragment(response, type = 'color') {
     if (response.ok) {
       const responseData = await response.json();
+      this.themeJson[type] = responseData;
       if (type === 'fontface') {
         this.fontFaceTemplate(responseData);
       } else {
         const { keys, themeKeys, t } = this.readValue(responseData.data, type);
+
         this.getTheme(themeKeys, keys, t, type);
         if (type === 'font') {
           this.prepareTags(keys, themeKeys, t);
