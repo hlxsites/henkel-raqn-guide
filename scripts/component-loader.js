@@ -130,7 +130,8 @@ export default class ComponentLoader {
       throwInitError: true,
       target,
       container,
-      configByClasses: !container ? mergeUniqueArrays(this.configByClasses, target.classList) : this.configByClasses,
+      configByClasses:
+        !container && target ? mergeUniqueArrays(this.configByClasses, target.classList) : this.configByClasses,
       props: this.props,
       componentConfig: this.componentConfig,
       externalConfigName: this.externalConfigName,

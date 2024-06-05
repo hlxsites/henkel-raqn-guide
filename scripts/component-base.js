@@ -41,6 +41,8 @@ export default class ComponentBase extends HTMLElement {
     this.fragmentPath = null;
     this.dependencies = [];
     this.attributesValues = {};
+    this.initOptions = {};
+    this.externalOptions = {};
     this.childComponents = {
       // using the nested feature
       nestedComponents: [],
@@ -55,6 +57,7 @@ export default class ComponentBase extends HTMLElement {
 
     // use the this.extendConfig() method to extend the default config
     this.config = {
+      listenBreakpoints: false,
       hideOnInitError: true,
       hideOnChildrenError: false,
       addToTargetMethod: 'replaceWith',
@@ -71,13 +74,6 @@ export default class ComponentBase extends HTMLElement {
       },
       button: {
         componentName: 'button',
-      },
-      columns: {
-        componentName: 'columns',
-        active: false,
-        loaderConfig: {
-          targetsAsContainers: false,
-        },
       },
     };
   }
@@ -134,6 +130,7 @@ export default class ComponentBase extends HTMLElement {
 
   async connectComponent() {
     const { uuid } = this;
+    if (!this.initOptions.target) return this;
     this.setAttribute('isloading', '');
     const initialized = new Promise((resolve, reject) => {
       const initListener = async (event) => {
@@ -147,7 +144,7 @@ export default class ComponentBase extends HTMLElement {
       };
       this.addEventListener(`initialized:${uuid}`, initListener);
     });
-    const { targetsAsContainers } = deepMerge({}, this.Handler.loaderConfig, this.loaderConfig);
+    const { targetsAsContainers } = this.initOptions.loaderConfig;
     const conf = this.config;
     const addToTargetMethod = targetsAsContainers ? conf.targetsAsContainers.addToTargetMethod : conf.addToTargetMethod;
     this.initOptions.target[addToTargetMethod](this);
@@ -182,6 +179,7 @@ export default class ComponentBase extends HTMLElement {
   }
 
   mergeConfigs() {
+    this.initOptions.loaderConfig = deepMerge({}, this.Handler.loaderConfig, this.initOptions.loaderConfig);
     this.props = deepMerge({}, this.initOptions.props, this.externalOptions.props);
 
     this.config = deepMerge({}, this.config, this.initOptions.componentConfig, this.externalOptions.config);
@@ -204,9 +202,9 @@ export default class ComponentBase extends HTMLElement {
       this[prop] = value;
     });
     // Set attributes based on attributesValues
-    Object.entries(this.attributesValues).forEach(([attr, attrValues]) => {
+    this.sortedAttributes.forEach(([attr, attrValues]) => {
       const isClass = attr === 'class';
-      const val = (attrValues[this.breakpoints.active.name] ?? attrValues.all);
+      const val = attrValues[this.breakpoints.active.name] ?? attrValues.all;
       if (isClass) {
         const classes = (attrValues.all ? `${attrValues.all} ` : '') + (attrValues[this.breakpoints.active.name] ?? '');
         const classesArr = classes.split(' ').flatMap((cls) => {
@@ -219,6 +217,15 @@ export default class ComponentBase extends HTMLElement {
         this.dataset[attr] = val;
       }
     });
+  }
+
+  get sortedAttributes() {
+    const knownAttr = this.Handler.observedAttributes;
+    // Sometimes the order in which the attributes are set matters.
+    // Control the order by using the order of the observedAttributes.
+    return Object.entries(this.attributesValues).sort(
+      (a, b) => knownAttr.indexOf(`data-${a}`) - knownAttr.indexOf(`data-${b}`),
+    );
   }
 
   addDefaultsToNestedConfig() {
@@ -249,7 +256,7 @@ export default class ComponentBase extends HTMLElement {
   }
 
   setBreakpointAttributesValues(e) {
-    Object.entries(this.attributesValues).forEach(([attribute, breakpointsValues]) => {
+    this.sortedAttributes.forEach(([attribute, breakpointsValues]) => {
       const isAttribute = attribute !== 'class';
       if (isAttribute) {
         const newValue = breakpointsValues[e.raqnBreakpoint.name] ?? breakpointsValues.all;
@@ -300,7 +307,9 @@ export default class ComponentBase extends HTMLElement {
   }
 
   addListeners() {
-    listenBreakpointChange(this.onBreakpointChange);
+    if (this.externalOptions.hasBreakpointsValues || this.config.listenBreakpoints) {
+      listenBreakpointChange(this.onBreakpointChange);
+    }
   }
 
   async initChildComponents() {
