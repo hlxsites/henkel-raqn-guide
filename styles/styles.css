@@ -26,7 +26,6 @@ body {
   font-weight: var(--p-font-weight, normal);
   font-style: var(--p-font-style, normal);
   line-height: var(--p-line-height, 1.2em);
-  margin-block: var(--p-margin-block, 1.2em);
 }
 
 body {
