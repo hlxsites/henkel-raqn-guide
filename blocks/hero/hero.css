@@ -1,22 +1,17 @@
 /* block specific CSS goes here */
 
 raqn-hero {
-  --hero-background: var(--scope-background, black);
-  --hero-color: var(--scope-color, white);
-  --hero-grid-template-columns: var(--scope-hero-columns, 1fr);
+  --hero-background: var(--background, black);
+  --hero-color: var(--text, white);
+  --hero-grid-template-columns: var(--hero-columns, 1fr);
   --hero-hero-order: 0;
-  --hero-padding-block: var(--scope-hero-padding-block, 40px);
+  --hero-padding-block: var(--hero-padding-block, 40px);
 
   background: var(--hero-background);
   color: var(--hero-color);
   align-items: center;
   grid-template-columns: var(--hero-grid-template-columns, 1fr);
   padding-block: var(--hero-padding-block);
-
-  > * {
-    --scope-color: var(--hero-color);
-    --scope-headings-color: var(--hero-headings-color, var(--hero-color));
-  }
 }
 
 @media screen and (min-width: 767px) {

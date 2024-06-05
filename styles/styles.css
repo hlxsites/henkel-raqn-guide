@@ -1,6 +1,7 @@
 @media screen and (max-width: 768px) {
   body {
-    --scope-max-width: 100vw;
+    --raqn-max-width-default: var(--max-width, 80vw);
+    --max-width: 100vw;
   }
 }
 
@@ -11,15 +12,20 @@ img {
 
 html,
 body {
+  --raqn-max-width-default: 80vw;
+  --max-width: var(--raqn-max-width-default, 80vw);
+  --header-height: 110px;
+
   width: 100%;
   height: 100%;
   margin: 0;
   padding: 0;
+  color: var(--text, #000);
 }
 
 body {
   display: none;
-  background: var(--scope-background, #fff);
+  background: var(--background, #fff);
   padding: 0;
   margin: 0;
   width: 100%;
@@ -59,33 +65,37 @@ legend,
 caption {
   font-size: 100%;
   vertical-align: baseline;
-  color: currentcolor;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  color: var(--title, #000);
 }
 
 header {
-  --scope-background: var(--scope-header-background, #fff);
-  --scope-color: var(--scope-header-color, #000);
-
-  min-height: var(--scope-header-height, 64px);
+  min-height: var(--header-height, 64px);
   display: grid;
-  background: var(--scope-header-background, #fff);
+  background: var(--header-background, #fff);
 }
 
-head:has(meta[name="header"][content="false" i]) + body > header,
-head:has(meta[name="footer"][content="false" i]) + body > footer {
+head:has(meta[name='header'][content='false' i]) + body > header,
+head:has(meta[name='footer'][content='false' i]) + body > footer {
   display: none;
 }
 
 main > div {
-  max-width: var(--scope-max-width, 100%);
+  max-width: var(--max-width, 100%);
   margin: 0 auto;
 }
 
 main > div > * {
-  max-width: var(--scope-max-width, 100%);
-  min-width: var(--scope-max-width, 100%);
+  max-width: var(--max-width, 100%);
+  min-width: var(--max-width, 100%);
   margin-inline: auto;
   box-sizing: border-box;
+  background-color: var(--background, #fff);
 }
 
 main > .raqn-grid > * {
@@ -94,53 +104,53 @@ main > .raqn-grid > * {
 }
 
 .full-width {
-  --scope-outer-gap: calc((var(--raqn-max-width-default) - 100vw) / 2);
-  --scope-inner-gap: calc((100vw - var(--scope-max-width)) / 2);
+  --outer-gap: calc((var(--raqn-max-width-default) - 100vw) / 2);
+  --inner-gap: calc((100vw - var(--max-width)) / 2);
 
   display: grid;
   min-width: 100vw;
   max-width: none;
-  margin-inline-start: var(--scope-outer-gap);
-  padding-inline: var(--scope-inner-gap);
+  margin-inline-start: var(--outer-gap);
+  padding-inline: var(--inner-gap);
   box-sizing: border-box;
 }
 
 main > div > div {
-  background: var(--scope-background, #fff);
-  color: var(--scope-color, #000);
-  padding: var(--scope-padding, 0);
+  background: var(--background, #fff);
+  color: var(--text, #000);
+  padding: var(--padding, 0);
 }
 
 main > div > div > div {
-  max-width: var(--scope-max-width, 100%);
-  margin: var(--scope-margin, 0 auto);
+  max-width: var(--max-width, 100%);
+  margin: var(--margin, 0 auto);
   width: 100%;
 }
 
 .breadcrumbs {
   display: grid;
-  grid-template-columns: var(--scope-grid-template-columns, 1fr);
-  gap: var(--scope-gap, 20px);
+  grid-template-columns: var(--grid-template-columns, 1fr);
+  gap: var(--gap, 20px);
   align-items: center;
   justify-items: start;
-  min-height: var(--scope-font-size, 1.2em);
+  min-height: var(--font-size, 1.2em);
 }
 
 a {
   display: inline-flex;
   line-height: 1em;
   align-items: center;
-  color: var(--scope-link-color, inherit);
+  color: var(--highlight, inherit);
   text-decoration: none;
-  font-size: var(--scope-font-size, 1em);
+  font-size: var(--font-size, 1em);
 }
 
 a:hover {
-  color: var(--scope-link-color-hover, inherit);
+  color: var(--text, inherit);
 }
 
 .raqn-grid {
-  width: var(--scope-max-width, 100%);
+  width: var(--max-width, 100%);
   margin: 0 auto;
   display: grid;
   grid-template-columns: var(--grid-template-columns, 1fr);
@@ -155,46 +165,11 @@ img {
   height: auto;
 }
 
-
 [isloading],
 .hide-with-error,
 .hide {
   display: none;
   pointer-events: none;
-}
-
-p,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  margin-block: var(--scope-margin-block, 1em);
-}
-
-@media screen and (min-width: 1024px) {
-  p,
-  ul,
-  ol,
-  pre,
-  h1,
-  h2,
-  h3,
-  h4,
-  h5,
-  h6 {
-    max-width: 50vw;
-  }
-}
-
-h1,
-h2,
-h3,
-h4,
-h5,
-h6 {
-  color: var(--scope-headings-color, var(--scope-color, currentColor));
 }
 
 #franklin-svg-sprite {

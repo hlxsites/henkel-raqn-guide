@@ -1,22 +1,22 @@
 export default function config() {
   return {
     variables: {
-      '--scope-background': {
+      '--background': {
         type: 'text',
         label: 'Background',
         helpText: 'The background color of the card.',
       },
-      '--scope-color': {
+      '--color': {
         type: 'text',
         label: 'Color',
         helpText: 'The text color of the card.',
       },
-      '--scope-gap': {
+      '--gap': {
         type: 'text',
         label: 'Gap',
         helpText: 'The gap between cards.',
       },
-      '--scope-padding': {
+      '--padding': {
         type: 'text',
         label: 'Padding',
         helpText: 'The padding of the card.',
@@ -52,9 +52,9 @@ export default function config() {
     selection: {
       variant1: {
         variables: {
-          '--scope-color': 'white',
-          '--scope-gap': '40px',
-          '--scope-padding': '20px',
+          '--color': 'white',
+          '--gap': '40px',
+          '--padding': '20px',
         },
         attributes: {
           'data-columns': '2',
@@ -64,9 +64,9 @@ export default function config() {
       },
       variant2: {
         variables: {
-          '--scope-color': 'white',
-          '--scope-gap': '40px',
-          '--scope-padding': '20px',
+          '--color': 'white',
+          '--gap': '40px',
+          '--padding': '20px',
         },
         attributes: {
           'data-columns': '3',
@@ -76,9 +76,9 @@ export default function config() {
       },
       variant3: {
         variables: {
-          '--scope-color': 'white',
-          '--scope-gap': '40px',
-          '--scope-padding': '20px',
+          '--color': 'white',
+          '--gap': '40px',
+          '--padding': '20px',
         },
         attributes: {
           'data-columns': '4',

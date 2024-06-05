@@ -1,8 +1,6 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { globalConfig, getMeta, unflat } from '../../scripts/libs.js';
-// minify alias
-// const metaTheming = getMeta('theming');
-// const metaFragment = metaTheming && `${metaTheming}.json`;
+import { getMeta, unflat } from '../../scripts/libs.js';
+
 const k = Object.keys;
 
 export default class Theming extends ComponentBase {
@@ -30,42 +28,25 @@ export default class Theming extends ComponentBase {
     }, false);
   }
 
-  fontFaceTemplate(fontFace) {
-    if (fontFace.indexOf('-') > -1) {
-      const [name, ...rest] = fontFace.split('-');
-      const params = rest.pop().split('.');
-      const format = params.pop();
-      const lastBit = params.pop();
-      const fontWeight = globalConfig.fontWeights[lastBit] || 'regular';
-      const fontStyle = lastBit === 'italic' ? lastBit : 'normal';
-      // eslint-disable-next-line max-len
-      return `@font-face {font-family: ${name};font-weight: ${fontWeight};font-display: swap;font-style: ${fontStyle};src: url('/fonts/${fontFace}') format(${format});}`;
-    }
-    return '';
-  }
+  fontFaceTemplate(data) {
+    const names = Object.keys(data);
 
-  fontTags(t, index) {
-    const tag = t.tags[index];
-    const values = this.toTags.reduce((acc, key) => {
-      if (t[key][index]) {
-        if (acc[tag]) {
-          acc[tag][key] = t[key][index];
-        } else {
-          acc[tag] = { [key]: t[key][index] };
-        }
-      }
-      return acc;
-    }, {});
-    return k(values).map((value) => {
-      const val = values[value];
-      return `${tag} {${k(val)
-        .map((v) => `${this.getKey(v)}: var(--${this.getKey(v)}, ${val[v]});`)
-        .join('')}}`;
-    });
-  }
-
-  getKey(key) {
-    return this.transform[key] ? this.transform[key] : key;
+    this.fontFace = names
+      .map((key) => {
+        // files
+        const types = Object.keys(data[key].options);
+        return types
+          .map(
+            (type) => `@font-face {
+            font-family: '${key}';
+            src: url('${window.location.origin}/fonts/${data[key].options[type]}');
+            ${type === 'italic' ? 'font-style' : 'font-weight'}: ${type};
+            }
+            `,
+          )
+          .join('');
+      })
+      .join('');
   }
 
   escapeHtml(unsafe) {
@@ -77,8 +58,8 @@ export default class Theming extends ComponentBase {
     const value = t[key][row];
     let variable = '';
     if (value) {
-      variable = `\n--${this.getKey(key)}-${row}: ${this.escapeHtml(value).trim()};`;
-      this.atomic += `body .${this.getKey(key)}-${row} {--${this.getKey(key)}: var(--${this.getKey(key)}-${row});}\n`;
+      variable = `\n--${key}-${row}: ${this.escapeHtml(value).trim()};`;
+      this.atomic += `body .${key}-${row} {--${key}: var(--${key}-${row});}\n`;
     }
     return variable;
   }
@@ -99,7 +80,7 @@ export default class Theming extends ComponentBase {
     );
   }
 
-  getVariables(themeKeys, keys, t) {
+  getVariables(keys, t) {
     return keys.reduce(
       (acc, key) =>
         `${acc}
@@ -110,7 +91,7 @@ export default class Theming extends ComponentBase {
     );
   }
 
-  readValue(data, type) {
+  readValue(data) {
     let keys = data.map((item) => item.key);
     const themeKeys = k(data[0]).slice(1);
     const globals = keys.filter((item) => this.isGlobal(item));
@@ -130,57 +111,26 @@ export default class Theming extends ComponentBase {
         }, ac),
       {},
     );
+    return { keys, themeKeys, t, globals };
+  }
 
+  getTheme(themeKeys, keys, t, type = 'color') {
     this.themes = `${this.themes || ''} ${this.getThemeClasses(themeKeys, keys, t, type)}`;
     this.variables = `${this.variables || ''} 
-    body { ${this.getVariables(themeKeys, keys, t)} }
+    body { ${this.getVariables(keys, t)} }
     `;
 
     return { keys, themeKeys, t };
-
-    // console.log('theme classes', this.variables);
-
-    // // font tags
-    // if (t.tags) {
-    //   this.tags =
-    //     (this.tags || '') +
-    //     k(t.tags)
-    //       .map((index) => this.fontTags(t, index))
-    //       .join('\n');
-    // }
-    // // full scoped theme classes
-    // this.themes =
-    //   (this.themes || '') +
-    //   this.themesKeys
-    //     .map(
-    //       (theme) => `.theme-${theme} {${k(t)
-    //         .filter((key) => ![...this.skip, ...this.toTags].includes(key))
-    //         .map((key) => (t[key][theme] ? `--${key}: var(--${key}-${theme});` : ''))
-    //         .filter((v) => v !== '')
-    //         .join('')}
-    //   }`,
-    //     )
-    //     .join('');
-
-    // this.variables = `${this.variables || ''} body{${k(t)
-    //   .filter((key) => ![...this.skip].includes(key))
-    //   .map((key) => {
-    //     const rows = k(t[key]);
-    //     return rows.map((row) => this.renderVariables(key, row, t)).join('');
-    //   })
-    //   .join('')}}`;
   }
 
   prepareTags(keys, themeKeys, t) {
-    // console.log('prepareTags keys', unFlattenPropertieskeys, themeKeys, t);
     const tags = unflat(t);
-
     this.tags = Object.keys(tags)
       .map(
         (tag) =>
           `${tag} {
           ${keys
-            .filter((key) => key.indexOf(tag) > -1)
+            .filter((key) => key.indexOf(tag) === 0)
             .reduce((acc, prop) => {
               const val = t[prop].default;
 
@@ -194,7 +144,7 @@ export default class Theming extends ComponentBase {
   }
 
   styles() {
-    ['variables', 'tags', 'atomic', 'themes'].forEach((cssSegment) => {
+    ['variables', 'tags', 'atomic', 'themes', 'fontFace'].forEach((cssSegment) => {
       const style = document.createElement('style');
       style.innerHTML = this[cssSegment];
       style.classList.add(cssSegment);
@@ -207,23 +157,22 @@ export default class Theming extends ComponentBase {
   async processFragment(response, type = 'color') {
     if (response.ok) {
       const responseData = await response.json();
-      const { keys, themeKeys, t } = this.readValue(responseData.data, type);
-      if (type === 'font') {
-        this.prepareTags(keys, themeKeys, t);
+      if (type === 'fontface') {
+        this.fontFaceTemplate(responseData);
+      } else {
+        const { keys, themeKeys, t } = this.readValue(responseData.data, type);
+        this.getTheme(themeKeys, keys, t, type);
+        if (type === 'font') {
+          this.prepareTags(keys, themeKeys, t);
+        }
       }
     }
   }
 
-  colors(data) {
-    console.log('colors', data);
-  }
-
   async loadFragment() {
-    //  load colors
-    await fetch('colors.json').then((response) => this.processFragment(response));
-    //  load fonts
+    await fetch('colors.json').then((response) => this.processFragment(response, 'color'));
     await fetch('fonts.json').then((response) => this.processFragment(response, 'font'));
-
+    await fetch('/fonts/index.json').then((response) => this.processFragment(response, 'fontface'));
     this.styles();
   }
 }
