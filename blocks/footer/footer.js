@@ -12,7 +12,7 @@ export default class Footer extends ComponentBase {
     },
   };
 
-  fragmentPath = metaFragment || fallbackContent;
+  fragmentPath = metaFragment || `${fallbackContent}.plain.html`;
 
   extendConfig() {
     return [
