@@ -9,6 +9,7 @@ raqn-hero {
 
   background: var(--hero-background);
   color: var(--hero-color);
+  display: grid;
   align-items: center;
   grid-template-columns: var(--hero-grid-template-columns, 1fr);
   padding-block: var(--hero-padding-block);

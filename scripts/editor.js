@@ -18,7 +18,6 @@ export const MessagesEvents = {
 export function refresh(id) {
   const bodyRect = window.document.body.getBoundingClientRect();
   Object.keys(window.raqnEditor).forEach((name) => {
-    console.log('name', name);
     window.raqnEditor[name].instances = window.raqnInstances[name].map((item) =>
       // eslint-disable-next-line no-use-before-define
       getComponentValues(window.raqnEditor[name].dialog, item),
@@ -32,20 +31,29 @@ export function refresh(id) {
   );
 }
 
-export function updateComponent(params) {
-  const { uuid, name, option } = params;
-  // const dialog = window.raqnEditor[name];
-  const component = window.raqnInstances[name].find((element) => element.uuid === uuid);
-  const { componentElem } = component;
-  const { variables, attributes } = option;
-  if (variables) {
-    Object.keys(variables).forEach((variable) => {
-      componentElem.style.setProperty(variable, variables[variable]);
-    });
-  }
+export function updateComponent(component) {
+  const { componentName, uuid } = component;
+  const instance = window.raqnInstances[componentName].find((element) => element.uuid === uuid);
+  const { attributesValues } = instance;
+  const attributes = component.attributesValues;
+  console.log('attributes', attributes);
+  // if (variables) {
+  //   Object.keys(variables).forEach((variable) => {
+  //     componentElem.style.setProperty(variable, variables[variable]);
+  //   });
+  // }
   if (attributes) {
     Object.keys(attributes).forEach((attribute) => {
-      componentElem.setAttribute(attribute, attributes[attribute]);
+      const val = attributes[attribute];
+      if (attribute === 'class' && attributesValues[attribute]) {
+        const classes = Array.from(instance.classList).filter((c) => !c.includes(val.split('-')[0] || 'color'));
+        classes.push(...val.split(' '));
+        const set = new Set(classes);
+
+        instance.setAttribute(attribute, Array.from(set).join(' '));
+      } else {
+        instance.setAttribute(attribute, val);
+      }
     });
   }
 
@@ -53,6 +61,7 @@ export function updateComponent(params) {
 }
 
 export function getComponentValues(dialog, element) {
+  const html = element.outerHTML;
   const domRect = element.getBoundingClientRect();
   let { variables = {}, attributes = {} } = dialog;
   const { selection = {} } = dialog;
@@ -74,7 +83,7 @@ export function getComponentValues(dialog, element) {
   delete cleanData.childComponents;
   delete cleanData.nestedComponents;
   delete cleanData.nestedComponentsConfig;
-  return { ...cleanData, domRect, editor: { variables, attributes, selection } };
+  return { ...cleanData, domRect, editor: { variables, attributes, selection }, html };
 }
 
 export default function initEditor(listeners = true) {
@@ -103,6 +112,7 @@ export default function initEditor(listeners = true) {
     ),
   ).finally(() => {
     const bodyRect = window.document.body.getBoundingClientRect();
+
     publish(
       MessagesEvents.loaded,
       { components: window.raqnEditor, bodyRect },
@@ -123,6 +133,7 @@ export default function initEditor(listeners = true) {
         const { message, params } = e.data;
         switch (message) {
           case MessagesEvents.select:
+            console.log('select', params);
             updateComponent(params);
             break;
 

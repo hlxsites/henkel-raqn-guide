@@ -90,7 +90,6 @@ export const postMessage = (message, params, options = {}) => {
     // eslint-disable-next-line no-console
     console.warn(error);
   }
-  console.log('postMessage', data);
   // upward message
   window.parent.postMessage(data, targetOrigin);
   // downward message
@@ -103,8 +102,6 @@ export const publish = (message, params, options = {}) => {
     callStack(message, params, options);
     return;
   }
-  console.log('postMessage', message);
-
   postMessage(message, params, options);
 };
 

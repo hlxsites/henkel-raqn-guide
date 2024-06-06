@@ -20,7 +20,7 @@ export default function config() {
     window.addEventListener('message', (e) => {
       if (e && e.data) {
         const { message, params } = e.data;
-        if (message && message === 'updateTheme') {
+        if (message && message === MessagesEvents.themeUpdate) {
           [themeInstance] = window.raqnInstances[Theming.name.toLowerCase()];
           const { name, data } = params;
           const keys = Object.keys(data);

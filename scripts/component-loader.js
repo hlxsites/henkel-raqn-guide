@@ -90,6 +90,7 @@ export default class ComponentLoader {
     let elem = null;
     try {
       elem = await this.createElementAndConfigure(data);
+      elem.webComponentName = this.webComponentName;
       this.instances[elem.componentName] = this.instances[elem.componentName] || [];
       this.instances[elem.componentName].push(elem);
     } catch (error) {
@@ -177,6 +178,7 @@ export default class ComponentLoader {
 
   async createElementAndConfigure(data) {
     const componentElem = document.createElement(this.webComponentName);
+    this.componentElem = componentElem;
     try {
       await componentElem.init(data);
     } catch (error) {
