@@ -206,7 +206,7 @@ export default class ComponentBase extends HTMLElement {
     // Set attributes based on attributesValues
     Object.entries(this.attributesValues).forEach(([attr, attrValues]) => {
       const isClass = attr === 'class';
-      const val = (attrValues[this.breakpoints.active.name] ?? attrValues.all);
+      const val = attrValues[this.breakpoints.active.name] ?? attrValues.all;
       if (isClass) {
         const classes = (attrValues.all ? `${attrValues.all} ` : '') + (attrValues[this.breakpoints.active.name] ?? '');
         const classesArr = classes.split(' ').flatMap((cls) => {
@@ -238,7 +238,6 @@ export default class ComponentBase extends HTMLElement {
     const { target } = this.initOptions;
     const { contentFromTargets } = this.config;
     if (!contentFromTargets) return;
-
     this.append(...target.childNodes);
   }
 

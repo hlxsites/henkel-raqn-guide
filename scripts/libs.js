@@ -412,26 +412,32 @@ export async function buildConfig(componentName, externalConf, configByClasses, 
   return config;
 }
 
-export function loadModule(urlWithoutExtension) {
-  const js = import(`${urlWithoutExtension}.js`);
-  const css = new Promise((resolve, reject) => {
-    const cssHref = `${urlWithoutExtension}.css`;
-    if (!document.querySelector(`head > link[href="${cssHref}"]`)) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = cssHref;
-      link.onload = resolve;
-      link.onerror = reject;
-      document.head.append(link);
-    } else {
-      resolve();
-    }
-  }).catch((error) =>
-    // eslint-disable-next-line no-console
-    console.error('could not load module style', urlWithoutExtension, error),
-  );
+export function loadModule(urlWithoutExtension, loadCSS = true) {
+  try {
+    const js = import(`${urlWithoutExtension}.js`);
+    if (!loadCSS) return { js, css: Promise.resolve() };
+    const css = new Promise((resolve, reject) => {
+      const cssHref = `${urlWithoutExtension}.css`;
+      if (!document.querySelector(`head > link[href="${cssHref}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = cssHref;
+        link.onload = resolve;
+        link.onerror = reject;
+        document.head.append(link);
+      } else {
+        resolve();
+      }
+    }).catch((error) =>
+      // eslint-disable-next-line no-console
+      console.log('could not load module style', urlWithoutExtension, error),
+    );
 
-  return { css, js };
+    return { css, js };
+  } catch (error) {
+    console.log('could not load module', urlWithoutExtension, error);
+  }
+  return { css: Promise.resolve(), js: Promise.resolve() };
 }
 
 export function mergeUniqueArrays(...arrays) {
@@ -446,3 +452,31 @@ export function getBaseUrl() {
 export function isHomePage(url) {
   return getBaseUrl() === (url || window.location.href);
 }
+
+export const flat = (obj = {}, alreadyFlat = '') =>
+  Object.entries(obj).reduce((acc, [key, value]) => {
+    const newKey = `${alreadyFlat ? `${alreadyFlat}-` : ''}${key}`;
+    if (isObject(value)) {
+      Object.assign(acc, flat(value, newKey));
+    } else {
+      acc[newKey] = value;
+    }
+    return acc;
+  }, {});
+
+export const unflat = (obj = {}) => {
+  const un = {};
+  Object.keys(obj).forEach((k) => {
+    const keys = k.split('-');
+    keys.reduce((acc, key, index) => {
+      if (index === keys.length - 1) {
+        acc[key] = obj[k];
+      } else {
+        acc[key] ??= {};
+        return acc[key];
+      }
+      return acc;
+    }, un);
+  });
+  return un;
+};

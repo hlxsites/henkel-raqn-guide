@@ -1,73 +1,52 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { globalConfig, getMeta } from '../../scripts/libs.js';
-// minify alias
-const metaTheming = getMeta('theming');
-const metaFragment = metaTheming && `${metaTheming}.json`;
+import { getMeta, unflat } from '../../scripts/libs.js';
+
 const k = Object.keys;
 
 export default class Theming extends ComponentBase {
-  
   nestedComponentsConfig = {};
 
   setDefaults() {
     super.setDefaults();
     this.scapeDiv = document.createElement('div');
-    // keep as it is
-    this.fragmentPath = metaFragment || 'theming.json';
-    this.skip = ['tags'];
-    this.toTags = [
-      'font-size',
-      'font-weight',
-      'font-family',
-      'line-height',
-      'font-style',
-      'font-margin-block',
-    ];
-    this.transform = { 'font-margin-block': 'margin-block' };
+    this.themeJson = {};
+
+    this.globalsVar = ['c-', 'global'];
+    this.toTags = [];
+    this.transform = {};
     this.tags = '';
     this.fontFace = '';
     this.atomic = '';
   }
 
-  fontFaceTemplate(fontFace) {
-    if (fontFace.indexOf('-') > -1) {
-      const [name, ...rest] = fontFace.split('-');
-      const params = rest.pop().split('.');
-      const format = params.pop();
-      const lastBit = params.pop();
-      const fontWeight = globalConfig.fontWeights[lastBit] || 'regular';
-      const fontStyle = lastBit === 'italic' ? lastBit : 'normal';
-      // eslint-disable-next-line max-len
-      return `@font-face {font-family: ${name};font-weight: ${fontWeight};font-display: swap;font-style: ${fontStyle};src: url('/fonts/${fontFace}') format(${format});}`;
-    }
-    return '';
-  }
-
-  fontTags(t, index) {
-    const tag = t.tags[index];
-    const values = this.toTags.reduce((acc, key) => {
-      if (t[key][index]) {
-        if (acc[tag]) {
-          acc[tag][key] = t[key][index];
-        } else {
-          acc[tag] = { [key]: t[key][index] };
-        }
+  isGlobal(key) {
+    return this.globalsVar.reduce((a, g) => {
+      if (key.indexOf(g) > -1) {
+        return true;
       }
-      return acc;
-    }, {});
-    return k(values).map((value) => {
-      const val = values[value];
-      return `${tag} {${k(val)
-        .map(
-          (v) =>
-            `${this.getKey(v)}: var(--scope-${this.getKey(v)}, ${val[v]});`,
-        )
-        .join('')}}`;
-    });
+      return a;
+    }, false);
   }
 
-  getKey(key) {
-    return this.transform[key] ? this.transform[key] : key;
+  fontFaceTemplate(data) {
+    const names = Object.keys(data);
+
+    this.fontFace = names
+      .map((key) => {
+        // files
+        const types = Object.keys(data[key].options);
+        return types
+          .map(
+            (type) => `@font-face {
+            font-family: '${key}';
+            src: url('${window.location.origin}/fonts/${data[key].options[type]}');
+            ${type === 'italic' ? 'font-style' : 'font-weight'}: ${type};
+            }
+            `,
+          )
+          .join('');
+      })
+      .join('');
   }
 
   escapeHtml(unsafe) {
@@ -79,27 +58,47 @@ export default class Theming extends ComponentBase {
     const value = t[key][row];
     let variable = '';
     if (value) {
-      if (key === 'font-face') {
-        this.fontFace += this.fontFaceTemplate(value);
-      } else {
-        variable = `\n--raqn-${this.getKey(key)}-${row}: ${this.escapeHtml(
-          value,
-        ).trim()};`;
-        this.atomic += `body .${this.getKey(key)}-${row} {--scope-${this.getKey(
-          key,
-        )}: var(--raqn-${this.getKey(key)}-${row});}\n`;
-      }
+      variable = `\n--${key}-${row}: ${this.escapeHtml(value).trim()};`;
+      this.atomic += `body .${key}-${row} {--${key}: var(--${key}-${row});}\n`;
     }
     return variable;
   }
 
-  readValue() {
-    const { data } = this.themeJson;
-    const keys = data.map((item) => item.key);
+  getThemeClasses(themeKeys, keys, t, segment = 'theme') {
+    return themeKeys.reduce(
+      (acc, theme) => `${acc}
+      .${segment}-${theme} {
+        ${keys.reduce((a, key) => {
+          if (t[key][theme]) {
+            return `${a} \n --${key}: var(--${key}-${theme});`;
+          }
+          return a;
+        }, '')}
+      }
+      `,
+      '',
+    );
+  }
+
+  getVariables(keys, t) {
+    return keys.reduce(
+      (acc, key) =>
+        `${acc}
+      ${k(t[key])
+        .map((row) => this.renderVariables(key, row, t))
+        .join('')}`,
+      '',
+    );
+  }
+
+  readValue(data) {
+    let keys = data.map((item) => item.key);
+    const themeKeys = k(data[0]).slice(1);
+    const globals = keys.filter((item) => this.isGlobal(item));
+    keys = keys.filter((item) => !globals.includes(item));
     const t = data.reduce(
       (ac, item, i) =>
         keys.reduce((acc, key) => {
-          delete item.key;
           if (!this.themesKeys) {
             this.themesKeys = k(item);
           }
@@ -111,51 +110,70 @@ export default class Theming extends ComponentBase {
         }, ac),
       {},
     );
-    // font tags
-    if (t.tags) {
-      this.tags = k(t.tags)
-        .map((index) => this.fontTags(t, index))
-        .join('\n');
-    }
-    // full scoped theme classes
-    this.themes = this.themesKeys
+    return { keys, themeKeys, t, globals };
+  }
+
+  getTheme(themeKeys, keys, t, type = 'color') {
+    this.themes = `${this.themes || ''} ${this.getThemeClasses(themeKeys, keys, t, type)}`;
+    this.variables = `${this.variables || ''} 
+    body { ${this.getVariables(keys, t)} }
+    `;
+
+    return { keys, themeKeys, t };
+  }
+
+  prepareTags(keys, themeKeys, t) {
+    const tags = unflat(t);
+    this.tags = Object.keys(tags)
       .map(
-        (theme) => `.theme-${theme} {${k(t)
-          .filter((key) => ![...this.skip, ...this.toTags].includes(key))
-          .map((key) =>
-            t[key][theme] ? `--scope-${key}: var(--raqn-${key}-${theme});` : '',
-          )
-          .filter((v) => v !== '')
-          .join('')}
-      }`,
+        (tag) =>
+          `${tag} {
+          ${keys
+            .filter((key) => key.indexOf(tag) === 0)
+            .reduce((acc, prop) => {
+              const val = t[prop].default;
+
+              return `${acc}
+          ${prop.replace(`${tag}-`, '')}: var(--${prop},${val});
+          `;
+            }, '')}}
+          `,
       )
       .join('');
-
-    this.variables = `body{${k(t)
-      .filter((key) => ![...this.skip].includes(key))
-      .map((key) => {
-        const rows = k(t[key]);
-        return rows.map((row) => this.renderVariables(key, row, t)).join('');
-      })
-      .join('')}}`;
   }
 
   styles() {
-    ['variables', 'tags', 'atomic', 'themes'].forEach((cssSegment) => {
+    ['variables', 'tags', 'atomic', 'themes', 'fontFace'].forEach((cssSegment) => {
       const style = document.createElement('style');
       style.innerHTML = this[cssSegment];
       style.classList.add(cssSegment);
       document.head.appendChild(style);
     });
     const themeMeta = getMeta('theme');
-    document.body.classList.add(themeMeta || 'theme-default');
+    document.body.classList.add(themeMeta, 'font-default', 'color-default');
   }
 
-  async processFragment(response) {
+  async processFragment(response, type = 'color') {
     if (response.ok) {
-      this.themeJson = await response.json();
-      this.readValue();
-      this.styles();
+      const responseData = await response.json();
+      this.themeJson[type] = responseData;
+      if (type === 'fontface') {
+        this.fontFaceTemplate(responseData);
+      } else {
+        const { keys, themeKeys, t } = this.readValue(responseData.data, type);
+
+        this.getTheme(themeKeys, keys, t, type);
+        if (type === 'font') {
+          this.prepareTags(keys, themeKeys, t);
+        }
+      }
     }
+  }
+
+  async loadFragment() {
+    await fetch('colors.json').then((response) => this.processFragment(response, 'color'));
+    await fetch('fonts.json').then((response) => this.processFragment(response, 'font'));
+    await fetch('/fonts/index.json').then((response) => this.processFragment(response, 'fontface'));
+    this.styles();
   }
 }

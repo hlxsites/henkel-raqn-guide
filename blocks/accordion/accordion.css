@@ -1,12 +1,12 @@
 raqn-accordion {
-  --scope-icon-size: 1em;
-  --accordion-background: var(--scope-background, black);
-  --accordion-color: var(--scope-color, white);
+  --icon-size: 1em;
+  --accordion-background: var(--background, black);
+  --accordion-color: var(--title, white);
 
   background: var(--accordion-background);
   color: var(--accordion-color);
-  margin: var(--scope-margin, 0);
-  padding: var(--scope-padding, 0);
+  margin: var(--margin, 0);
+  padding: var(--padding, 0);
   display: grid;
 }
 
@@ -21,9 +21,9 @@ raqn-accordion accordion-control.active raqn-icon {
 }
 
 .accordion-control {
-  border-block-start: var(--scope-border-block-start, none);
-  border-inline-start: var(--scope-border-inline-start, none);
-  border-inline-end: var(--scope-border-inline-end, none);
+  border-block-start: var(--border-block-start, none);
+  border-inline-start: var(--border-inline-start, none);
+  border-inline-end: var(--border-inline-end, none);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -36,8 +36,8 @@ raqn-accordion accordion-control.active raqn-icon {
 }
 
 .accordion-control > * {
-  --scope-headings-color: var(--scope-color, black);
-  --scope-hover-color: var(--scope-accent-color, gray);
+  --headings-color: var(--title, black);
+  --hover-color: var(--accent, gray);
 
   width: 100%;
   display: flex;
@@ -46,7 +46,7 @@ raqn-accordion accordion-control.active raqn-icon {
 }
 
 .accordion-control:hover {
-  --scope-color: var(--scope-headings-color);
+  color: var(--headings-color);
 }
 
 .accordion-content {
@@ -54,8 +54,8 @@ raqn-accordion accordion-control.active raqn-icon {
   max-height: 0;
   overflow: hidden;
   opacity: 0;
-  border-block-end: var(--scope-border-block-end, none);
-  border-block-start: var(--scope-border-block-start, none);
+  border-block-end: var(--border-block-end, none);
+  border-block-start: var(--border-block-start, none);
   margin-block-end: -1px;
   transition:
     max-height 0.5s ease-in-out,

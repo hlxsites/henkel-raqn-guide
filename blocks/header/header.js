@@ -2,6 +2,7 @@ import ComponentBase from '../../scripts/component-base.js';
 import { eagerImage, getMeta } from '../../scripts/libs.js';
 
 const metaHeader = getMeta('header');
+const headerClass = getMeta('headerClass') || 'color-primary';
 const metaFragment = !!metaHeader && `${metaHeader}.plain.html`;
 export default class Header extends ComponentBase {
   static loaderConfig = {
@@ -25,6 +26,7 @@ export default class Header extends ComponentBase {
   }
 
   connected() {
+    this.classList.add(...headerClass.split('.'));
     eagerImage(this, 1);
   }
 }

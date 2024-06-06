@@ -1,12 +1,12 @@
 footer {
-  background: var(--scope-background-color);
-  width: var(--scope-max-width);
+  background: var(--background-color);
+  width: var(--max-width);
   margin: 0 auto;
 }
 
 raqn-footer {
-  background: var(--scope-background-color);
-  border-top: 1px solid var(--scope-color);
+  background: var(--background-color);
+  border-top: 1px solid var(--text);
 }
 
 raqn-footer ul {
@@ -17,7 +17,7 @@ raqn-footer ul {
 }
 
 raqn-footer ul li a {
-  color: var(--scope-color);
+  color: var(--text);
 }
 
 @media screen and (min-width: 1024px) {
@@ -28,7 +28,7 @@ raqn-footer ul li a {
 
   raqn-footer ul li a {
     padding: 10px 1.2em;
-    border-inline-end: 1px solid var(--scope-color);
+    border-inline-end: 1px solid var(--text);
   }
 
   raqn-footer ul {
