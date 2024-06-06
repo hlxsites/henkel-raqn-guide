@@ -17,9 +17,16 @@ export default async function preview(component, classes, uuid) {
   }
   const el = document.createElement('div');
   const { attributesValues } = component;
-  el.classList.add(...attributesValues.class.split(' '));
+  if (typeof attributesValues.class === 'string') {
+    el.classList.add(...attributesValues.class.split(' '));
+  }
   el.innerHTML = component.innerHTML;
 
+  if (component.attributesValues.attributes) {
+    Object.keys(component.attributesValues.attributes).forEach((attr) => {
+      el.setAttribute(attr, component.attributesValues.attributes[attr]);
+    });
+  }
   const loader = new ComponentLoader({ componentName, targets: [el] });
   loader.init();
   main.innerHTML = `<div>${component.html}</div>`;
