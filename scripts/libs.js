@@ -18,17 +18,17 @@ export const globalConfig = {
 export const metaTags = {
   componentsConfig: {
     metaName: 'components-config',
-    fallbackContent: 'components-config.json',
+    fallbackContent: 'components-config',
     // contentType: 'path without extension',
   },
   header: {
     metaName: 'header',
-    fallbackContent: 'header.plain.html',
+    fallbackContent: 'header',
     // contentType: 'path without extension',
   },
   footer: {
     metaName: 'footer',
-    fallbackContent: 'footer.plain.html',
+    fallbackContent: 'footer',
     // contentType: 'path without extension',
   },
   structure: {
@@ -272,7 +272,7 @@ export const externalConfig = {
     window.raqnComponentsConfig ??= (async () => {
       const { metaName, fallbackContent } = metaTags.componentsConfig;
       const metaConfigPath = getMeta(metaName);
-      const configPath = (!!metaConfigPath && `${metaConfigPath}.json`) || fallbackContent;
+      const configPath = (!!metaConfigPath && `${metaConfigPath}.json`) || `${fallbackContent}.json`;
       let result = null;
       try {
         const response = await fetch(`${configPath}`);

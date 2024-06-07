@@ -12,7 +12,7 @@ export default class Header extends ComponentBase {
     },
   };
 
-  fragmentPath = metaFragment || fallbackContent;
+  fragmentPath = metaFragment || `${fallbackContent}.plain.html`;
 
   dependencies = ['navigation', 'image'];
 
