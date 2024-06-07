@@ -1,9 +1,21 @@
 import ComponentBase from '../../scripts/component-base.js';
+import { stringToJsVal } from '../../scripts/libs.js';
 
 export default class Icon extends ComponentBase {
-  static observedAttributes = ['data-icon'];
+  static observedAttributes = ['data-active', 'data-icon'];
 
-  nestedComponentsConfig = {};
+  #initialIcon = null;
+
+  #activeIcon = null;
+
+  get cache() {
+    window.ICONS_CACHE ??= {};
+    return window.ICONS_CACHE;
+  }
+
+  get isActive() {
+    return stringToJsVal(this.dataset.active) === true;
+  }
 
   extendConfig() {
     return [
@@ -28,59 +40,92 @@ export default class Icon extends ComponentBase {
     }
   }
 
-  get iconUrl() {
-    return `assets/icons/${this.iconName}.svg`;
+  setDefaults() {
+    super.setDefaults();
+    this.nestedComponentsConfig = {};
   }
 
-  get cache() {
-    window.ICONS_CACHE = window.ICONS_CACHE || {};
-    return window.ICONS_CACHE;
+  iconUrl(iconName) {
+    return `assets/icons/${iconName}.svg`;
   }
 
   async connected() {
     this.setAttribute('aria-hidden', 'true');
   }
 
-  onAttributeIconChanged({ oldValue, newValue }) {
+  // Same icon component can be reused with any other icons just by changing the attribute
+  async onAttributeIconChanged({ oldValue, newValue }) {
     if (oldValue === newValue) return;
-    this.loadIcon(newValue);
-  }
 
-  async loadIcon(icon) {
-    this.iconName = icon;
-    if (!this.cache[this.iconName]) {
-      this.cache[this.iconName] = {
-        loading: new Promise((resolve) => {
-          resolve(this.loadFragment(this.iconUrl));
-        }),
-      };
+    // ! The initial and active icon names are separated with a double underline
+    // ! The active icon is optional; 
+    const [initial, active] = newValue.split('__');
+    this.#initialIcon = initial;
+    this.#activeIcon = active || null;
+
+    // Start loading both icons;
+    const loadInitialIcon = this.loadIcon(this.#initialIcon);
+    const loadActiveIcon = this.#activeIcon ? this.loadIcon(this.#activeIcon) : null;
+
+    const isActiveWithIcon = this.isActive && this.#activeIcon;
+    // Wait only for the current icon
+    if (isActiveWithIcon) {
+      await loadActiveIcon;
     } else {
-      await this.cache[this.iconName].loading;
-      this.innerHTML = this.template();
+      await loadInitialIcon;
     }
-    this.classList.add('loaded');
+    this.displayIcon(isActiveWithIcon ? this.#activeIcon : this.#initialIcon);
   }
 
-  template() {
-    const { viewBox } = this.cache[this.iconName];
+  // If there is an active icon toggle the icons
+  async onAttributeActiveChanged({ oldValue, newValue }) {
+    if (!this.initialized) return;
+    if (oldValue === newValue) return;
+    if (!this.#activeIcon) return;
+    this.displayIcon(this.isActive ? this.#activeIcon : this.#initialIcon);
+  }
+
+  displayIcon(iconName) {
+    this.innerHTML = this.template(iconName);
+  }
+
+  // Load icon can be used externally to load additional icons in the cache
+  async loadIcon(iconName) {
+    // this.iconName = icon;
+    if (!this.cache[iconName]) {
+      this.cache[iconName] = {
+        loading: this.loadFragment(this.iconUrl(iconName), iconName),
+      };
+    }
+    await this.cache[iconName].loading;
+  }
+
+  template(iconName) {
+    if (!this.cache[iconName]) return '';
+    const { viewBox } = this.cache[iconName];
     const attributes = Object.keys({ viewBox })
       .map((k) => {
-        if (this.cache[this.iconName][k]) {
-          return `${k}="${this.cache[this.iconName][k]}"`;
+        if (this.cache[iconName][k]) {
+          return `${k}="${this.cache[iconName][k]}"`;
         }
         return '';
       })
       .join(' ');
-    return `<svg focusable="false" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ${attributes}><use xlink:href="#icons-sprite-${this.iconName}"/></svg>`;
+    return `<svg focusable="false" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" ${attributes}><use xlink:href="#icons-sprite-${iconName}"/></svg>`;
   }
 
   iconTemplate(iconName, svg, viewBox, width, height) {
     return `<defs><g id="icons-sprite-${iconName}" viewBox="${viewBox}" width="${width}" height="${height}">${svg.innerHTML}</g></defs>`;
   }
 
-  async processFragment(response) {
+  async loadFragment(path, iconName) {
+    if (typeof path !== 'string') return;
+    const response = await this.getFragment(path);
+    await this.processFragment(response, iconName);
+  }
+
+  async processFragment(response, iconName) {
     if (response.ok) {
-      const { iconName } = this;
       this.svg = await response.text();
 
       if (this.svg.match(/(<style | class=|url\(#| xlink:href="#)/)) {
@@ -106,9 +151,8 @@ export default class Icon extends ComponentBase {
         this.cache[iconName].svg = svg;
       }
       this.svgSprite.append(this.cache[iconName].svg);
-      this.innerHTML = this.template();
     } else {
-      this.cache[this.iconName] = false;
+      this.cache[iconName] = false;
     }
   }
 }
