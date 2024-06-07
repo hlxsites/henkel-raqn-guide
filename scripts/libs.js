@@ -15,6 +15,51 @@ export const globalConfig = {
   },
 };
 
+export const metaTags = {
+  componentsConfig: {
+    metaName: 'components-config',
+    fallbackContent: 'components-config',
+    // contentType: 'path without extension',
+  },
+  header: {
+    metaName: 'header',
+    fallbackContent: 'header',
+    // contentType: 'path without extension',
+  },
+  footer: {
+    metaName: 'footer',
+    fallbackContent: 'footer',
+    // contentType: 'path without extension',
+  },
+  structure: {
+    metaNamePrefix: 'structure',
+    // contentType: 'boolean string',
+  },
+  lcp: {
+    metaName: 'lcp',
+    fallbackContent: ['theming', 'header', 'breadcrumbs'],
+    // contentType: 'string of comma separated component names',
+  },
+  eagerImage: {
+    metaName: 'eager-images',
+    // contentType: 'number string',
+  },
+  basePath: {
+    metaName: 'basePath',
+    // contentType: 'path without extension',
+  },
+  theming: {
+    metaName: 'theming',
+    fallbackContent: 'theming.json',
+    // contentType: 'path without extension',
+  },
+  theme: {
+    metaName: 'theme',
+    fallbackContent: 'theme-default',
+    // contentType: 'string theme name',
+  },
+};
+
 export const camelCaseAttr = (val) => val.replace(/-([a-z])/g, (k) => k[1].toUpperCase());
 export const capitalizeCaseAttr = (val) => camelCaseAttr(val.replace(/^[a-z]/g, (k) => k.toUpperCase()));
 
@@ -193,7 +238,14 @@ export function deepMerge(origin, ...toMerge) {
 
 export const externalConfig = {
   defaultConfig(rawConfig = []) {
-    return { attributesValues: {}, nestedComponentsConfig: {}, props: {}, config: {}, rawConfig };
+    return {
+      attributesValues: {},
+      nestedComponentsConfig: {},
+      props: {},
+      config: {},
+      rawConfig,
+      hasBreakpointsValues: false,
+    };
   },
 
   async getConfig(componentName, configName, knownAttributes) {
@@ -218,9 +270,9 @@ export const externalConfig = {
 
   async loadConfig() {
     window.raqnComponentsConfig ??= (async () => {
-      const metaConfigPath = getMeta('component-config');
-      const defaultConfig = 'components-config.json';
-      const configPath = (!!metaConfigPath && `${metaConfigPath}.json`) || defaultConfig;
+      const { metaName, fallbackContent } = metaTags.componentsConfig;
+      const metaConfigPath = getMeta(metaName);
+      const configPath = (!!metaConfigPath && `${metaConfigPath}.json`) || `${fallbackContent}.json`;
       let result = null;
       try {
         const response = await fetch(`${configPath}`);
@@ -246,6 +298,8 @@ export const externalConfig = {
 
       Object.entries(breakpointConfig).forEach(([key, val]) => {
         if (val.trim() === '') return;
+        if (![...Object.keys(globalConfig.breakpoints), 'all'].includes(breakpoint)) return;
+        if (!isMainConfig) acc.hasBreakpointsValues = true;
 
         const parsedVal = stringToJsVal(val, { trim: true });
 
@@ -271,8 +325,9 @@ export const externalConfig = {
 
   parseAttrValues(parsedVal, acc, key, breakpoint) {
     const keyProp = key.replace(/^data-/, '');
-    acc.attributesValues[keyProp] ??= {};
-    acc.attributesValues[keyProp][breakpoint] = parsedVal;
+    const camelAttr = camelCaseAttr(keyProp);
+    acc.attributesValues[camelAttr] ??= {};
+    acc.attributesValues[camelAttr][breakpoint] = parsedVal;
   },
 
   parseConfig(parsedVal, acc, key, configPrefix) {
@@ -303,10 +358,15 @@ export const externalConfig = {
 export const configFromClasses = {
   getConfig(componentName, configByClasses, knownAttributes) {
     const nestedComponentsConfig = this.nestedConfigFromClasses(configByClasses);
-    const attributesValues = this.attributeValuesFromClasses(componentName, configByClasses, knownAttributes);
+    const { attributesValues, hasBreakpointsValues } = this.attributeValuesFromClasses(
+      componentName,
+      configByClasses,
+      knownAttributes,
+    );
     return {
       attributesValues,
       nestedComponentsConfig,
+      hasBreakpointsValues,
     };
   },
 
@@ -344,6 +404,7 @@ export const configFromClasses = {
   },
 
   attributeValuesFromClasses(componentName, configByClasses, knownAttributes) {
+    let hasBreakpointsValues = false;
     const nestedComponentsNames = this.nestedComponentsNames(configByClasses);
     const onlyKnownAttributes = knownAttributes.filter((a) => a !== 'class');
     const attributesValues = configByClasses
@@ -355,7 +416,10 @@ export const configFromClasses = {
         const classBreakpoint = this.classBreakpoint(c);
         const isBreakpoint = this.isBreakpoint(classBreakpoint);
 
-        if (isBreakpoint) value = value.slice(classBreakpoint.length + 1);
+        if (isBreakpoint) {
+          hasBreakpointsValues = true;
+          value = value.slice(classBreakpoint.length + 1);
+        }
 
         const excludeNested = nestedComponentsNames.find((prefix) => value.startsWith(prefix));
         if (excludeNested) return acc;
@@ -387,7 +451,7 @@ export const configFromClasses = {
         return acc;
       }, {});
 
-    return attributesValues;
+    return { attributesValues, hasBreakpointsValues };
   },
   classBreakpoint(c) {
     return Object.keys(globalConfig.breakpoints).find((b) => c.startsWith(`${b}-`)) || 'all';

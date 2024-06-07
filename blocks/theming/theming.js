@@ -1,28 +1,21 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { globalConfig, getMeta } from '../../scripts/libs.js';
-// minify alias
-const metaTheming = getMeta('theming');
+import { globalConfig, metaTags, getMeta } from '../../scripts/libs.js';
+
+const { theming, theme } = metaTags;
+const metaTheming = getMeta(theming.metaName);
 const metaFragment = metaTheming && `${metaTheming}.json`;
 const k = Object.keys;
 
 export default class Theming extends ComponentBase {
-  
   nestedComponentsConfig = {};
 
   setDefaults() {
     super.setDefaults();
     this.scapeDiv = document.createElement('div');
     // keep as it is
-    this.fragmentPath = metaFragment || 'theming.json';
+    this.fragmentPath = metaFragment || theming.fallbackContent;
     this.skip = ['tags'];
-    this.toTags = [
-      'font-size',
-      'font-weight',
-      'font-family',
-      'line-height',
-      'font-style',
-      'font-margin-block',
-    ];
+    this.toTags = ['font-size', 'font-weight', 'font-family', 'line-height', 'font-style', 'font-margin-block'];
     this.transform = { 'font-margin-block': 'margin-block' };
     this.tags = '';
     this.fontFace = '';
@@ -58,10 +51,7 @@ export default class Theming extends ComponentBase {
     return k(values).map((value) => {
       const val = values[value];
       return `${tag} {${k(val)
-        .map(
-          (v) =>
-            `${this.getKey(v)}: var(--scope-${this.getKey(v)}, ${val[v]});`,
-        )
+        .map((v) => `${this.getKey(v)}: var(--scope-${this.getKey(v)}, ${val[v]});`)
         .join('')}}`;
     });
   }
@@ -82,12 +72,10 @@ export default class Theming extends ComponentBase {
       if (key === 'font-face') {
         this.fontFace += this.fontFaceTemplate(value);
       } else {
-        variable = `\n--raqn-${this.getKey(key)}-${row}: ${this.escapeHtml(
-          value,
-        ).trim()};`;
-        this.atomic += `body .${this.getKey(key)}-${row} {--scope-${this.getKey(
+        variable = `\n--raqn-${this.getKey(key)}-${row}: ${this.escapeHtml(value).trim()};`;
+        this.atomic += `body .${this.getKey(key)}-${row} {--scope-${this.getKey(key)}: var(--raqn-${this.getKey(
           key,
-        )}: var(--raqn-${this.getKey(key)}-${row});}\n`;
+        )}-${row});}\n`;
       }
     }
     return variable;
@@ -120,11 +108,9 @@ export default class Theming extends ComponentBase {
     // full scoped theme classes
     this.themes = this.themesKeys
       .map(
-        (theme) => `.theme-${theme} {${k(t)
+        (themeItem) => `.theme-${themeItem} {${k(t)
           .filter((key) => ![...this.skip, ...this.toTags].includes(key))
-          .map((key) =>
-            t[key][theme] ? `--scope-${key}: var(--raqn-${key}-${theme});` : '',
-          )
+          .map((key) => (t[key][themeItem] ? `--scope-${key}: var(--raqn-${key}-${themeItem});` : ''))
           .filter((v) => v !== '')
           .join('')}
       }`,
@@ -147,8 +133,8 @@ export default class Theming extends ComponentBase {
       style.classList.add(cssSegment);
       document.head.appendChild(style);
     });
-    const themeMeta = getMeta('theme');
-    document.body.classList.add(themeMeta || 'theme-default');
+    const themeMeta = getMeta(theme.metaName);
+    document.body.classList.add(themeMeta || theme.fallbackContent);
   }
 
   async processFragment(response) {

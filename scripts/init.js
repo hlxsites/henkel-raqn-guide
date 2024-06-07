@@ -1,5 +1,5 @@
 import ComponentLoader from './component-loader.js';
-import { globalConfig, eagerImage, getMeta, getMetaGroup, mergeUniqueArrays } from './libs.js';
+import { globalConfig, metaTags, eagerImage, getMeta, getMetaGroup, mergeUniqueArrays } from './libs.js';
 
 const component = {
   async init(settings) {
@@ -124,8 +124,9 @@ const onLoadComponents = {
   },
 
   setLcp() {
-    const lcpMeta = getMeta('lcp', { getArray: true });
-    const defaultLcp = ['theming', 'header', 'breadcrumbs'];
+    const { metaName, fallbackContent } = metaTags.lcp;
+    const lcpMeta = getMeta(metaName, { getArray: true });
+    const defaultLcp = fallbackContent;
     const lcp = lcpMeta?.length ? lcpMeta : defaultLcp;
     // theming must be in LCP to prevent CLS
     this.lcp = mergeUniqueArrays(lcp, ['theming']).map((componentName) => ({
@@ -134,7 +135,7 @@ const onLoadComponents = {
   },
 
   setStructure() {
-    const structureComponents = getMetaGroup('structure');
+    const structureComponents = getMetaGroup(metaTags.structure.metaNamePrefix);
     this.structureComponents = structureComponents.flatMap(({ name, content }) => {
       if (content !== true) return [];
       return {
@@ -180,7 +181,7 @@ const globalInit = {
   },
 
   initEagerImages() {
-    const eagerImages = getMeta('eager-images');
+    const eagerImages = getMeta(metaTags.eagerImage.metaName);
     if (eagerImages) {
       const length = parseInt(eagerImages, 10);
       eagerImage(document.body, length);
