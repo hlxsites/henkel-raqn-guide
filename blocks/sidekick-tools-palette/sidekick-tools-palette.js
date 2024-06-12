@@ -323,7 +323,7 @@ export default class SidekickToolsPalette extends ComponentBase {
     });
   }
 
-  async init() {
+  async initPalette() {
     const { searchParams } = new URL(window.location.href);
     this.innerHTML = 'loading ...';
     if(!searchParams.has('ref') || !searchParams.has('repo') || !searchParams.has('owner')) {
@@ -368,6 +368,6 @@ export default class SidekickToolsPalette extends ComponentBase {
   }
 
   connected() {
-    this.init();
+    this.initPalette();
   }
 }
