@@ -16,7 +16,7 @@
       "environments": ["edit"],
       "url": "/tools/sidekick/block-library.html",
       "excludePaths": ["**"],
-      "includePaths": ["**.docx**", "/document/**"]
+      "includePaths": ["**.doc**", "/document/**"]
     },
     {
       "id": "palette",
