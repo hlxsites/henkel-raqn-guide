@@ -1,5 +1,5 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { getMeta, metaTags } from '../../scripts/libs.js';
+import { getBaseUrl } from '../../scripts/libs.js';
 
 export default class Breadcrumbs extends ComponentBase {
   static loaderConfig = {
@@ -27,7 +27,7 @@ export default class Breadcrumbs extends ComponentBase {
     this.classList.add('full-width');
     this.classList.add('breadcrumbs');
     const { origin, pathname } = window.location;
-    this.path = `${origin}${pathname}`.split(getMeta(metaTags.breadcrumbRoot.metaName)).join('/').split('/');
+    this.path = `${origin}${pathname}`.split(getBaseUrl()).join('/').split('/');
     this.innerHTML = `
     <ul>
         ${this.path
