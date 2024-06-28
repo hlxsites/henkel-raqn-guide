@@ -18,6 +18,7 @@ export const globalConfig = {
 export const metaTags = {
   breadcrumbRoot: {
     metaName: 'breadcrumb-root',
+    fallbackContent: '/',
   },
   componentsConfig: {
     metaName: 'components-config',

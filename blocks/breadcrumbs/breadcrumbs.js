@@ -31,9 +31,9 @@ export default class Breadcrumbs extends ComponentBase {
     if (breadcrumbRoot) {
       breadcrumbRoot = breadcrumbRoot?.starsWith('/') ? breadcrumbRoot : `/${breadcrumbRoot}`;
     } else {
-      breadcrumbRoot = '/';
+      breadcrumbRoot = metaTags.breadcrumbRoot.fallbackContent;
     }
-    
+
     this.pathPages = `${origin}${pathname}`.split(`${origin}${breadcrumbRoot}`).join('/').split('/');
     this.innerHTML = `
     <ul>
