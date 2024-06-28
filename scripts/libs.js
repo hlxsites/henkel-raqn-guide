@@ -18,6 +18,7 @@ export const globalConfig = {
 export const metaTags = {
   breadcrumbRoot: {
     metaName: 'breadcrumb-root',
+    fallbackContent: '/',
   },
   componentsConfig: {
     metaName: 'components-config',
@@ -500,12 +501,4 @@ export function loadModule(urlWithoutExtension) {
 export function mergeUniqueArrays(...arrays) {
   const mergedArrays = arrays.reduce((acc, arr) => [...acc, ...(arr || [])], []);
   return [...new Set(mergedArrays)];
-}
-
-export function getBaseUrl() {
-  return document.head.querySelector('base').href;
-}
-
-export function isHomePage(url) {
-  return getBaseUrl() === (url || window.location.href);
 }
