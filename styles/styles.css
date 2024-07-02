@@ -20,9 +20,18 @@ body {
 body {
   display: none;
   background: var(--scope-background, #fff);
-  padding: 0;
-  margin: 0;
-  width: 100%;
+  position: relative;
+  min-height: 100%;
+}
+
+body.no-scroll {
+  block-size: 100vh;
+  overflow: hidden;
+  position: relative;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
 }
 
 html,
@@ -39,6 +48,7 @@ p,
 blockquote,
 pre,
 a,
+button,
 img,
 small,
 strong,
@@ -71,8 +81,8 @@ header {
   background: var(--scope-header-background, #fff);
 }
 
-head:has(meta[name="header"][content="false" i]) + body > header,
-head:has(meta[name="footer"][content="false" i]) + body > footer {
+head:has(meta[name='header'][content='false' i]) + body > header,
+head:has(meta[name='footer'][content='false' i]) + body > footer {
   display: none;
 }
 
@@ -127,7 +137,6 @@ main > div > div > div {
 }
 
 a {
-  display: inline-flex;
   line-height: 1em;
   align-items: center;
   color: var(--scope-link-color, inherit);
@@ -136,6 +145,20 @@ a {
 }
 
 a:hover {
+  color: var(--scope-link-color-hover, inherit);
+}
+
+button {
+  border: none;
+  appearance: none;
+  background-color: transparent;
+  display: inline-flex;
+  line-height: 1em;
+  align-items: center;
+  text-decoration: none;
+}
+
+button:hover {
   color: var(--scope-link-color-hover, inherit);
 }
 
@@ -154,7 +177,6 @@ img {
   max-width: 100%;
   height: auto;
 }
-
 
 [isloading],
 .hide-with-error,
