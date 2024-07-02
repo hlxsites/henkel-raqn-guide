@@ -104,7 +104,7 @@ const onLoadComponents = {
   queryAllBlocks() {
     this.blocks = [
       document.body.querySelector(globalConfig.semanticBlocks[0]),
-      ...document.querySelectorAll('[class]:not([class^=style]'),
+      ...document.querySelectorAll(globalConfig.blockSelector),
       ...document.body.querySelectorAll(globalConfig.semanticBlocks.slice(1).join(',')),
     ];
   },
