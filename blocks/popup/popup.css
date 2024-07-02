@@ -112,7 +112,7 @@ raqn-popup:has(.popup__base--flyout) {
 
 .popup__content {
   overflow: auto;
-  padding: var(--scope-popup-content-padding, 0);
+  padding: var(--scope-popup-content-padding, 0 20px);
   max-block-size: 100vh;
   height: auto;
   animation-delay: 0.5s;
