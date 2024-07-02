@@ -21,10 +21,6 @@ If the button component rules were met, the popup trigger component will match a
 
 When `#popup-trigger` hash is used, the url of the anchor will be used to load the pop-up content from that url.
 
-``` js
-targetsSelectors: 'a:is([href*="#popup-trigger"],[href*="#popup-close"])',
-```
-
 ## Editorial Initializations (in MS Word)
 ### 1. Open a popup
 The popup content will be loaded from the url provided in the anchor configured with the `#popup-trigger` hash.

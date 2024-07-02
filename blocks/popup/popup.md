@@ -4,7 +4,7 @@ A component to generates a pop-up which fetches content from a provided content 
 
 It can be styled as a modal or a flyout.
 
-A [popup-trigger](../popup/popup-trigger.md) component is used to generate and open a popup.
+A [popup-trigger](../popup-trigger/popup-trigger.md) component is used to generate and open a popup.
 
 ## Block Name
 
@@ -25,7 +25,7 @@ Currently if used as a block with the active option set to
 
 | Option | Value | Default | Description | Note |
 |-|-|-|-|-|
-| `url` | `url.pathname` | `n/a` | A relative url to the source page of the popup content | - Value is passed by [popup-trigger](../popup/popup-trigger.md) component it's generating the popup.<br> - Value is taken from the first anchor in the body of the popup block |
+| `url` | `url.pathname` | `n/a` | A relative url to the source page of the popup content | - Value is passed by [popup-trigger](../popup-trigger/popup-trigger.md) component it's generating the popup.<br> - Value is taken from the first anchor in the body of the popup block |
 | `active` | `boolean` | `false` | Set the open/close state of the pop-up. | Value is passed by [config-popup](./config-popup.md) block. |
 | `type` | `modal` or `flyout` | `modal` | Sets the visual style of the popup. | Value is passed by [config-popup](./config-popup.md) block. |
 | `size` | `1` to `12` | `10` | Sets the width of the popup based on a 12 columns grid. | Value is passed by [config-popup](./config-popup.md) block. |
