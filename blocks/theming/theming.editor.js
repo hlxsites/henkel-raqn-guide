@@ -21,6 +21,7 @@ export default function config() {
       if (e && e.data) {
         const { message, params } = e.data;
         if (message && message === MessagesEvents.themeUpdate) {
+          console.log('themeUpdate', params);
           [themeInstance] = window.raqnInstances[Theming.name.toLowerCase()];
           const { name, data } = params;
           const keys = Object.keys(data);

@@ -123,7 +123,9 @@ export default class Theming extends ComponentBase {
   }
 
   prepareTags(keys, themeKeys, t) {
+    console.log('prepareTags', keys, themeKeys, t);
     const tags = unflat(t);
+    console.log('tags', tags);
     this.tags = Object.keys(tags)
       .map(
         (tag) =>
@@ -144,7 +146,7 @@ export default class Theming extends ComponentBase {
 
   styles() {
     ['variables', 'tags', 'atomic', 'themes', 'fontFace'].forEach((cssSegment) => {
-      const style = document.createElement('style');
+      const style = document.querySelector(`style.${cssSegment}`) || document.createElement('style');
       style.innerHTML = this[cssSegment];
       style.classList.add(cssSegment);
       document.head.appendChild(style);
@@ -161,7 +163,7 @@ export default class Theming extends ComponentBase {
         this.fontFaceTemplate(responseData);
       } else {
         const { keys, themeKeys, t } = this.readValue(responseData.data, type);
-
+        console.log('get them keys', themeKeys, keys, t, type);
         this.getTheme(themeKeys, keys, t, type);
         if (type === 'font') {
           this.prepareTags(keys, themeKeys, t);
