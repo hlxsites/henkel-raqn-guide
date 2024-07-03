@@ -18,14 +18,14 @@ export const globalConfig = {
 export const camelCaseAttr = (val) => val.replace(/-([a-z])/g, (k) => k[1].toUpperCase());
 export const capitalizeCaseAttr = (val) => camelCaseAttr(val.replace(/^[a-z]/g, (k) => k.toUpperCase()));
 
-export function matchMediaQuery(breakpointMin, breakpointMax) {
-  return window.matchMedia(this.getMediaQuery(breakpointMin, breakpointMax));
-}
-
 export function getMediaQuery(breakpointMin, breakpointMax) {
   const min = `(min-width: ${breakpointMin}px)`;
   const max = breakpointMax ? ` and (max-width: ${breakpointMax}px)` : '';
   return `${min}${max}`;
+}
+
+export function matchMediaQuery(breakpointMin, breakpointMax) {
+  return window.matchMedia(getMediaQuery(breakpointMin, breakpointMax));
 }
 
 export function getBreakPoints() {
