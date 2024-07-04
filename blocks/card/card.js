@@ -2,7 +2,7 @@ import ComponentBase from '../../scripts/component-base.js';
 import { eagerImage } from '../../scripts/libs.js';
 
 export default class Card extends ComponentBase {
-  static observedAttributes = ['data-columns', 'data-ratio', 'data-eager', 'data-background', 'data-button'];
+  static observedAttributes = ['data-columns', 'data-ratio', 'data-eager'];
 
   ready() {
     this.eager = parseInt(this.dataset.eager || 0, 10);
@@ -10,13 +10,6 @@ export default class Card extends ComponentBase {
     if (this.eager) {
       eagerImage(this, this.eager);
     }
-  }
-
-  convertLink(a) {
-    const button = document.createElement('raqn-button');
-    const content = a.outerHTML;
-    button.innerHTML = content;
-    a.replaceWith(button);
   }
 
   setupRatio(ratio) {

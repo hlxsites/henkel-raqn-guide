@@ -1,5 +1,6 @@
 export const globalConfig = {
   semanticBlocks: ['header', 'footer'],
+  blockSelector: '[class]:not(style, [class^="config-" i])',
   breakpoints: {
     xs: 0,
     s: 480,
@@ -18,6 +19,7 @@ export const globalConfig = {
 export const metaTags = {
   breadcrumbRoot: {
     metaName: 'breadcrumb-root',
+    fallbackContent: '/',
   },
   componentsConfig: {
     metaName: 'components-config',
@@ -213,17 +215,17 @@ export function isObject(item) {
   return item && typeof item === 'object' && !Array.isArray(item);
 }
 
-export function isObjectNotWindow(item) {
-  return isObject(item) && item !== window;
+export function isOnlyObject(item) {
+  return isObject(item) && item !== window && !(item instanceof HTMLElement);
 }
 
 export function deepMerge(origin, ...toMerge) {
   if (!toMerge.length) return origin;
   const merge = toMerge.shift();
 
-  if (isObjectNotWindow(origin) && isObjectNotWindow(merge)) {
+  if (isOnlyObject(origin) && isOnlyObject(merge)) {
     Object.keys(merge).forEach((key) => {
-      if (isObjectNotWindow(merge[key])) {
+      if (isOnlyObject(merge[key])) {
         if (!origin[key]) Object.assign(origin, { [key]: {} });
         deepMerge(origin[key], merge[key]);
       } else {
@@ -501,3 +503,91 @@ export function mergeUniqueArrays(...arrays) {
   const mergedArrays = arrays.reduce((acc, arr) => [...acc, ...(arr || [])], []);
   return [...new Set(mergedArrays)];
 }
+
+export function getBaseUrl() {
+  return document.head.querySelector('base').href;
+}
+
+export function isHomePage(url) {
+  return getBaseUrl() === (url || window.location.href);
+}
+
+export const popupState = {
+  set activePopup(openPopup) {
+    window.raqnOpenPopup = openPopup;
+  },
+
+  get activePopup() {
+    return window.raqnOpenPopup;
+  },
+
+  isThisActive(popup) {
+    return this.activePopup === popup;
+  },
+
+  closeActivePopup() {
+    if (!this.activePopup) return;
+    window.raqnOpenPopup.dataset.active = false;
+    window.raqnOpenPopup = null;
+  },
+};
+
+export const keyMap = {
+  TAB: 9,
+  ENTER: 13,
+  SPACE: 32,
+  ESCAPE: 27,
+  ARROW_DOWN: 40,
+  ARROW_UP: 38,
+  ARROW_RIGHT: 39,
+  ARROW_LEFT: 37,
+};
+
+export const focusableEls = [
+  'a[href]:not([disabled])',
+  'button:not([disabled])',
+  'textarea:not([disabled])',
+  'input[type="text"]:not([disabled])',
+  'input[type="radio"]:not([disabled])',
+  'input[type="checkbox"]:not([disabled])',
+  'select:not([disabled])',
+  '[tabindex]:not([disabled])',
+];
+
+export const focusFirstElementInContainer = (container, { timeoutTime } = { timeoutTime: 500 }) => {
+  // keep timeout to prevent CSS transition interruption
+  setTimeout(() => {
+    const focusableElements = container.querySelectorAll(focusableEls.join(', '));
+    const focusableElement = [...focusableElements].find((el) => el.offsetWidth > 0 && el.offsetHeight > 0);
+
+    if (focusableElement) {
+      focusableElement.focus();
+    }
+  }, timeoutTime);
+};
+
+export const focusTrap = (elem, { dynamicContent } = { dynamicContent: false }) => {
+  let focusEls = elem.querySelectorAll(focusableEls.join(', '));
+  let firstFocusableEl = focusEls[0];
+  let lastFocusableEl = focusEls[focusEls.length - 1];
+
+  elem.addEventListener('keydown', (e) => {
+    if (dynamicContent) {
+      focusEls = elem.querySelectorAll(focusableEls.join(', '));
+      [firstFocusableEl] = focusEls;
+      lastFocusableEl = focusEls[focusEls.length - 1];
+    }
+
+    if (e.key === 'Tab' || e.keyCode === keyMap.TAB) {
+      if (e.shiftKey) {
+        if (document.activeElement === firstFocusableEl) {
+          lastFocusableEl.focus();
+          e.preventDefault();
+        }
+      } else if (document.activeElement === lastFocusableEl) {
+        firstFocusableEl.focus();
+        e.preventDefault();
+      }
+    }
+  });
+};

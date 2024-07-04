@@ -1,6 +1,27 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <link rel="preload" as="fetch" crossorigin="anonymous" href="header.plain.html">
+    <script>
+      const baseMeta = document.querySelector('meta[name="basepath"]');
+      if (baseMeta) {
+        const base = document.createElement('base');
+        base.href = `${baseMeta.content || ''}/`;
+        document.head.appendChild(base);
+      }
+      document.querySelectorAll('a[href^="http://~/"]').forEach((a) => {
+        a.href = a.href.replace('http://~/', '');
+      });
+      
+      const headerMeta = document.querySelector('meta[name="header"]');
+      const url = headerMeta?.content.trim();
+      if (url?.toLowerCase() !== 'false') {
+        const link = document.createElement('link');
+        link.setAttribute('rel', 'preload');
+        link.setAttribute('as', 'fetch');
+        link.setAttribute('crossorigin', 'anonymous');
+        link.href = url ? `${url}.plain.html` : 'header.plain.html';
+        document.head.appendChild(link);
+      }
+    </script>
     <style>body { display: none; }</style>
     <link rel="stylesheet" href="/styles/styles.css" />
     <script src="/scripts/component-base.js" type="module"></script>
