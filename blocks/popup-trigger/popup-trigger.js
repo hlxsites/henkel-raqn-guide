@@ -69,7 +69,6 @@ export default class PopupTrigger extends ComponentBase {
 
   createButton() {
     this.popupBtn = document.createElement('button');
-    this.setAttribute('type', 'button');
     this.popupBtn.setAttribute('aria-expanded', 'false');
     this.popupBtn.setAttribute('aria-haspopup', 'true');
     this.popupBtn.setAttribute('type', 'button');
@@ -113,8 +112,7 @@ export default class PopupTrigger extends ComponentBase {
     if (this.isClosePopupTrigger) return;
     if (!this.isActive) return;
 
-    const popup = await this.createPopup();
-    this.popup = popup;
+    this.popup = await this.createPopup();
     this.addPopupToPage();
     // the icon is initialize async by page loader
     this.triggerIcon = this.querySelector('raqn-icon');
@@ -137,10 +135,12 @@ export default class PopupTrigger extends ComponentBase {
         contentFromTargets: false,
         addToTargetMethod: 'append',
       },
+      props: {
+        popupTrigger: this,
+      },
       targets: [null],
     });
 
-    popup.popupTrigger = this;
     return popup;
   }
 

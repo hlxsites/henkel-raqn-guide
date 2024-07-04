@@ -215,17 +215,17 @@ export function isObject(item) {
   return item && typeof item === 'object' && !Array.isArray(item);
 }
 
-export function isObjectNotWindow(item) {
-  return isObject(item) && item !== window;
+export function isOnlyObject(item) {
+  return isObject(item) && item !== window && !(item instanceof HTMLElement);
 }
 
 export function deepMerge(origin, ...toMerge) {
   if (!toMerge.length) return origin;
   const merge = toMerge.shift();
 
-  if (isObjectNotWindow(origin) && isObjectNotWindow(merge)) {
+  if (isOnlyObject(origin) && isOnlyObject(merge)) {
     Object.keys(merge).forEach((key) => {
-      if (isObjectNotWindow(merge[key])) {
+      if (isOnlyObject(merge[key])) {
         if (!origin[key]) Object.assign(origin, { [key]: {} });
         deepMerge(origin[key], merge[key]);
       } else {
