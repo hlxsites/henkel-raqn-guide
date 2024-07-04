@@ -1,8 +1,11 @@
 # Config Popup
+
 ## Description
+
 A non functional block used to provide configuration for a [popup](./popup.md) component when placed on the content source page of the popup.
 
 ## WebComponent Tag
+
 `N/A`
 
 ## Block Name
@@ -12,6 +15,7 @@ A non functional block used to provide configuration for a [popup](./popup.md) c
 The names are case insensitive.
 
 ## Block Options
+
 | Option | Value | Default | Description |
 |-|-|-|-|
 | `type` | `modal` or `flyout` | `modal` | Sets the visual style of the popup. |
