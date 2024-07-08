@@ -53,7 +53,7 @@ raqn-navigation.active > nav > div {
   display: flex;
 }
 
-raqn-navigation > nav button {
+raqn-navigation > button {
   display: inline-flex;
   justify-self: end;
   align-items: center;

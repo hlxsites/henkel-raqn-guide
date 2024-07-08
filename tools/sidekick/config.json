@@ -4,10 +4,10 @@
     {
       "id": "themeediting",
       "title": "Theme Editing",
-      "environments": ["any", "dev", "admin", "edit", "preview"],
+      "environments": ["preview"],
       "passConfig": true,
       "passReferrer": true,
-      "url": "http://localhost:8888/@henkel/theme-interface/external.html",
+      "url": "https://raqn-web-static.azureedge.net/web-angular-integrations/455911-theme-editing/@henkel/theme-interface/external.html",
       "includePaths": ["**.docx**"]
     },
     {
@@ -16,7 +16,7 @@
       "environments": ["edit"],
       "url": "/tools/sidekick/block-library.html",
       "excludePaths": ["**"],
-      "includePaths": ["**.docx**", "/document/**"]
+      "includePaths": ["**.doc**", "/document/**"]
     },
     {
       "id": "palette",

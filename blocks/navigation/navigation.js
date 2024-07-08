@@ -9,20 +9,26 @@ export default class Navigation extends ComponentBase {
     targetsSelectors: ':scope > :is(:first-child)',
   };
 
-  async ready() {
+  dependencies = ['icon'];
+
+  setDefaults() {
+    super.setDefaults();
     this.active = {};
+    this.isActive = false;
+    this.navContentInit = false;
+    this.navCompactedContentInit = false;
+  }
+
+  async ready() {
     this.navContent = this.querySelector('ul');
     this.innerHTML = '';
-    this.navContentInit = false;
     this.navCompactedContent = this.navContent.cloneNode(true); // the clone need to be done before `this.navContent` is modified
-    this.navCompactedContentInit = false;
     this.nav = document.createElement('nav');
-    this.append(this.nav);
-    this.setAttribute('role', 'navigation');
-
-    this.dataset.icon ??= 'menu';
-
     this.isCompact = this.dataset.compact === 'true';
+    this.dataset.icon ??= 'menu';
+    this.append(this.nav);
+    this.nav.setAttribute('role', 'navigation');
+    this.nav.setAttribute('id', 'navigation');
 
     if (this.isCompact) {
       await this.setupCompactedNav();
@@ -36,7 +42,7 @@ export default class Navigation extends ComponentBase {
       this.navContentInit = true;
       this.setupClasses(this.navContent);
     }
-
+    this.navButton?.remove();
     this.nav.append(this.navContent);
   }
 
@@ -48,12 +54,13 @@ export default class Navigation extends ComponentBase {
       this.navCompactedContent.addEventListener('click', (e) => this.activate(e));
     }
 
-    this.nav.append(this.createButton());
+    this.prepend(this.createButton());
     this.nav.append(this.navCompactedContent);
   }
 
-  onAttributeCompactChanged({ newValue }) {
+  onAttributeCompactChanged({ oldValue, newValue }) {
     if (!this.initialized) return;
+    if (oldValue === newValue) return;
     this.isCompact = newValue === 'true';
     this.nav.innerHTML = '';
 
@@ -82,8 +89,10 @@ export default class Navigation extends ComponentBase {
     this.navButton.innerHTML = `<raqn-icon data-icon=${this.dataset.icon}></raqn-icon>`;
     this.navIcon = this.navButton.querySelector('raqn-icon');
     this.navButton.addEventListener('click', () => {
+      this.isActive = !this.isActive;
       this.classList.toggle('active');
-      this.navButton.setAttribute('aria-expanded', this.classList.contains('active'));
+      this.navButton.setAttribute('aria-expanded', this.isActive);
+      this.navIcon.dataset.active = this.isActive;
     });
     return this.navButton;
   }

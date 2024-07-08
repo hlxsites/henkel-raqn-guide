@@ -1,12 +1,12 @@
 raqn-button {
+  --button-icon-space: 10px;
+
   width: 100%;
   display: grid;
   align-content: center;
   align-items: center;
   justify-items: var(--justify, start);
 
-  --button-padding-block: var(--button-padding-block, 10px);
-  --button-padding-inline: var(--button-padding-inline, 20px);
   --border-radius: 0;
   --border-block-start: 1px solid transparent;
   --border-block-end: 1px solid transparent;
@@ -14,7 +14,9 @@ raqn-button {
   --border-inline-end: 1px solid transparent;
 }
 
-raqn-button > * {
+raqn-button :where(a, button) {
+  display: inline-flex;
+  line-height: var(--icon-size, 1em);
   background: var(--accent-background, #000);
   color: var(--accent-text, #fff);
   text-transform: none;
@@ -24,24 +26,28 @@ raqn-button > * {
   border-inline-start: var(--border-inline-start, 1px solid transparent);
   border-inline-end: var(--border-inline-end, 1px solid transparent);
   border-color: var(--accent-border, none);
-  overflow: hidden;
-}
-
-raqn-button > *:hover {
-  background: var(--hover-background, #fff);
-  color: var(--hover-text, #fff);
-  border-color: var(--hover-border, currentcolor);
-}
-
-raqn-button a {
-  color: var(--accent-text, currentcolor);
   padding-block: var(--button-padding-block, 10px);
   padding-inline: var(--button-padding-inline, 20px);
+  overflow: hidden;
   text-decoration: none;
+  text-align: start;
 }
 
-raqn-button a:hover,
-raqn-button a:visited,
-raqn-button a:active {
+raqn-button :where(a, button):hover {
+  background: var(--hover-background, #fff);
+  color: var(--hover-text, #fff);
+  border-color: var(--hover-border, #fff);
+  cursor: pointer;
+}
+
+raqn-button :where(a, button):not([aria-label]) > raqn-icon:first-child:not(:only-child) {
+  margin-inline-end: var(--button-icon-space);
+}
+
+raqn-button :where(a, button):not([aria-label]) > raqn-icon:last-child:not(:only-child) {
+  margin-inline-start: var(--button-icon-space);
+}
+
+raqn-button :is(a:hover, a:visited, a:active) {
   text-decoration: none;
 }
