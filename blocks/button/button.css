@@ -15,25 +15,26 @@ raqn-button {
 }
 
 raqn-button > * {
-  background: var(--accent, #000);
-  color: var(--accentText, #fff);
+  background: var(--accent-background, #000);
+  color: var(--accent-text, #fff);
   text-transform: none;
   border-radius: var(--border-radius, 0);
   border-block-start: var(--border-block-start, 1px solid transparent);
   border-block-end: var(--border-block-end, 1px solid transparent);
   border-inline-start: var(--border-inline-start, 1px solid transparent);
   border-inline-end: var(--border-inline-end, 1px solid transparent);
+  border-color: var(--accent-border, none);
   overflow: hidden;
 }
 
 raqn-button > *:hover {
-  background: var(--hover, #fff);
-  color: var(--hoverText, #fff);
-  border-color: currentcolor;
+  background: var(--hover-background, #fff);
+  color: var(--hover-text, #fff);
+  border-color: var(--hover-border, currentcolor);
 }
 
 raqn-button a {
-  color: var(--accentText, currentcolor);
+  color: var(--accent-text, currentcolor);
   padding-block: var(--button-padding-block, 10px);
   padding-inline: var(--button-padding-inline, 20px);
   text-decoration: none;

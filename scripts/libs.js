@@ -18,14 +18,14 @@ export const globalConfig = {
 export const camelCaseAttr = (val) => val.replace(/-([a-z])/g, (k) => k[1].toUpperCase());
 export const capitalizeCaseAttr = (val) => camelCaseAttr(val.replace(/^[a-z]/g, (k) => k.toUpperCase()));
 
-export function matchMediaQuery(breakpointMin, breakpointMax) {
-  return window.matchMedia(this.getMediaQuery(breakpointMin, breakpointMax));
-}
-
 export function getMediaQuery(breakpointMin, breakpointMax) {
   const min = `(min-width: ${breakpointMin}px)`;
   const max = breakpointMax ? ` and (max-width: ${breakpointMax}px)` : '';
   return `${min}${max}`;
+}
+
+export function matchMediaQuery(breakpointMin, breakpointMax) {
+  return window.matchMedia(getMediaQuery(breakpointMin, breakpointMax));
 }
 
 export function getBreakPoints() {
@@ -456,30 +456,51 @@ export function isHomePage(url) {
   return getBaseUrl() === (url || window.location.href);
 }
 
-export const flat = (obj = {}, alreadyFlat = '') =>
-  Object.entries(obj).reduce((acc, [key, value]) => {
-    const newKey = `${alreadyFlat ? `${alreadyFlat}-` : ''}${key}`;
-    if (isObject(value)) {
-      Object.assign(acc, flat(value, newKey));
-    } else {
-      acc[newKey] = value;
-    }
-    return acc;
-  }, {});
+/**
+ * flattenProperties: convert objects from {a:{b:{c:{d:1}}}} to all subkeys as strings {'a.b.c.d':1}
+ *
+ * @param {Object} obj - Object to flatten
+ * @param {String} alreadyFlat - prefix or recursive keys.
+ * */
 
-export const unflat = (obj = {}) => {
-  const un = {};
+export function flat(obj = {}, alreadyFlat = '', sep = '-') {
+  const f = {};
+  // check if its a object
   Object.keys(obj).forEach((k) => {
-    const keys = k.split('-');
-    keys.reduce((acc, key, index) => {
-      if (index === keys.length - 1) {
-        acc[key] = obj[k];
-      } else {
-        acc[key] ??= {};
-        return acc[key];
+    // get the value
+    const value = obj[k].valueOf() || obj[k];
+    // append key to already flatten Keys
+    const key = `${alreadyFlat ? `${alreadyFlat}${sep}` : ''}${k}`;
+    // if still a object fo recursive
+    if (isObject(value)) {
+      Object.assign(f, flat(value, key));
+    } else {
+      // there is a real value so add key to flat object
+      f[key] = value;
+    }
+  });
+  return f;
+}
+
+/**
+ * unFlattenProperties: convert objects from subkeys as strings {'a.b.c.d':1} to tree {a:{b:{c:{d:1}}}}
+ *
+ * @param {Object} obj - Object to unflatten
+ * */
+
+export function unflat(f, sep = '-') {
+  const un = {};
+  // for each key create objects
+  Object.keys(f).forEach((key) => {
+    const properties = key.split(sep);
+    const value = f[key];
+    properties.reduce((unflating, prop, i) => {
+      if (!unflating[prop]) {
+        const step = i < properties.length - 1 ? { [prop]: {} } : { [prop]: value };
+        Object.assign(unflating, step);
       }
-      return acc;
+      return unflating[prop];
     }, un);
   });
   return un;
-};
+}

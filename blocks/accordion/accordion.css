@@ -37,7 +37,7 @@ raqn-accordion accordion-control.active raqn-icon {
 
 .accordion-control > * {
   --headings-color: var(--title, black);
-  --hover-color: var(--accent, gray);
+  --hover-background-color: var(--accent-background, gray);
 
   width: 100%;
   display: flex;
