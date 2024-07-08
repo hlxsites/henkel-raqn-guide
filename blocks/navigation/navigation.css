@@ -18,7 +18,7 @@ raqn-navigation > nav p {
 }
 
 raqn-navigation .level-1 a:not(:hover) {
-  color: var(--accent, #000);
+  color: var(--accent-background, #000);
 }
 
 raqn-navigation .level-1 a:hover {
@@ -58,8 +58,8 @@ raqn-navigation > nav button {
   justify-self: end;
   align-items: center;
   justify-content: center;
-  background: var(--accent, #fff);
-  color: var(--accentText, #000);
+  background: var(--accent-background, #fff);
+  color: var(--accent-text, #000);
   border: none;
   border-radius: var(--border-radius);
   padding: var(--padding-vertical, 10px) var(--padding-horizontal, 10px);
@@ -67,8 +67,8 @@ raqn-navigation > nav button {
 }
 
 raqn-navigation.active button {
-  background: var(--hover, #000);
-  color: var(--hoverText, #fff);
+  background: var(--hover-background, #000);
+  color: var(--hover-text, #fff);
 }
 
 raqn-navigation.active > nav > ul {
@@ -171,7 +171,7 @@ raqn-navigation:not([data-compact='true']) > nav .level-1 > ul::after {
   width: 100vw;
   inset-inline-start: 0;
   background: var(--background, #fff);
-  border-block-start: 1px solid var(--accent, #000);
+  border-block-start: 1px solid var(--accent-background, #000);
   box-shadow: 0 0 30px #000;
   z-index: 1;
 }
