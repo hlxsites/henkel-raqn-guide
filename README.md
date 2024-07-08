@@ -2,8 +2,8 @@
 PoC / Migration project to experiment with EDS in the RAQN world.
 
 ## Environments
-- Preview: https://main--henkel-raqn-guide--hlxsites.hlx.page/
-- Live: https://main--henkel-raqn-guide--hlxsites.hlx.live/
+- Preview: https://main--FelipeSimoes-raqn-guide--hlxsites.hlx.page/
+- Live: https://main--FelipeSimoes-raqn-guide--hlxsites.hlx.live/
 
 ## Installation
 
