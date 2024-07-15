@@ -4,6 +4,8 @@ import { eagerImage } from '../../scripts/libs.js';
 export default class Card extends ComponentBase {
   static observedAttributes = ['data-columns', 'data-ratio', 'data-eager'];
 
+  // Default values for the attributes
+
   ready() {
     this.eager = parseInt(this.dataset.eager || 0, 10);
     this.classList.add('inner');

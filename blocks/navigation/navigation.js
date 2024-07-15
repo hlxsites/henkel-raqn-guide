@@ -1,12 +1,12 @@
 import component from '../../scripts/init.js';
 import ComponentBase from '../../scripts/component-base.js';
+import Column from '../column/column.js';
 
-export default class Navigation extends ComponentBase {
-  static observedAttributes = ['data-icon', 'data-compact'];
+export default class Navigation extends Column {
+  static observedAttributes = ['data-icon', 'data-compact', ...Column.observedAttributes];
 
   static loaderConfig = {
-    ...ComponentBase.loaderConfig,
-    targetsSelectors: ':scope > :is(:first-child)',
+    ...Column.loaderConfig,
   };
 
   dependencies = ['icon'];

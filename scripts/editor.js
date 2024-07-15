@@ -1,4 +1,4 @@
-import { loadModule } from './libs.js';
+import { deepMerge, loadModule } from './libs.js';
 import { publish } from './pubsub.js';
 
 window.raqnEditor = window.raqnEditor || {};
@@ -11,6 +11,7 @@ export const MessagesEvents = {
   disabled: 'raqn:editor:disabled',
   render: 'raqn:editor:render',
   select: 'raqn:editor:select',
+  updateComponent: 'raqn:editor:select:update',
   theme: 'raqn:editor:theme',
   themeUpdate: 'raqn:editor:theme:update',
 };
@@ -33,36 +34,15 @@ export function refresh(id) {
 export function updateComponent(component) {
   const { componentName, uuid } = component;
   const instance = window.raqnInstances[componentName].find((element) => element.uuid === uuid);
-  const { attributesValues } = instance;
-  const attributes = component.attributesValues;
-  // if (variables) {
-  //   Object.keys(variables).forEach((variable) => {
-  //     componentElem.style.setProperty(variable, variables[variable]);
-  //   });
-  // }
-  if (attributes) {
-    Object.keys(attributes).forEach((attribute) => {
-      const val = attributes[attribute];
-      if (attribute === 'class' && attributesValues[attribute]) {
-        const classes = Array.from(instance.classList).filter((c) => !c.includes(val.split('-')[0] || 'color'));
-        classes.push(...val.split(' '));
-        const set = new Set(classes);
-        instance.setAttribute(attribute, Array.from(set).join(' '));
-      } else if (attribute === 'attributes' && attributes[attribute]) {
-        Object.keys(val).forEach((attr) => {
-          instance.setAttribute(attr, val[attr]);
-        });
-      } else {
-        instance.setAttribute(attribute, val);
-      }
-    });
-  }
+  if (!instance) return;
 
+  instance.attributesValues = deepMerge({}, instance.attributesValues, component.attributesValues);
+  instance.runConfigsByViewport();
   refresh(uuid);
 }
 
 export function getComponentValues(dialog, element) {
-  const html = element.outerHTML;
+  const html = element.innerHTML;
   window.document.body.style.height = 'auto';
   const domRect = element.getBoundingClientRect();
   let { variables = {}, attributes = {} } = dialog;
@@ -135,7 +115,12 @@ export default function initEditor(listeners = true) {
         const { message, params } = e.data;
         switch (message) {
           case MessagesEvents.select:
-            console.log('select', params);
+            console.log('select component', params);
+            updateComponent(params);
+            break;
+
+          case MessagesEvents.updateComponent:
+            console.log('update component', params);
             updateComponent(params);
             break;
 

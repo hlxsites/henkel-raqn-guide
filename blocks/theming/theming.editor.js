@@ -1,4 +1,5 @@
 import { MessagesEvents } from '../../scripts/editor.js';
+import { readValue } from '../../scripts/libs.js';
 import { publish } from '../../scripts/pubsub.js';
 import Theming from './theming.js';
 
@@ -22,9 +23,10 @@ export default function config() {
         const { message, params } = e.data;
         if (message && message === MessagesEvents.themeUpdate) {
           [themeInstance] = window.raqnInstances[Theming.name.toLowerCase()];
-          const { name, data } = params;
+          const { data } = params;
           const row = Object.keys(data).map((key) => data[key]);
-          themeInstance.defineVariations(themeInstance.readValue(row, name));
+          readValue(row, themeInstance.variations);
+          themeInstance.defineVariations(readValue(row, themeInstance.variations));
           themeInstance.styles();
         }
       }

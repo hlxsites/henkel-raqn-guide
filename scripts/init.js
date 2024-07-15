@@ -3,6 +3,7 @@ import { globalConfig, metaTags, eagerImage, getMeta, getMetaGroup, mergeUniqueA
 
 const component = {
   async init(settings) {
+    // some components may have multiple targets
     const { componentName = this.getBlockData(settings?.targets?.[0]).componentName } = settings || {};
     try {
       const loader = new ComponentLoader({
@@ -10,7 +11,6 @@ const component = {
         componentName,
       });
       const instances = await loader.init();
-
       const init = {
         componentName,
         instances: [],
@@ -70,7 +70,7 @@ const component = {
   },
 };
 
-const onLoadComponents = {
+export const onLoadComponents = {
   // default content
   staticStructureComponents: [
     {
@@ -209,8 +209,8 @@ window.addEventListener('message', async (e) => {
           })();
           break;
         // other cases?
-        case 'raqn:editor:preview':
-          // preview editor
+        case 'raqn:editor:preview:component':
+          // preview editor with only a component
           if (query.has('preview')) {
             (async function startEditor() {
               const preview = query.get('preview');

@@ -1,10 +1,10 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { flat, getBreakPoints, getMediaQuery, getMeta, unflat } from '../../scripts/libs.js';
+import { flat, getBreakPoints, getMediaQuery, getMeta, metaTags, readValue, unflat } from '../../scripts/libs.js';
 
 const k = Object.keys;
 
 export default class Theming extends ComponentBase {
-  nestedComponentsConfig = {};
+  componentsConfig = {};
 
   elements = {};
 
@@ -69,23 +69,6 @@ export default class Theming extends ComponentBase {
       .join('\n');
   }
 
-  readValue(data) {
-    console.log('readValue', data);
-    const keys = k(data[0]).filter((item) => item !== 'key');
-    return data.reduce((acc, row) => {
-      const mainKey = row.key;
-      keys.reduce((a, key) => {
-        if (!a[key]) {
-          a[key] = { [mainKey]: row[key] };
-        } else {
-          a[key][mainKey] = row[key];
-        }
-        return a;
-      }, acc);
-      return acc;
-    }, this.variations);
-  }
-
   styles() {
     ['variables', 'tags', 'fontFace'].forEach((cssSegment) => {
       const style = document.querySelector(`style.${cssSegment}`) || document.createElement('style');
@@ -103,9 +86,15 @@ export default class Theming extends ComponentBase {
       this.themeJson[type] = responseData;
       if (type === 'fontface') {
         this.fontFaceTemplate(responseData);
+      } else if (type === 'component') {
+        Object.keys(responseData).forEach((key) => {
+          if (key.indexOf(':') === 0 || responseData[key].data.length == 0) return;
+          this.componentsConfig[key] = this.componentsConfig[key] || {};
+          this.componentsConfig[key] = readValue(responseData[key].data, this.componentsConfig[key]);
+        });
       } else {
-        console.log('responseData', this.readValue(responseData.data, type));
-        this.defineVariations(this.readValue(responseData.data, type));
+        this.variations = readValue(responseData.data, this.variations);
+        this.defineVariations();
       }
     }
   }
@@ -166,8 +155,18 @@ export default class Theming extends ComponentBase {
   }
 
   async loadFragment() {
-    await fetch('colors.json').then((response) => this.processFragment(response, 'color'));
-    await fetch('fonts.json').then((response) => this.processFragment(response, 'font'));
+    Promise.all(
+      ['color', 'font', 'layout', 'component'].map(async (fragment) => {
+        console.log('fragment', fragment);
+        const metaKey = `theme${fragment}`;
+        console.log('metaKey', fragment);
+        const path = getMeta(metaTags[metaKey].metaName) || metaTags[metaKey].fallbackContent;
+        return fetch(`${path}.json`).then((response) => this.processFragment(response, fragment));
+      }),
+    );
+    //
+    await fetch('color.json').then((response) => this.processFragment(response, 'color'));
+    await fetch('font.json').then((response) => this.processFragment(response, 'font'));
     await fetch('/fonts/index.json').then((response) => this.processFragment(response, 'fontface'));
     this.styles();
   }

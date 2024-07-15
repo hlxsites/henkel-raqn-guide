@@ -3,7 +3,7 @@ export const globalConfig = {
   blockSelector: '[class]:not(style, [class^="config-" i])',
   breakpoints: {
     xs: 0,
-    s: 480,
+    s: 320,
     m: 768,
     l: 1024,
     xl: 1280,
@@ -49,14 +49,29 @@ export const metaTags = {
     metaName: 'eager-images',
     // contentType: 'number string',
   },
-  theming: {
-    metaName: 'theming',
-    fallbackContent: 'theming.json',
+  themecolor: {
+    metaName: 'color',
+    fallbackContent: 'color',
+    // contentType: 'path without extension',
+  },
+  themefont: {
+    metaName: 'color',
+    fallbackContent: 'font',
+    // contentType: 'path without extension',
+  },
+  themelayout: {
+    metaName: 'layout',
+    fallbackContent: 'layout',
+    // contentType: 'path without extension',
+  },
+  themecomponent: {
+    metaName: 'component',
+    fallbackContent: 'components-config',
     // contentType: 'path without extension',
   },
   theme: {
     metaName: 'theme',
-    fallbackContent: 'theme-default',
+    fallbackContent: 'color-default font-default',
     // contentType: 'string theme name',
   },
 };
@@ -252,24 +267,15 @@ export const externalConfig = {
     };
   },
 
-  async getConfig(componentName, configName, knownAttributes) {
+  async getConfig(componentName, configName) {
+    console.log('getConfig', componentName, configName);
     if (!configName) return this.defaultConfig(); // to be removed in the feature and fallback to 'default'
     const masterConfig = await this.loadConfig();
     const componentConfig = masterConfig?.[componentName];
-    let parsedConfig = componentConfig?.parsed?.[configName];
+    const parsedConfig = componentConfig?.[configName];
     if (parsedConfig) return parsedConfig;
-    const rawConfig = componentConfig?.data.filter((conf) => conf.configName?.trim() === configName /* ?? 'default' */);
-    if (!rawConfig?.length) {
-      // eslint-disable-next-line no-console
-      console.error(`The config named '${configName}' for '${componentName}' webComponent is not valid.`);
-      return this.defaultConfig();
-    }
-    const safeConfig = JSON.parse(JSON.stringify(rawConfig));
-    parsedConfig = this.parseRawConfig(safeConfig, knownAttributes);
-    componentConfig.parsed ??= {};
-    componentConfig.parsed[configName] = parsedConfig;
 
-    return parsedConfig;
+    return {};
   },
 
   async loadConfig() {
@@ -292,193 +298,37 @@ export const externalConfig = {
 
     window.raqnComponentsConfig = await window.raqnComponentsConfig;
 
-    return window.raqnComponentsConfig;
+    return this.simplifiedConfig();
   },
 
-  parseRawConfig(configArr, knownAttributes) {
-    const parsedConfig = configArr?.reduce((acc, breakpointConfig) => {
-      const breakpoint = breakpointConfig.viewport.toLowerCase();
-      const isMainConfig = breakpoint === 'all';
-
-      Object.entries(breakpointConfig).forEach(([key, val]) => {
-        if (val.trim() === '') return;
-        if (![...Object.keys(globalConfig.breakpoints), 'all'].includes(breakpoint)) return;
-        if (!isMainConfig) acc.hasBreakpointsValues = true;
-
-        const parsedVal = stringToJsVal(val, { trim: true });
-
-        if (knownAttributes.includes(key) || key === 'class') {
-          this.parseAttrValues(parsedVal, acc, key, breakpoint);
-        } else if (isMainConfig) {
-          const configPrefix = 'config-';
-          const propPrefix = 'prop-';
-          if (key.startsWith(configPrefix)) {
-            this.parseConfig(parsedVal, acc, key, configPrefix);
-          } else if (key.startsWith(propPrefix)) {
-            acc.props[key.slice(propPrefix.length)] = parsedVal;
-          } else if (key === 'nest') {
-            this.parseNestedConfig(val, acc);
-          }
+  simplifiedConfig() {
+    window.raqnParsedConfigs = window.raqnParsedConfigs || {};
+    if (window.raqnComponentsConfig) {
+      Object.keys(window.raqnComponentsConfig).forEach((key) => {
+        if (!window.raqnComponentsConfig[key]) return;
+        const data = window.raqnComponentsConfig[key].data;
+        if (data && data.length > 0) {
+          window.raqnParsedConfigs[key] = window.raqnParsedConfigs[key] || {};
+          window.raqnParsedConfigs[key] = readValue(data, window.raqnParsedConfigs[key]);
         }
       });
-      return acc;
-    }, this.defaultConfig(configArr));
-
-    return parsedConfig;
-  },
-
-  parseAttrValues(parsedVal, acc, key, breakpoint) {
-    const keyProp = key.replace(/^data-/, '');
-    const camelAttr = camelCaseAttr(keyProp);
-    acc.attributesValues[camelAttr] ??= {};
-    acc.attributesValues[camelAttr][breakpoint] = parsedVal;
-  },
-
-  parseConfig(parsedVal, acc, key, configPrefix) {
-    const configKeys = key.slice(configPrefix.length).split('.');
-    const indexLength = configKeys.length - 1;
-    configKeys.reduce((cof, confKey, index) => {
-      cof[confKey] = index < indexLength ? {} : parsedVal;
-      return cof[confKey];
-    }, acc.config);
-  },
-
-  parseNestedConfig(val, acc) {
-    const parsedVal = stringToArray(val).reduce((nestConf, confVal) => {
-      const [componentName, activeOrConfigName] = confVal.split('=');
-      const parsedActiveOrConfigName = stringToJsVal(activeOrConfigName);
-      const isString = typeof parsedActiveOrConfigName === 'string';
-      nestConf[componentName] ??= {
-        componentName,
-        externalConfigName: isString ? parsedActiveOrConfigName : null,
-        active: isString || parsedActiveOrConfigName,
-      };
-      return nestConf;
-    }, {});
-    acc.nestedComponentsConfig = parsedVal;
+    }
+    return window.raqnParsedConfigs;
   },
 };
 
-export const configFromClasses = {
-  getConfig(componentName, configByClasses, knownAttributes) {
-    const nestedComponentsConfig = this.nestedConfigFromClasses(configByClasses);
-    const { attributesValues, hasBreakpointsValues } = this.attributeValuesFromClasses(
-      componentName,
-      configByClasses,
-      knownAttributes,
-    );
-    return {
-      attributesValues,
-      nestedComponentsConfig,
-      hasBreakpointsValues,
-    };
-  },
-
-  nestedComponentsNames(configByClasses) {
-    const nestPrefix = 'nest-'; //
-
-    return configByClasses.flatMap((c) => (c.startsWith(nestPrefix) ? [c.slice(nestPrefix.length)] : []));
-  },
-
-  nestedConfigFromClasses(configByClasses) {
-    const nestedComponentsNames = this.nestedComponentsNames(configByClasses);
-    const nestedComponentsConfig = configByClasses.reduce((acc, c) => {
-      let value = c;
-
-      const classBreakpoint = this.classBreakpoint(c);
-      const isBreakpoint = this.isBreakpoint(classBreakpoint);
-
-      if (isBreakpoint) value = value.slice(classBreakpoint.length + 1);
-
-      const componentName = nestedComponentsNames.find((prefix) => value.startsWith(prefix));
-      if (componentName) {
-        acc[componentName] ??= { componentName, active: true };
-        const val = value.slice(componentName.length + 1);
-        const active = 'active-';
-        if (val.startsWith(active)) {
-          acc[componentName].active = stringToJsVal(val.slice(active.length));
-        } else {
-          acc[componentName].configByClasses ??= '';
-          acc[componentName].configByClasses += `${isBreakpoint ? `${classBreakpoint}-` : ''}${val} `;
-        }
-      }
+export const classToFlat = (classes = [], valueLength = 1, extend = {}) => {
+  return unflat(
+    classes.reduce((acc, c) => {
+      const length = c.split('-').length - valueLength;
+      const key = c.split('-').slice(0, length).join('-');
+      const value = c.split('-').slice(length).join('-');
+      if (!acc[key]) acc[key] = {};
+      acc[key] = value;
       return acc;
-    }, {});
-    return nestedComponentsConfig;
-  },
-
-  attributeValuesFromClasses(componentName, configByClasses, knownAttributes) {
-    let hasBreakpointsValues = false;
-    const nestedComponentsNames = this.nestedComponentsNames(configByClasses);
-    const onlyKnownAttributes = knownAttributes.filter((a) => a !== 'class');
-    const attributesValues = configByClasses
-      .filter((c) => c !== componentName && c !== 'block')
-      .reduce((acc, c) => {
-        let value = c;
-        let isKnownAttribute = null;
-
-        const classBreakpoint = this.classBreakpoint(c);
-        const isBreakpoint = this.isBreakpoint(classBreakpoint);
-
-        if (isBreakpoint) {
-          hasBreakpointsValues = true;
-          value = value.slice(classBreakpoint.length + 1);
-        }
-
-        const excludeNested = nestedComponentsNames.find((prefix) => value.startsWith(prefix));
-        if (excludeNested) return acc;
-
-        let key = 'class';
-        const isClassValue = value.startsWith(key);
-        if (isClassValue) {
-          value = value.slice(key.length + 1);
-        } else {
-          [isKnownAttribute] = onlyKnownAttributes.flatMap((attribute) => {
-            const noDataPrefix = attribute.replace(/^data-/, '');
-            if (!value.startsWith(`${noDataPrefix}-`)) return [];
-            return noDataPrefix;
-          });
-          if (isKnownAttribute) {
-            key = isKnownAttribute;
-            value = value.slice(isKnownAttribute.length + 1);
-          }
-        }
-
-        const isClass = key === 'class';
-        const camelCaseKey = camelCaseAttr(key);
-        if (isKnownAttribute || isClass) acc[camelCaseKey] ??= {};
-        if (isKnownAttribute) acc[camelCaseKey][classBreakpoint] = value;
-        if (isClass) {
-          acc[camelCaseKey][classBreakpoint] ??= '';
-          acc[camelCaseKey][classBreakpoint] += `${value} `;
-        }
-        return acc;
-      }, {});
-
-    return { attributesValues, hasBreakpointsValues };
-  },
-  classBreakpoint(c) {
-    return Object.keys(globalConfig.breakpoints).find((b) => c.startsWith(`${b}-`)) || 'all';
-  },
-  isBreakpoint(classBreakpoint) {
-    return classBreakpoint !== 'all';
-  },
+    }, extend),
+  );
 };
-
-export async function buildConfig(componentName, externalConf, configByClasses, knownAttributes = []) {
-  const configPrefix = 'config-';
-  let config;
-  const externalConfigName =
-    configByClasses.find((c) => c.startsWith(configPrefix))?.slice?.(configPrefix.length) || externalConf;
-
-  if (externalConfigName) {
-    config = await externalConfig.getConfig(componentName, externalConfigName, knownAttributes);
-  } else {
-    config = configFromClasses.getConfig(componentName, configByClasses, knownAttributes);
-  }
-
-  return config;
-}
 
 export function loadModule(urlWithoutExtension, loadCSS = true) {
   try {
@@ -519,55 +369,6 @@ export function getBaseUrl() {
 
 export function isHomePage(url) {
   return getBaseUrl() === (url || window.location.href);
-}
-
-/**
- * flattenProperties: convert objects from {a:{b:{c:{d:1}}}} to all subkeys as strings {'a.b.c.d':1}
- *
- * @param {Object} obj - Object to flatten
- * @param {String} alreadyFlat - prefix or recursive keys.
- * */
-
-export function flat(obj = {}, alreadyFlat = '', sep = '-') {
-  const f = {};
-  // check if its a object
-  Object.keys(obj).forEach((k) => {
-    // get the value
-    const value = obj[k].valueOf() || obj[k];
-    // append key to already flatten Keys
-    const key = `${alreadyFlat ? `${alreadyFlat}${sep}` : ''}${k}`;
-    // if still a object fo recursive
-    if (isObject(value)) {
-      Object.assign(f, flat(value, key));
-    } else {
-      // there is a real value so add key to flat object
-      f[key] = value;
-    }
-  });
-  return f;
-}
-
-/**
- * unFlattenProperties: convert objects from subkeys as strings {'a.b.c.d':1} to tree {a:{b:{c:{d:1}}}}
- *
- * @param {Object} obj - Object to unflatten
- * */
-
-export function unflat(f, sep = '-') {
-  const un = {};
-  // for each key create objects
-  Object.keys(f).forEach((key) => {
-    const properties = key.split(sep);
-    const value = f[key];
-    properties.reduce((unflating, prop, i) => {
-      if (!unflating[prop]) {
-        const step = i < properties.length - 1 ? { [prop]: {} } : { [prop]: value };
-        Object.assign(unflating, step);
-      }
-      return unflating[prop];
-    }, un);
-  });
-  return un;
 }
 
 export const popupState = {
@@ -649,3 +450,82 @@ export const focusTrap = (elem, { dynamicContent } = { dynamicContent: false }) 
     }
   });
 };
+
+/**
+ * flattenProperties: convert objects from {a:{b:{c:{d:1}}}} to all subkeys as strings {'a.b.c.d':1}
+ *
+ * @param {Object} obj - Object to flatten
+ * @param {String} alreadyFlat - prefix or recursive keys.
+ * */
+
+export function flat(obj = {}, alreadyFlat = '', sep = '-', maxDepth = 10) {
+  const f = {};
+  // check if its a object
+  Object.keys(obj).forEach((k) => {
+    // get the value
+    const value = obj[k].valueOf() || obj[k];
+    // append key to already flatten Keys
+    const key = `${alreadyFlat ? `${alreadyFlat}${sep}` : ''}${k}`;
+    // if still a object fo recursive
+    if (isObject(value) && maxDepth > 0) {
+      Object.assign(f, flat(value, key, sep, maxDepth - 1));
+    } else {
+      // there is a real value so add key to flat object
+      f[key] = value;
+    }
+  });
+  return f;
+}
+
+export function flatAsValue(data, sep = '-') {
+  return Object.entries(data)
+    .reduce((acc, [key, value]) => {
+      if (isObject(value)) {
+        return flatAsValue(value, acc);
+      }
+      return acc + ` ${key}${sep}${value}`;
+    }, '')
+    .trim();
+}
+
+/**
+ * unFlattenProperties: convert objects from subkeys as strings {'a.b.c.d':1} to tree {a:{b:{c:{d:1}}}}
+ *
+ * @param {Object} obj - Object to unflatten
+ * */
+
+export function unflat(f, sep = '-') {
+  const un = {};
+  // for each key create objects
+  Object.keys(f).forEach((key) => {
+    const properties = key.split(sep);
+    const value = f[key];
+    properties.reduce((unflating, prop, i) => {
+      if (!unflating[prop]) {
+        const step = i < properties.length - 1 ? { [prop]: {} } : { [prop]: value };
+        Object.assign(unflating, step);
+      }
+      return unflating[prop];
+    }, un);
+  });
+  return un;
+}
+
+// retrive data from excel json format
+export function readValue(data, extend = {}) {
+  const k = Object.keys;
+  const keys = k(data[0]).filter((item) => item !== 'key');
+  return data.reduce((acc, row) => {
+    const mainKey = row.key;
+    keys.reduce((a, key) => {
+      if (!row[key]) return a;
+      if (!a[key]) {
+        a[key] = { [mainKey]: row[key] };
+      } else {
+        a[key][mainKey] = row[key];
+      }
+      return a;
+    }, acc);
+    return acc;
+  }, extend);
+}
