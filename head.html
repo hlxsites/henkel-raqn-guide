@@ -4,7 +4,7 @@
       const baseMeta = document.querySelector('meta[name="basepath"]');
       if (baseMeta) {
         const base = document.createElement('base');
-        base.href = `${baseMeta.content || ''}/`;
+        base.href = `${baseMeta.content !== '/' && baseMeta.content || ''}/`;
         document.head.appendChild(base);
       }
       document.querySelectorAll('a[href^="http://~/"]').forEach((a) => {
