@@ -1,6 +1,19 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
     <script>
+
+      const baseMeta = document.querySelector('meta[name="basepath"]');
+      const base = document.createElement('base');
+      if (!baseMeta?.content || baseMeta.content === '/') {
+        base.href = '/';
+      } else {
+        base.href = `${baseMeta.content}/`;
+      }
+      document.head.appendChild(base);
+      document.querySelectorAll('a[href^="http://~/"]').forEach((a) => {
+        a.href = a.href.replace('http://~/', '');
+      });
+
       /* Preload header */
       const headerMeta = document.querySelector('meta[name="header"]');
       const url = headerMeta?.content.trim();

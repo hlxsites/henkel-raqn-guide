@@ -18,6 +18,7 @@ export default class Breadcrumbs extends ComponentBase {
         addToTargetMethod: 'replaceWith',
         targetsAsContainers: {
           addToTargetMethod: 'prepend',
+          contentFromTargets: false,
         },
       },
     ];
