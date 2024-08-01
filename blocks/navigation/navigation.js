@@ -1,4 +1,5 @@
 import component from '../../scripts/init.js';
+
 import Column from '../column/column.js';
 
 export default class Navigation extends Column {

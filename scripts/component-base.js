@@ -334,6 +334,20 @@ export default class ComponentBase extends HTMLElement {
     });
   }
 
+  // ${viewport}-nest-${value}
+
+  applyNest(config) {
+    const names = Object.keys(config);
+    names.map((key) => {
+      const instance = document.createElement(`raqn-${key}`);
+      instance.initOptions.configByClasses = [config[key]];
+
+      this.cachedChildren = Array.from(this.initOptions.target.children);
+      this.cachedChildren.forEach((child) => instance.append(child));
+      this.append(instance);
+    });
+  }
+
   cleanDataset() {
     Object.keys(this.dataset).forEach((key) => {
       delete this.dataset[key];
