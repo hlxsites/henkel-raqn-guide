@@ -65,7 +65,6 @@ export default class Icon extends ComponentBase {
     // ! The initial and active icon names are separated with a double underline
     // ! The active icon is optional;
     const [initial, active] = newValue.split('__');
-    console.log('initial, active', initial, active);
     this.#initialIcon = initial;
     this.#activeIcon = active || null;
 

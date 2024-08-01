@@ -115,12 +115,10 @@ export default function initEditor(listeners = true) {
         const { message, params } = e.data;
         switch (message) {
           case MessagesEvents.select:
-            console.log('select component', params);
             updateComponent(params);
             break;
 
           case MessagesEvents.updateComponent:
-            console.log('update component', params);
             updateComponent(params);
             break;
 

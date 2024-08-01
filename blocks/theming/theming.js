@@ -88,7 +88,7 @@ export default class Theming extends ComponentBase {
         this.fontFaceTemplate(responseData);
       } else if (type === 'component') {
         Object.keys(responseData).forEach((key) => {
-          if (key.indexOf(':') === 0 || responseData[key].data.length == 0) return;
+          if (key.indexOf(':') === 0 || responseData[key].data.length === 0) return;
           this.componentsConfig[key] = this.componentsConfig[key] || {};
           this.componentsConfig[key] = readValue(responseData[key].data, this.componentsConfig[key]);
         });
@@ -157,9 +157,8 @@ export default class Theming extends ComponentBase {
   async loadFragment() {
     Promise.all(
       ['color', 'font', 'layout', 'component'].map(async (fragment) => {
-        console.log('fragment', fragment);
         const metaKey = `theme${fragment}`;
-        console.log('metaKey', fragment);
+
         const path = getMeta(metaTags[metaKey].metaName) || metaTags[metaKey].fallbackContent;
         return fetch(`${path}.json`).then((response) => this.processFragment(response, fragment));
       }),

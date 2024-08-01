@@ -207,6 +207,25 @@ export function stringToArray(val, options) {
   });
 }
 
+// retrive data from excel json format
+export function readValue(data, extend = {}) {
+  const k = Object.keys;
+  const keys = k(data[0]).filter((item) => item !== 'key');
+  return data.reduce((acc, row) => {
+    const mainKey = row.key;
+    keys.reduce((a, key) => {
+      if (!row[key]) return a;
+      if (!a[key]) {
+        a[key] = { [mainKey]: row[key] };
+      } else {
+        a[key][mainKey] = row[key];
+      }
+      return a;
+    }, acc);
+    return acc;
+  }, extend);
+}
+
 export function getMeta(name, settings) {
   const { getArray = false } = settings || {};
   const meta = document.querySelector(`meta[name="${name}"]`);
@@ -268,7 +287,6 @@ export const externalConfig = {
   },
 
   async getConfig(componentName, configName) {
-    console.log('getConfig', componentName, configName);
     if (!configName) return this.defaultConfig(); // to be removed in the feature and fallback to 'default'
     const masterConfig = await this.loadConfig();
     const componentConfig = masterConfig?.[componentName];
@@ -306,7 +324,7 @@ export const externalConfig = {
     if (window.raqnComponentsConfig) {
       Object.keys(window.raqnComponentsConfig).forEach((key) => {
         if (!window.raqnComponentsConfig[key]) return;
-        const data = window.raqnComponentsConfig[key].data;
+        const { data } = window.raqnComponentsConfig[key];
         if (data && data.length > 0) {
           window.raqnParsedConfigs[key] = window.raqnParsedConfigs[key] || {};
           window.raqnParsedConfigs[key] = readValue(data, window.raqnParsedConfigs[key]);
@@ -315,19 +333,6 @@ export const externalConfig = {
     }
     return window.raqnParsedConfigs;
   },
-};
-
-export const classToFlat = (classes = [], valueLength = 1, extend = {}) => {
-  return unflat(
-    classes.reduce((acc, c) => {
-      const length = c.split('-').length - valueLength;
-      const key = c.split('-').slice(0, length).join('-');
-      const value = c.split('-').slice(length).join('-');
-      if (!acc[key]) acc[key] = {};
-      acc[key] = value;
-      return acc;
-    }, extend),
-  );
 };
 
 export function loadModule(urlWithoutExtension, loadCSS = true) {
@@ -452,7 +457,7 @@ export const focusTrap = (elem, { dynamicContent } = { dynamicContent: false }) 
 };
 
 /**
- * flattenProperties: convert objects from {a:{b:{c:{d:1}}}} to all subkeys as strings {'a.b.c.d':1}
+ * flattenProperties: convert objects from {a:{b:{c:{d:1}}}} to all subkeys as strings {'a-b-c-d':1}
  *
  * @param {Object} obj - Object to flatten
  * @param {String} alreadyFlat - prefix or recursive keys.
@@ -483,13 +488,13 @@ export function flatAsValue(data, sep = '-') {
       if (isObject(value)) {
         return flatAsValue(value, acc);
       }
-      return acc + ` ${key}${sep}${value}`;
+      return `${acc} ${key}${sep}${value}`;
     }, '')
     .trim();
 }
 
 /**
- * unFlattenProperties: convert objects from subkeys as strings {'a.b.c.d':1} to tree {a:{b:{c:{d:1}}}}
+ * unFlattenProperties: convert objects from subkeys as strings {'a-b-c-d':1} to tree {a:{b:{c:{d:1}}}}
  *
  * @param {Object} obj - Object to unflatten
  * */
@@ -511,21 +516,14 @@ export function unflat(f, sep = '-') {
   return un;
 }
 
-// retrive data from excel json format
-export function readValue(data, extend = {}) {
-  const k = Object.keys;
-  const keys = k(data[0]).filter((item) => item !== 'key');
-  return data.reduce((acc, row) => {
-    const mainKey = row.key;
-    keys.reduce((a, key) => {
-      if (!row[key]) return a;
-      if (!a[key]) {
-        a[key] = { [mainKey]: row[key] };
-      } else {
-        a[key][mainKey] = row[key];
-      }
-      return a;
-    }, acc);
-    return acc;
-  }, extend);
-}
+export const classToFlat = (classes = [], valueLength = 1, extend = {}) =>
+  unflat(
+    classes.reduce((acc, c) => {
+      const length = c.split('-').length - valueLength;
+      const key = c.split('-').slice(0, length).join('-');
+      const value = c.split('-').slice(length).join('-');
+      if (!acc[key]) acc[key] = {};
+      acc[key] = value;
+      return acc;
+    }, extend),
+  );

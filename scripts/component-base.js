@@ -282,7 +282,7 @@ export default class ComponentBase extends HTMLElement {
     }
   }
 
-  runConfigsByViewport(e) {
+  runConfigsByViewport() {
     const { name } = getBreakPoints().active;
     const current = deepMerge({}, this.attributesValues.all, this.attributesValues[name]);
     this.className = '';
@@ -303,13 +303,15 @@ export default class ComponentBase extends HTMLElement {
     const values = flat(entries);
     // transformed into values as {col-direction: 2, columns: 2}
     Object.keys(values).forEach((key) => {
-      //camelCaseAttr converst col-direction into colDirection
+      // camelCaseAttr converst col-direction into colDirection
       this.dataset[camelCaseAttr(key)] = values[key];
     });
   }
 
   // ${viewport}-class-${value}
   applyClass(className) {
+    // {'color':'primary', 'max':'width'} -> 'color-primary max-width'
+
     // classes can be serialized as a string or an object
     if (isObject(className)) {
       // if an object is passed, it's flat and splited
@@ -320,26 +322,15 @@ export default class ComponentBase extends HTMLElement {
     }
   }
 
+  // ${viewport}-attribute-${value}
+
   applyAttribute(entries) {
     // received as {col:{ direction:2 }, columns: 2}
     const values = flat(entries);
     // transformed into values as {col-direction: 2, columns: 2}
     Object.keys(values).forEach((key) => {
-      //camelCaseAttr converst col-direction into colDirection
+      // camelCaseAttr converst col-direction into colDirection
       this.setAttribute(key, values[key]);
-    });
-  }
-
-  applyNest(config) {
-    const names = Object.keys(config);
-    names.map((key) => {
-      const nextedElementHandler = window.raqnComponents[key];
-      const instance = document.createElement(`raqn-${key}`);
-      instance.initOptions.configByClasses = [config[key]];
-
-      this.cachedChildren = Array.from(this.initOptions.target.children);
-      this.cachedChildren.forEach((child) => instance.append(child));
-      this.append(instance);
     });
   }
 
