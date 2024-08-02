@@ -1,5 +1,7 @@
 import { loadModule, deepMerge, mergeUniqueArrays, getBreakPoints } from './libs.js';
 
+window.raqnInstances = window.raqnInstances || {};
+
 export default class ComponentLoader {
   constructor({
     componentName,
@@ -17,6 +19,7 @@ export default class ComponentLoader {
     if (!componentName) {
       throw new Error('`componentName` is required');
     }
+    this.instances = window.raqnInstances || {};
     this.componentName = componentName;
     this.targets = targets.map((target) => ({ target }));
     this.loaderConfig = loaderConfig;
@@ -87,6 +90,9 @@ export default class ComponentLoader {
     let elem = null;
     try {
       elem = await this.createElementAndConfigure(data);
+      elem.webComponentName = this.webComponentName;
+      this.instances[elem.componentName] = this.instances[elem.componentName] || [];
+      this.instances[elem.componentName].push(elem);
     } catch (error) {
       error.elem ??= elem;
       elem?.classList.add('hide-with-error');
@@ -173,6 +179,7 @@ export default class ComponentLoader {
 
   async createElementAndConfigure(data) {
     const componentElem = document.createElement(this.webComponentName);
+    this.componentElem = componentElem;
     try {
       await componentElem.init(data);
     } catch (error) {

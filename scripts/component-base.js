@@ -6,7 +6,12 @@ import {
   camelCaseAttr,
   capitalizeCaseAttr,
   deepMerge,
-  buildConfig,
+  classToFlat,
+  externalConfig,
+  unflat,
+  isObject,
+  flatAsValue,
+  flat,
 } from './libs.js';
 
 export default class ComponentBase extends HTMLElement {
@@ -28,7 +33,7 @@ export default class ComponentBase extends HTMLElement {
   }
 
   get isInitAsBlock() {
-    return this.initOptions.target.classList.contains(this.componentName);
+    return this.initOptions?.target?.classList?.contains(this.componentName);
   }
 
   constructor() {
@@ -87,12 +92,15 @@ export default class ComponentBase extends HTMLElement {
   }
 
   setInitializationPromise() {
-    const { promise, resolve, reject } = Promise.withResolvers();
-    this.initialization = promise; // useful to wait on this prop for initialization after the element is created,
-    this.initResolvers = {
-      resolve,
-      reject,
-    };
+    this.initialization = new Promise((resolve, reject) => {
+      this.initResolvers = {
+        resolve,
+        reject,
+      };
+    });
+    // Promise.withResolvers don't fullfill last 2 versions of Safari
+    // eg this breaks everything in Safari < 17.4, we need to support.
+    // const { promise, resolve, reject } = Promise.withResolvers();
   }
 
   // Using the `method` which returns an array of objects it's easier to extend
@@ -119,13 +127,9 @@ export default class ComponentBase extends HTMLElement {
   async init(initOptions) {
     try {
       this.wasInitBeforeConnected = true;
-
       this.initOptions = initOptions || {};
-      const { externalConfigName, configByClasses = [] } = this.initOptions;
-
-      await this.buildExternalConfig(externalConfigName, configByClasses);
-      this.mergeConfigs();
-      this.setAttributesClassesAndProps();
+      await this.buildExternalConfig();
+      this.runConfigsByViewport();
       this.addDefaultsToNestedConfig();
       // Add extra functionality to be run on init.
       await this.onInit();
@@ -188,68 +192,45 @@ export default class ComponentBase extends HTMLElement {
 
   async initOnConnected() {
     if (this.wasInitBeforeConnected) return;
-    const configByClasses = this.dataset.configByClasses?.trim?.().split?.(' ') || [];
 
-    await this.buildExternalConfig(this.dataset.configName, configByClasses);
+    await this.buildExternalConfig();
 
+    this.runConfigsByViewport();
     delete this.dataset.configName;
     delete this.dataset.configByClasses;
 
-    this.mergeConfigs();
-    this.setAttributesClassesAndProps();
     this.addDefaultsToNestedConfig();
     // Add extra functionality to be run on init.
     await this.onInit();
   }
 
-  async buildExternalConfig(externalConfigName, configByClasses, knownAttr) {
-    this.externalOptions = await buildConfig(
-      this.componentName,
-      externalConfigName,
-      configByClasses,
-      knownAttr || this.Handler.observedAttributes,
-    );
-  }
+  async buildExternalConfig() {
+    let configByClasses = this.initOptions.configByClasses || [];
+    // normalize the configByClasses to serializable format
+    const { byName } = getBreakPoints();
+    configByClasses = configByClasses
+      // remove the first class which is the component name and keep only compound classes
+      .filter((c, index) => c.includes('-') && index !== 0)
+      // make sure break points are included in the config
+      .map((c) => {
+        const exceptions = ['all', 'config'];
+        const firstClass = c.split('-')[0];
+        const isBreakpoint = Object.keys(byName).includes(firstClass) || exceptions.includes(firstClass);
+        return isBreakpoint ? c : `all-${c}`;
+      });
 
-  mergeConfigs() {
-    this.initOptions.loaderConfig = deepMerge({}, this.Handler.loaderConfig, this.initOptions.loaderConfig);
-    this.props = deepMerge({}, this.initOptions.props, this.externalOptions.props);
+    // serialize the configByClasses into a flat object
+    let values = classToFlat(configByClasses);
 
-    this.config = deepMerge({}, this.config, this.initOptions.componentConfig, this.externalOptions.config);
+    // get the external config
+    if (values.config) {
+      const configs = unflat(await externalConfig.getConfig(this.webComponentName, values.config));
+      values = deepMerge({}, values, configs);
+      delete values.config;
+    }
 
-    this.attributesValues = deepMerge(
-      this.attributesValues,
-      this.initOptions.attributesValues,
-      this.externalOptions.attributesValues,
-    );
-
-    this.nestedComponentsConfig = deepMerge(
-      this.nestedComponentsConfig,
-      this.initOptions.nestedComponentsConfig,
-      this.externalOptions.nestedComponentsConfig,
-    );
-  }
-
-  setAttributesClassesAndProps() {
-    Object.entries(this.props).forEach(([prop, value]) => {
-      this[prop] = value;
-    });
-    // Set attributes based on attributesValues
-    this.sortedAttributes.forEach(([attr, attrValues]) => {
-      const isClass = attr === 'class';
-      const val = attrValues[this.breakpoints.active.name] ?? attrValues.all;
-      if (isClass) {
-        const classes = (attrValues.all ? `${attrValues.all} ` : '') + (attrValues[this.breakpoints.active.name] ?? '');
-        const classesArr = classes.split(' ').flatMap((cls) => {
-          if (cls) return cls.trim();
-          return [];
-        });
-        if (!classesArr.length) return;
-        this.classList.add(...classesArr);
-      } else {
-        this.dataset[attr] = val;
-      }
-    });
+    // add to attributesValues
+    this.attributesValues = deepMerge({}, this.attributesValues, values);
   }
 
   get sortedAttributes() {
@@ -270,7 +251,7 @@ export default class ComponentBase extends HTMLElement {
           targetsAsContainers: true,
         },
       };
-      this.nestedComponentsConfig[key] = deepMerge(defaults, this.nestedComponentsConfig[key]);
+      this.nestedComponentsConfig[key] = deepMerge({}, defaults, this.nestedComponentsConfig[key]);
     });
   }
 
@@ -290,38 +271,86 @@ export default class ComponentBase extends HTMLElement {
 
   addContentFromTarget() {
     const { target } = this.initOptions;
-
+    const { contentFromTargets } = this.config;
+    if (!contentFromTargets) return;
     this.append(...target.childNodes);
   }
 
   onBreakpointChange(e) {
     if (e.matches) {
-      this.setBreakpointAttributesValues(e);
+      this.runConfigsByViewport();
     }
   }
 
-  setBreakpointAttributesValues(e) {
-    this.sortedAttributes.forEach(([attribute, breakpointsValues]) => {
-      const isAttribute = attribute !== 'class';
-      if (isAttribute) {
-        const newValue = breakpointsValues[e.raqnBreakpoint.name] ?? breakpointsValues.all;
-        // this will trigger the `attributeChangedCallback` and a `onAttribute${capitalizedAttr}Changed` method
-        // should be defined to handle the attribute value change
-        if (newValue ?? false) {
-          if (this.dataset[attribute] === newValue) return;
-          this.dataset[attribute] = newValue;
-        } else {
-          delete this.dataset[attribute];
-        }
-      } else {
-        const prevClasses = (breakpointsValues[e.previousRaqnBreakpoint.name] ?? '').split(' ').filter((x) => x);
-        const newClasses = (breakpointsValues[e.raqnBreakpoint.name] ?? '').split(' ').filter((x) => x);
-        const removeClasses = prevClasses.filter((prevClass) => !newClasses.includes(prevClass));
-        const addClasses = newClasses.filter((newClass) => !prevClasses.includes(newClass));
+  runConfigsByViewport() {
+    const { name } = getBreakPoints().active;
+    const current = deepMerge({}, this.attributesValues.all, this.attributesValues[name]);
+    this.className = '';
+    this.cleanDataset();
+    Object.keys(current).forEach((key) => {
+      const action = `apply${key.charAt(0).toUpperCase() + key.slice(1)}`;
 
-        if (removeClasses.length) this.classList.remove(...removeClasses);
-        if (addClasses.length) this.classList.add(...addClasses);
+      if (typeof this[action] === 'function') {
+        return this[action]?.(current[key]);
       }
+      return this.applyClass(current[key]);
+    });
+  }
+
+  // ${viewport}-data-${attr}-"${value}"
+  applyData(entries) {
+    // received as {col:{ direction:2 }, columns: 2}
+    const values = flat(entries);
+    // transformed into values as {col-direction: 2, columns: 2}
+    Object.keys(values).forEach((key) => {
+      // camelCaseAttr converst col-direction into colDirection
+      this.dataset[camelCaseAttr(key)] = values[key];
+    });
+  }
+
+  // ${viewport}-class-${value}
+  applyClass(className) {
+    // {'color':'primary', 'max':'width'} -> 'color-primary max-width'
+
+    // classes can be serialized as a string or an object
+    if (isObject(className)) {
+      // if an object is passed, it's flat and splited
+      this.classList.add(...flatAsValue(className).split(' '));
+    } else {
+      // strings are added as is
+      this.classList.add(className);
+    }
+  }
+
+  // ${viewport}-attribute-${value}
+
+  applyAttribute(entries) {
+    // received as {col:{ direction:2 }, columns: 2}
+    const values = flat(entries);
+    // transformed into values as {col-direction: 2, columns: 2}
+    Object.keys(values).forEach((key) => {
+      // camelCaseAttr converst col-direction into colDirection
+      this.setAttribute(key, values[key]);
+    });
+  }
+
+  // ${viewport}-nest-${value}
+
+  applyNest(config) {
+    const names = Object.keys(config);
+    names.map((key) => {
+      const instance = document.createElement(`raqn-${key}`);
+      instance.initOptions.configByClasses = [config[key]];
+
+      this.cachedChildren = Array.from(this.initOptions.target.children);
+      this.cachedChildren.forEach((child) => instance.append(child));
+      this.append(instance);
+    });
+  }
+
+  cleanDataset() {
+    Object.keys(this.dataset).forEach((key) => {
+      delete this.dataset[key];
     });
   }
 
@@ -352,7 +381,7 @@ export default class ComponentBase extends HTMLElement {
   }
 
   addListeners() {
-    if (this.externalOptions.hasBreakpointsValues || this.config.listenBreakpoints) {
+    if (Object.keys(this.attributesValues).length > 1) {
       listenBreakpointChange(this.onBreakpointChange);
     }
   }

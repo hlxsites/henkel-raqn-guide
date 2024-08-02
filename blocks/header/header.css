@@ -1,14 +1,14 @@
 raqn-header {
-  --scope-background: var(--scope-header-background, #fff);
-  --scope-color: var(--scope-header-color, #000);
-  --scope-top: var(--scope-header-top, 0);
+  --header-background: var(--background, #fff);
+  --color: var(--text, #000);
+  --top: var(--header-top, 0);
 
   position: fixed;
-  top: var(--scope-top);
+  top: var(--top);
   width: 100%;
-  min-height: var(--scope-header-height, 64px);
+  min-height: var(--header-height, 110px);
   display: grid;
-  background: var(--scope-header-background, #fff);
+  background: var(--header-background, #fff);
   align-items: center;
   z-index: 100;
 }

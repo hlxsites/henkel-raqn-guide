@@ -4,8 +4,8 @@ raqn-breadcrumbs {
   gap: 10px;
   align-items: center;
   padding: 10px 0;
-  background: var(--scope-background, transparent);
-  color: var(--scope-color, #000);
+  background: var(--background, transparent);
+  color: var(--color, #000);
 }
 
 raqn-breadcrumbs ul {
@@ -21,7 +21,7 @@ raqn-breadcrumbs ul li {
 }
 
 raqn-breadcrumbs ul li a {
-  color: var(--scope-color);
+  color: var(--text);
   font-weight: normal;
 }
 

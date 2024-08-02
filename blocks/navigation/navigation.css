@@ -1,11 +1,11 @@
 /* stylelint-disable CssSyntaxError */
 raqn-navigation {
-  --raqn-navigation-background: var(--scope-background, #fff);
-  --raqn-navigation-color: var(--scope-color, #000);
+  --raqn-navigation-background: var(--background, #fff);
+  --raqn-navigation-color: var(--text, #000);
   --raqn-navigation-level-1: var(--raqn-font-size-4, 1.25rem);
   --raqn-navigation-level-2: var(--raqn-font-size-5, 1rem);
 
-  margin: var(--scope-margin);
+  margin: var(--margin);
   width: 100%;
   display: grid;
   justify-content: center;
@@ -18,12 +18,16 @@ raqn-navigation > nav p {
 }
 
 raqn-navigation .level-1 a:not(:hover) {
-  color: var(--scope-accent-background, #000);
+  color: var(--accent-background, #000);
+}
+
+raqn-navigation .level-1 a:hover {
+  color: var(--highlight, #000);
 }
 
 raqn-navigation > nav > ul {
   overflow-y: auto;
-  max-height: calc(100vh - var(--scope-header-height));
+  max-height: calc(100vh - var(--header-height));
 }
 
 raqn-navigation.active > nav ul,
@@ -54,8 +58,8 @@ raqn-navigation > button {
   justify-self: end;
   align-items: center;
   justify-content: center;
-  background: var(--scope-background, #fff);
-  color: var(--scope-color, #000);
+  background: var(--accent-background, #fff);
+  color: var(--accent-text, #000);
   border: none;
   border-radius: var(--border-radius);
   padding: var(--padding-vertical, 10px) var(--padding-horizontal, 10px);
@@ -63,8 +67,8 @@ raqn-navigation > button {
 }
 
 raqn-navigation.active button {
-  background: var(--scope-background-hover, #000);
-  color: var(--scope-color-hover, #fff);
+  background: var(--hover-background, #000);
+  color: var(--hover-text, #fff);
 }
 
 raqn-navigation.active > nav > ul {
@@ -72,18 +76,18 @@ raqn-navigation.active > nav > ul {
   display: block;
   list-style: none;
   max-width: 0;
-  background: var(--scope-background, #fff);
+  background: var(--background, #fff);
   min-width: 100%;
   inset-inline-start: 0;
-  inset-block-start: var(--scope-header-height, 64px);
+  inset-block-start: var(--header-height, 64px);
   height: 100%;
-  max-height: calc(100vh - var(--scope-header-height, 64px));
+  max-height: calc(100vh - var(--header-height, 64px));
   margin: 0 auto;
   padding: 0;
 }
 
 raqn-navigation.active > nav > ul li {
-  max-width: var(--scope-max-width, 100%);
+  max-width: var(--max-width, 100%);
   margin: 0 auto;
 }
 
@@ -96,7 +100,7 @@ raqn-navigation .accordion-content-wrapper {
 }
 
 raqn-navigation:not([data-compact='true']) > nav a {
-  line-height: var(--scope-icon-size, 24px);
+  line-height: var(--icon-size, 24px);
 }
 
 raqn-navigation:not([data-compact='true']) > nav ul {
@@ -105,8 +109,8 @@ raqn-navigation:not([data-compact='true']) > nav ul {
 }
 
 raqn-navigation:not([data-compact='true']) > nav > ul {
-  inset-inline-start: calc((100vw - var(--scope-max-width)) / 2);
-  inset-block-start: var(--scope-header-height, 64px);
+  inset-inline-start: calc((100vw - var(--max-width)) / 2);
+  inset-block-start: var(--header-height, 64px);
 }
 
 raqn-navigation:not([data-compact='true']) > nav > p {
@@ -118,16 +122,16 @@ raqn-navigation:not([data-compact='true']) > nav [data-icon='chevron-right'] {
 }
 
 raqn-navigation:not([data-compact='true']) > nav .level-1 a {
-  padding: var(--scope-padding-vertical, 10px) var(--scope-padding-horizontal, 20px);
+  padding: var(--padding-vertical, 10px) var(--padding-horizontal, 20px);
 }
 
 raqn-navigation:not([data-compact='true']) > nav .level-2 > a {
-  color: var(--scope-link-color-hover);
+  color: var(--highlight, #000);
   font-size: 1.2em;
 }
 
 raqn-navigation:not([data-compact='true']) > nav .level-2 > a:hover {
-  color: var(--scope-color, #fff);
+  color: var(--highlight);
 }
 
 raqn-navigation:not([data-compact='true']) > nav .level-2,
@@ -146,8 +150,8 @@ raqn-navigation:not([data-compact='true']) > nav .level-1 > ul {
   clip-path: inset(0% -100vw 100% -100vw);
   position: absolute;
   padding: 0;
-  inset-block-start: var(--scope-header-height, 64px);
-  inset-inline-start: calc((100vw - var(--scope-max-width)) / 2);
+  inset-block-start: var(--header-height, 64px);
+  inset-inline-start: calc((100vw - var(--max-width)) / 2);
   transition: clip-path 0.4s ease-in-out;
   overflow: visible;
 }
@@ -161,13 +165,13 @@ raqn-navigation:not([data-compact='true']) > nav .level-1 > ul .level-2 {
 
 raqn-navigation:not([data-compact='true']) > nav .level-1 > ul::after {
   content: ' ';
-  margin-inline: calc(-1 * ((100vw - var(--scope-max-width)) / 2));
+  margin-inline: calc(-1 * ((100vw - var(--max-width)) / 2));
   position: absolute;
   height: 100%;
   width: 100vw;
   inset-inline-start: 0;
-  background: var(--scope-background, #fff);
-  border-block-start: 1px solid var(--scope-color, #000);
+  background: var(--background, #fff);
+  border-block-start: 1px solid var(--accent-background, #000);
   box-shadow: 0 0 30px #000;
   z-index: 1;
 }
