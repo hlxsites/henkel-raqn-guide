@@ -22,7 +22,7 @@ raqn-navigation .level-1 a:not(:hover) {
 }
 
 raqn-navigation > nav > ul {
-  overflow-y: auto;
+  overflow-y: hidden;
   max-height: calc(100vh - var(--scope-header-height));
 }
 

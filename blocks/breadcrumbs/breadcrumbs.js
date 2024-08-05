@@ -1,5 +1,5 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { getBaseUrl } from '../../scripts/libs.js';
+import { getMeta, metaTags } from '../../scripts/libs.js';
 
 export default class Breadcrumbs extends ComponentBase {
   static loaderConfig = {
@@ -28,19 +28,26 @@ export default class Breadcrumbs extends ComponentBase {
     this.classList.add('full-width');
     this.classList.add('breadcrumbs');
     const { origin, pathname } = window.location;
-    this.path = `${origin}${pathname}`.split(getBaseUrl()).join('/').split('/');
+    let breadcrumbRoot = getMeta(metaTags.breadcrumbRoot.metaName);
+    if (breadcrumbRoot) {
+      breadcrumbRoot = breadcrumbRoot?.starsWith('/') ? breadcrumbRoot : `/${breadcrumbRoot}`;
+    } else {
+      breadcrumbRoot = metaTags.breadcrumbRoot.fallbackContent;
+    }
+
+    this.pathPages = `${origin}${pathname}`.split(`${origin}${breadcrumbRoot}`).join('/').split('/');
     this.innerHTML = `
     <ul>
-        ${this.path
-          .map((path, index) => {
-            if (path === '') {
-              return `<li><a href="/${path}">Home</a></li>`;
+        ${this.pathPages
+          .map((pageName, index) => {
+            if (pageName === '') {
+              return `<li><a href="/${pageName}">Home</a></li>`;
             }
-            if (index === this.path.length - 1) {
-              return `<li>${this.capitalize(path)}</li>`;
+            if (index === this.pathPages.length - 1) {
+              return `<li>${this.capitalize(pageName)}</li>`;
             }
-            const href = this.path.slice(0, index + 1).join('/');
-            return `<li><a href="${href}">${this.capitalize(path)}</a></li>`;
+            const href = this.pathPages.slice(0, index + 1).join('/');
+            return `<li><a href="${href}">${this.capitalize(pageName)}</a></li>`;
           })
           .join('<li class="separator">›</li>')}
     </ul>`;
