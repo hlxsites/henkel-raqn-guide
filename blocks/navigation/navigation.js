@@ -98,27 +98,16 @@ export default class Navigation extends Column {
   }
 
   addIcon(elem) {
-    component.init({
-      componentName: 'icon',
-      targets: [elem],
-      configByClasses: 'icon-chevron-right',
-      componentConfig: {
-        addToTargetMethod: 'append',
-      },
-    });
+    const icon = document.createElement('raqn-icon');
+    icon.dataset.icon = 'chevron-right';
+    elem.append(icon);
   }
 
   createAccordion(elem) {
-    component.init({
-      componentName: 'accordion',
-      targets: [elem],
-      componentConfig: {
-        addToTargetMethod: 'append',
-      },
-      nestedComponentsConfig: {
-        button: { active: false },
-      },
-    });
+    const content = Array.from(elem.children);
+    const accordion = document.createElement('heliux-accordion');
+    accordion.append(...content);
+    elem.append(accordion);
   }
 
   setupClasses(ul, isCompact, level = 1) {
