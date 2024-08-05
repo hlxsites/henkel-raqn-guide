@@ -11,7 +11,8 @@ raqn-sidekick-tools-palette ul {
   list-style: none;
   padding: 0;
   margin: 0;
-  overflow: scroll;
+  overflow-y: auto;
+  overflow-x: hidden;
   transition: transform .2s ease-in-out;
 }
 

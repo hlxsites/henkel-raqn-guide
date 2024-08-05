@@ -1,7 +1,11 @@
 @media screen and (max-width: 768px) {
   body {
-    --scope-max-width: 100vw;
+    --scope-max-width: 100%;
   }
+}
+
+* {
+  box-sizing: border-box;
 }
 
 img {
@@ -86,33 +90,19 @@ head:has(meta[name='footer'][content='false' i]) + body > footer {
   display: none;
 }
 
-main > div {
-  max-width: var(--scope-max-width, 100%);
-  margin: 0 auto;
+main > div > *,
+.full-width {
+  --scope-ontainer-min-padding: 20px;
+  --scope-ontainer-variable-padding: calc((100% - var(--scope-max-width)) / 2 - var(--scope-ontainer-min-padding));
 }
 
-main > div > * {
-  max-width: var(--scope-max-width, 100%);
-  min-width: var(--scope-max-width, 100%);
-  margin-inline: auto;
-  box-sizing: border-box;
-}
-
-main > .raqn-grid > * {
-  max-width: auto;
-  min-width: auto;
+main > div > *:not(.full-width) {
+  margin-inline: max(var(--scope-ontainer-variable-padding), var(--scope-ontainer-min-padding));
+  padding-inline: var(--scope-ontainer-min-padding);
 }
 
 .full-width {
-  --scope-outer-gap: calc((var(--raqn-max-width-default) - 100vw) / 2);
-  --scope-inner-gap: calc((100vw - var(--scope-max-width)) / 2);
-
-  display: grid;
-  min-width: 100vw;
-  max-width: none;
-  margin-inline-start: var(--scope-outer-gap);
-  padding-inline: var(--scope-inner-gap);
-  box-sizing: border-box;
+  padding-inline: calc(max(var(--scope-ontainer-variable-padding), var(--scope-ontainer-min-padding)) + var(--scope-ontainer-min-padding));
 }
 
 main > div > div {
@@ -195,7 +185,7 @@ h6 {
   margin-block: var(--scope-margin-block, 1em);
 }
 
-@media screen and (min-width: 1024px) {
+/* @media screen and (min-width: 1024px) {
   p,
   ul,
   ol,
@@ -208,7 +198,7 @@ h6 {
   h6 {
     max-width: 50vw;
   }
-}
+} */
 
 h1,
 h2,
