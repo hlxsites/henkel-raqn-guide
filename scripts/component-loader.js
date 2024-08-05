@@ -179,7 +179,6 @@ export default class ComponentLoader {
 
   async createElementAndConfigure(data) {
     const componentElem = document.createElement(this.webComponentName);
-    this.componentElem = componentElem;
     try {
       await componentElem.init(data);
     } catch (error) {
