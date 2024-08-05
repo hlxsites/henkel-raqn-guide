@@ -5,6 +5,26 @@ export default class Card extends ComponentBase {
   static observedAttributes = ['data-columns', 'data-ratio', 'data-eager'];
 
   // Default values for the attributes
+  // all-data-column
+  attributesValues = {
+    all: {
+      data: {
+        columns: '4',
+        ratio: '4/3',
+        eager: '0',
+      },
+    },
+    xs: {
+      data: {
+        columns: '1',
+      },
+    },
+    s: {
+      data: {
+        columns: '1',
+      },
+    },
+  };
 
   ready() {
     this.eager = parseInt(this.dataset.eager || 0, 10);
