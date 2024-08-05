@@ -5,7 +5,6 @@ export default class Card extends ComponentBase {
   static observedAttributes = ['data-columns', 'data-ratio', 'data-eager'];
 
   // Default values for the attributes
-  // all-data-column
   attributesValues = {
     all: {
       data: {
