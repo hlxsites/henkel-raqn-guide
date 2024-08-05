@@ -1,23 +1,23 @@
 raqn-card {
-  background: var(--scope-background, transparent);
-  color: var(--scope-color, #fff);
+  background: var(--background, transparent);
+  color: var(--text, #fff);
   display: grid;
   position: relative;
   grid-template-columns: var(--card-columns, 1fr);
-  gap: var(--scope-gap, 20px);
-  padding: var(--scope-padding, 20px 0);
+  gap: var(--gap, 20px);
+  padding: var(--padding, 20px 0);
 }
 
 raqn-card > div {
   display: flex;
-  gap: var(--scope-gap, 20px);
+  gap: var(--gap, 20px);
   position: relative;
-  background: var(--scope-inner-background, transparent);
-  padding: var(--scope-inner-padding, 20px);
-  border-block-start: var(--scope-border-block-start, none);
-  border-block-end: var(--scope-border-block-end, none);
-  border-inline-start: var(--scope-border-inline-start, none);
-  border-inline-end: var(--scope-border-inline-end, none);
+  background: var(--inner-background, transparent);
+  padding: var(--inner-padding, 20px);
+  border-block-start: var(--border-block-start, none);
+  border-block-end: var(--border-block-end, none);
+  border-inline-start: var(--border-inline-start, none);
+  border-inline-end: var(--border-inline-end, none);
 }
 
 raqn-card :where(a, button) {
@@ -40,7 +40,6 @@ raqn-card div > div:first-child > p > em:only-child > a:only-child {
 raqn-card div > div:first-child > p:has(> em:only-child > a:only-child) {
   margin: 0;
 }
-
 
 raqn-card div > div {
   display: flex;

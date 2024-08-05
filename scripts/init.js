@@ -3,6 +3,7 @@ import { globalConfig, metaTags, eagerImage, getMeta, getMetaGroup, mergeUniqueA
 
 const component = {
   async init(settings) {
+    // some components may have multiple targets
     const { componentName = this.getBlockData(settings?.targets?.[0]).componentName } = settings || {};
     try {
       const loader = new ComponentLoader({
@@ -10,7 +11,6 @@ const component = {
         componentName,
       });
       const instances = await loader.init();
-
       const init = {
         componentName,
         instances: [],
@@ -70,7 +70,7 @@ const component = {
   },
 };
 
-const onLoadComponents = {
+export const onLoadComponents = {
   // default content
   staticStructureComponents: [
     {
@@ -162,13 +162,14 @@ const onLoadComponents = {
   initBlocks() {
     // Keep the page hidden until specific components are initialized to prevent CLS
     component.multiInit(this.lcpBlocks).then(() => {
-      document.body.style.setProperty('display', 'unset');
+      window.postMessage({ message: 'raqn:components:loaded' });
+      document.body.style.setProperty('display', 'block');
     });
     component.multiInit(this.lazyBlocks);
   },
 };
 
-const globalInit = {
+export const globalInit = {
   async init() {
     this.setLang();
     this.initEagerImages();
@@ -190,5 +191,43 @@ const globalInit = {
 };
 
 globalInit.init();
+
+// init editor if message from parent
+window.addEventListener('message', async (e) => {
+  if (e && e.data) {
+    const { message, params } = e.data;
+    if (!Array.isArray(params)) {
+      const query = new URLSearchParams(window.location.search);
+      switch (message) {
+        case 'raqn:editor:start':
+          (async function startEditor() {
+            const editor = await import('./editor.js');
+            const { origin, target, preview = false } = params;
+            setTimeout(() => {
+              editor.default(origin, target, preview);
+            }, 2000);
+          })();
+          break;
+        // other cases?
+        case 'raqn:editor:preview:component':
+          // preview editor with only a component
+          if (query.has('preview')) {
+            (async function startEditor() {
+              const preview = query.get('preview');
+              const win = await import('./editor-preview.js');
+              const { uuid } = params;
+
+              if (uuid === preview) {
+                win.default(params.component, params.classes, uuid);
+              }
+            })();
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  }
+});
 
 export default component;

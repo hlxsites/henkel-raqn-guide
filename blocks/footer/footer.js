@@ -25,6 +25,7 @@ export default class Footer extends ComponentBase {
 
   ready() {
     const child = this.children[0];
+    if (!child) return;
     child.replaceWith(...child.children);
     this.nav = this.querySelector('ul');
     this.nav.setAttribute('role', 'navigation');

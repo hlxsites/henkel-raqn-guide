@@ -1,9 +1,11 @@
 # Henkel RAQN Guide
+
 PoC / Migration project to experiment with EDS in the RAQN world.
 
 ## Environments
-- Preview: https://main--henkel-raqn-guide--hlxsites.hlx.page/
-- Live: https://main--henkel-raqn-guide--hlxsites.hlx.live/
+
+- Preview: https://main--raqn-docs-sharepoint--henkel.aem.page/
+- Live: https://main--raqn-docs-sharepoint--henkel.aem.live/
 
 ## Installation
 
