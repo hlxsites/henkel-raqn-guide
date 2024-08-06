@@ -1,0 +1,6 @@
+raqn-developers-toc h2, 
+raqn-developers-toc h3 {
+  margin: 10px;
+  color: var(--scope-color);
+  font-size: var(--scope-font-size, 1.3em);
+}
