@@ -17,12 +17,6 @@ export default function config() {
           label: 'Order',
           helpText: 'Order of the columns.',
         },
-        width: {
-          type: 'text',
-          label: 'Width',
-          value: '100%',
-          helpText: 'Width of the hero.',
-        },
       },
     },
   };
