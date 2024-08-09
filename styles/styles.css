@@ -5,9 +5,10 @@
 }
 
 @media screen and (max-width: 768px) {
-  body {
-    --max-width: 100%
+  :root {
+    --max-width: 100%;
   }
+}
 
 * {
   box-sizing: border-box;
@@ -114,7 +115,7 @@ head:has(meta[name='footer'][content='false' i]) + body > footer {
   display: none;
 }
 
- /* Use :where() to give lower specificity in order to not overwrite any display option set on the web component tag */
+/* Use :where() to give lower specificity in order to not overwrite any display option set on the web component tag */
 :where([raqnWebComponent]) {
   display: block;
 }
