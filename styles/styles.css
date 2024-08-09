@@ -1,8 +1,10 @@
-@media screen and (max-width: 768px) {
-  body {
-    --raqn-max-width-default: var(--max-width, 80vw);
-    --max-width: 100vw;
-  }
+:root {
+  --max-width: 80% --padding-container: 20px;
+  --header-height: 110px;
+}
+
+* {
+  box-sizing: border-box;
 }
 
 img {
@@ -12,10 +14,6 @@ img {
 
 html,
 body {
-  --raqn-max-width-default: 80vw;
-  --max-width: var(--raqn-max-width-default, 80vw);
-  --header-height: 110px;
-
   width: 100%;
   height: 100%;
   margin: 0;
@@ -110,34 +108,18 @@ head:has(meta[name='footer'][content='false' i]) + body > footer {
   display: none;
 }
 
-main > div {
-  max-width: var(--max-width, 100%);
-  margin: 0 auto;
+ /* Use :where() to give lower specificity in order to not overwrite any display option set on the web component tag */
+:where([raqnWebComponent]) {
+  display: block;
 }
 
-main > div > * {
-  max-width: var(--max-width, 100%);
-  min-width: var(--max-width, 100%);
-  margin-inline: auto;
-  box-sizing: border-box;
-  background-color: var(--background, #fff);
-}
-
-main > .raqn-grid > * {
-  max-width: auto;
-  min-width: auto;
+main > div > *:not(.full-width) {
+  margin-inline: max(calc((100% - var(--max-width)) / 2 - var(--padding-container)), var(--padding-container));
+  padding-inline: var(--padding-container);
 }
 
 .full-width {
-  --outer-gap: calc((var(--raqn-max-width-default) - 100vw) / 2);
-  --inner-gap: calc((100vw - var(--max-width)) / 2);
-
-  display: grid;
-  min-width: 100vw;
-  max-width: none;
-  margin-inline-start: var(--outer-gap);
-  padding-inline: var(--inner-gap);
-  box-sizing: border-box;
+  padding-inline: max(calc((100% - var(--max-width)) / 2), var(--padding-container));
 }
 
 main > div > div {
