@@ -130,6 +130,7 @@ export default class ComponentBase extends HTMLElement {
     try {
       this.wasInitBeforeConnected = true;
       this.initOptions = initOptions || {};
+      this.setInitialAttributesValues();
       await this.buildExternalConfig();
       this.runConfigsByViewport();
       this.addDefaultsToNestedConfig();
@@ -145,6 +146,29 @@ export default class ComponentBase extends HTMLElement {
         console.error(`There was an error while initializing the '${this.componentName}' webComponent:`, this, error);
       }
     }
+  }
+
+  /**
+   * When the element was created with data attributes before the ini() method is called
+   * use the data attr values as default for attributesValues
+   */
+  setInitialAttributesValues() {
+    const initialAttributesValues = { all: {} };
+
+    this.Handler.observedAttributes.map((dataAttr) => {
+      const [, key] = dataAttr.split('data-');
+      const value = this.dataset[key];
+      if (typeof value === 'undefined') return {};
+      initialAttributesValues.all[key] = value;
+      return initialAttributesValues;
+    });
+
+    this.attributesValues = deepMerge(
+      {},
+      this.attributesValues,
+      this.initOptions?.attributesValues || {},
+      initialAttributesValues,
+    );
   }
 
   async connectComponent() {
@@ -196,13 +220,9 @@ export default class ComponentBase extends HTMLElement {
 
   async initOnConnected() {
     if (this.wasInitBeforeConnected) return;
-
+    this.setInitialAttributesValues();
     await this.buildExternalConfig();
-
     this.runConfigsByViewport();
-    delete this.dataset.configName;
-    delete this.dataset.configByClasses;
-
     this.addDefaultsToNestedConfig();
     // Add extra functionality to be run on init.
     await this.onInit();

@@ -53,7 +53,7 @@ export default class PopupTrigger extends ComponentBase {
     if (anchorUrl.hash === closePopupIdentifier) {
       this.isClosePopupTrigger = true;
     } else {
-      this.dataset.url = anchorUrl.href;
+      this.dataset.url = anchorUrl.pathname;
     }
 
     if (anchor.hasAttribute('aria-label')) {
@@ -84,8 +84,16 @@ export default class PopupTrigger extends ComponentBase {
   onAttributeUrlChanged({ oldValue, newValue }) {
     if (this.isClosePopupTrigger) return;
     if (oldValue === newValue) return;
+    let sourceUrl;
 
-    const sourceUrl = new URL(newValue);
+    try {
+      sourceUrl = new URL(newValue, window.location.origin);
+    } catch (error) {
+      // eslint-disable-next-line no-console
+      console.warn('The value provided is not a valid path', error);
+      return;
+    }
+
     this.popupSourceUrl = sourceUrl.pathname;
 
     if (this.popup) {
@@ -123,24 +131,14 @@ export default class PopupTrigger extends ComponentBase {
   }
 
   async createPopup() {
-    const {
-      instances: [popup],
-    } = await component.init({
-      componentName: 'popup',
-      attributesValues: {
-        url: { all: this.popupSourceUrl },
-        active: { all: true },
-      },
-      componentConfig: {
-        contentFromTargets: false,
-        addToTargetMethod: 'append',
-      },
-      props: {
-        popupTrigger: this,
-      },
-      targets: [null],
-    });
+    await component.loadAndDefine('popup');
+    const popup = document.createElement('raqn-popup');
 
+    popup.dataset.url = this.popupSourceUrl;
+    popup.dataset.active = true;
+    popup.dataset.type = 'flyout';
+
+    popup.popupTrigger = this;
     return popup;
   }
 
