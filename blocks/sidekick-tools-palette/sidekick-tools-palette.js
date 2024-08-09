@@ -182,8 +182,7 @@ function decorateImages(element) {
 function getTable(block) {
   const name = getBlockName(block);
   const rows = [...block.children];
-  const maxCols = rows.reduce((cols, row) => (
-    row.children.length > cols ? row.children.length : cols), 0);
+  const maxCols = rows.reduce((cols, row) => (row.children.length > cols ? row.children.length : cols), 0);
   const table = document.createElement('table');
   table.setAttribute('border', 1);
   const headerRow = document.createElement('tr');
@@ -224,13 +223,12 @@ function getHtml(container) {
 }
 
 export default class SidekickToolsPalette extends ComponentBase {
-
   createEntry(name) {
     const subHeader = document.createElement('h3');
     subHeader.classList.add('hidden');
     subHeader.innerText = name;
     this.menuWrapper.before(subHeader);
-    
+
     const menuItem = document.createElement('li');
     menuItem.innerText = name;
     this.menuRoot.append(menuItem);
@@ -258,54 +256,55 @@ export default class SidekickToolsPalette extends ComponentBase {
     const subMenu = this.createEntry(title);
 
     const blocksResponse = await fetch(url);
-    if(!blocksResponse.ok) return;
+    if (!blocksResponse.ok) return;
     const blocks = await blocksResponse.json();
-    await Promise.all(blocks.data.map(async (block) => {
-      const blockResponse = await fetch(`${block.path}.plain.html`);
-      if (!blockResponse.ok) return;
+    await Promise.all(
+      blocks.data.map(async (block) => {
+        const blockResponse = await fetch(`${block.path}.plain.html`);
+        if (!blockResponse.ok) return;
 
-      const html = await blockResponse.text();
-      const parser = new DOMParser();
-      const doc = parser.parseFromString(html, 'text/html');
-      const containers = getContainers(doc);
-      if(!containers.length) return;
-      const item = document.createElement('li');
-      item.innerHTML = `<h4>${block.name}</h4><ul class="hidden"></ul>`;
-      const itemHeader = item.querySelector('h4');
-      const wrapper = item.querySelector('ul');
-      itemHeader.addEventListener('click', () => {
-        if(itemHeader.classList.contains('active')) {
-          itemHeader.classList.remove('active');
-          wrapper.classList.add('hidden');
-        } else {
-          subMenu.querySelectorAll('h4').forEach((h) => h.classList.remove('active'));
-          subMenu.querySelectorAll('ul').forEach((ul) => ul.classList.add('hidden'));
-          itemHeader.classList.add('active');
-          wrapper.classList.remove('hidden');
-        }
-      });
-      containers.forEach((container) => {
-        const copyOption = document.createElement('li');
-        copyOption.innerHTML = `<span>${getContainerName(container)}</span>`;
-        wrapper.append(copyOption);
-        copyOption.addEventListener('click', () => {
-          const blob = new Blob([`<br>${getHtml(container)}<br>`], { type: 'text/html' });
-          const data = [new ClipboardItem({ [blob.type]: blob })];
-          navigator.clipboard.write(data);
-          copyOption.classList.add('copied');
-          setTimeout(() => copyOption.classList.remove('copied'), 1000);
+        const html = await blockResponse.text();
+        const parser = new DOMParser();
+        const doc = parser.parseFromString(html, 'text/html');
+        const containers = getContainers(doc);
+        if (!containers.length) return;
+        const item = document.createElement('li');
+        item.innerHTML = `<h4>${block.name}</h4><ul class="hidden"></ul>`;
+        const itemHeader = item.querySelector('h4');
+        const wrapper = item.querySelector('ul');
+        itemHeader.addEventListener('click', () => {
+          if (itemHeader.classList.contains('active')) {
+            itemHeader.classList.remove('active');
+            wrapper.classList.add('hidden');
+          } else {
+            subMenu.querySelectorAll('h4').forEach((h) => h.classList.remove('active'));
+            subMenu.querySelectorAll('ul').forEach((ul) => ul.classList.add('hidden'));
+            itemHeader.classList.add('active');
+            wrapper.classList.remove('hidden');
+          }
         });
-      });
-      subMenu.append(item);
-    }));
-    
+        containers.forEach((container) => {
+          const copyOption = document.createElement('li');
+          copyOption.innerHTML = `<span>${getContainerName(container)}</span>`;
+          wrapper.append(copyOption);
+          copyOption.addEventListener('click', () => {
+            const blob = new Blob([`<br>${getHtml(container)}<br>`], { type: 'text/html' });
+            const data = [new ClipboardItem({ [blob.type]: blob })];
+            navigator.clipboard.write(data);
+            copyOption.classList.add('copied');
+            setTimeout(() => copyOption.classList.remove('copied'), 1000);
+          });
+        });
+        subMenu.append(item);
+      }),
+    );
   }
 
   async initPlaceholders({ title, url }) {
     const subMenu = this.createEntry(title);
 
     const placeholdersResponse = await fetch(url);
-    if(!placeholdersResponse.ok) return;
+    if (!placeholdersResponse.ok) return;
     const placeholders = await placeholdersResponse.json();
 
     placeholders.data.forEach((placeholder) => {
@@ -326,12 +325,16 @@ export default class SidekickToolsPalette extends ComponentBase {
   async initPalette() {
     const { searchParams } = new URL(window.location.href);
     this.innerHTML = 'loading ...';
-    if(!searchParams.has('ref') || !searchParams.has('repo') || !searchParams.has('owner')) {
+    if (!searchParams.has('ref') || !searchParams.has('repo') || !searchParams.has('owner')) {
       this.innerHTML = 'loading ... failed.';
       return;
     }
-    const configResponse = await fetch(`https://admin.hlx.page/sidekick/${searchParams.get('owner')}/${searchParams.get('repo')}/${searchParams.get('ref')}/config.json`);
-    if(!configResponse.ok) {
+    const configResponse = await fetch(
+      `https://admin.hlx.page/sidekick/${searchParams.get('owner')}/${searchParams.get('repo')}/${searchParams.get(
+        'ref',
+      )}/config.json`,
+    );
+    if (!configResponse.ok) {
       this.innerHTML = 'loading ... failed.';
       return;
     }
@@ -346,25 +349,31 @@ export default class SidekickToolsPalette extends ComponentBase {
     this.menuWrapper = this.querySelector('.menu-wrapper');
     this.menuRoot = this.querySelector('ul');
 
-    const thisPlugin = config.plugins.find((plugin) => 
-      plugin.url === window.location.pathname || plugin.url === `${window.location.origin}${window.location.pathname}`);
-    if(!thisPlugin) {
+    const thisPlugin = config.plugins.find(
+      (plugin) =>
+        plugin.url === window.location.pathname ||
+        plugin.url === `${window.location.origin}${window.location.pathname}`,
+    );
+    if (!thisPlugin) {
       this.innerHTML = 'loading ... failed.';
       return;
     }
-    config.plugins.filter((plugin) => plugin.containerId === thisPlugin.id).forEach((plugin) => {
-      switch (plugin.id) {
-        case `${thisPlugin.id}-blocks`:
-          this.initBlocks(plugin);
-          break;
-        case `${thisPlugin.id}-placeholders`:
-          this.initPlaceholders(plugin);
-          break;
-        default:
-          console.warn('failed to load plugin', plugin);
-          break;
-      }
-    });
+    config.plugins
+      .filter((plugin) => plugin.containerId === thisPlugin.id)
+      .forEach((plugin) => {
+        switch (plugin.id) {
+          case `${thisPlugin.id}-blocks`:
+            this.initBlocks(plugin);
+            break;
+          case `${thisPlugin.id}-placeholders`:
+            this.initPlaceholders(plugin);
+            break;
+          default:
+            // eslint-disable-next-line no-console
+            console.warn('failed to load plugin', plugin);
+            break;
+        }
+      });
   }
 
   connected() {
