@@ -15,6 +15,8 @@ import {
 } from './libs.js';
 
 export default class ComponentBase extends HTMLElement {
+  // All supported data attributes must be added to observedAttributes
+  // The order of observedAttributes is the order in which the values from config are added.
   static observedAttributes = [];
 
   static loaderConfig = {
@@ -158,6 +160,8 @@ export default class ComponentBase extends HTMLElement {
 
   // Build-in method called after the element is added to the DOM.
   async connectedCallback() {
+    // Common identifier for raqn web components
+    this.setAttribute('raqnWebComponent', '');
     this.setAttribute('isloading', '');
     try {
       this.initialized = this.getAttribute('initialized');
@@ -233,15 +237,6 @@ export default class ComponentBase extends HTMLElement {
     this.attributesValues = deepMerge({}, this.attributesValues, values);
   }
 
-  get sortedAttributes() {
-    const knownAttr = this.Handler.observedAttributes;
-    // Sometimes the order in which the attributes are set matters.
-    // Control the order by using the order of the observedAttributes.
-    return Object.entries(this.attributesValues).sort(
-      (a, b) => knownAttr.indexOf(`data-${a}`) - knownAttr.indexOf(`data-${b}`),
-    );
-  }
-
   addDefaultsToNestedConfig() {
     Object.keys(this.nestedComponentsConfig).forEach((key) => {
       const defaults = {
@@ -286,10 +281,8 @@ export default class ComponentBase extends HTMLElement {
     const { name } = getBreakPoints().active;
     const current = deepMerge({}, this.attributesValues.all, this.attributesValues[name]);
     this.className = '';
-    this.cleanDataset();
     Object.keys(current).forEach((key) => {
       const action = `apply${key.charAt(0).toUpperCase() + key.slice(1)}`;
-
       if (typeof this[action] === 'function') {
         return this[action]?.(current[key]);
       }
@@ -302,9 +295,19 @@ export default class ComponentBase extends HTMLElement {
     // received as {col:{ direction:2 }, columns: 2}
     const values = flat(entries);
     // transformed into values as {col-direction: 2, columns: 2}
-    Object.keys(values).forEach((key) => {
-      // camelCaseAttr converst col-direction into colDirection
-      this.dataset[camelCaseAttr(key)] = values[key];
+
+    // Add only supported data attributes from observedAttributes;
+    // Sometimes the order in which the attributes are set matters.
+    // Control the order by using the order of the observedAttributes.
+    this.Handler.observedAttributes.forEach((dataAttr) => {
+      const [, key] = dataAttr.split('data-');
+      const camelCaseAttribute = camelCaseAttr(key);
+
+      if (typeof values[key] !== 'undefined') {
+        this.dataset[camelCaseAttribute] = values[key];
+      } else {
+        delete this.dataset[camelCaseAttribute];
+      }
     });
   }
 
@@ -345,12 +348,6 @@ export default class ComponentBase extends HTMLElement {
       this.cachedChildren = Array.from(this.initOptions.target.children);
       this.cachedChildren.forEach((child) => instance.append(child));
       this.append(instance);
-    });
-  }
-
-  cleanDataset() {
-    Object.keys(this.dataset).forEach((key) => {
-      delete this.dataset[key];
     });
   }
 
