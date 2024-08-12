@@ -62,11 +62,12 @@ const component = {
   getBlockData(block) {
     const tagName = block.tagName.toLowerCase();
     const lcp = block.classList.contains('lcp');
+    const orignalClasses = block.getAttribute('class');
     let componentName = tagName;
     if (!globalConfig.semanticBlocks.includes(tagName)) {
       componentName = block.classList.item(0);
     }
-    return { targets: [block], componentName, lcp };
+    return { targets: [block], componentName, lcp, orignalClasses };
   },
 };
 

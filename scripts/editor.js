@@ -1,4 +1,4 @@
-import { deepMerge, loadModule } from './libs.js';
+import { deepMerge, getBaseUrl, loadModule } from './libs.js';
 import { publish } from './pubsub.js';
 
 window.raqnEditor = window.raqnEditor || {};
@@ -46,12 +46,9 @@ export function getComponentValues(dialog, element) {
   window.document.body.style.height = 'auto';
   const domRect = element.getBoundingClientRect();
   let { variables = {}, attributes = {} } = dialog;
-  const { selection = {} } = dialog;
   variables = Object.keys(variables).reduce((data, variable) => {
     const value = getComputedStyle(element).getPropertyValue(variable);
-
     data[variable] = { ...variables[variable], value };
-
     return data;
   }, {});
   attributes = Object.keys(attributes).reduce((data, attribute) => {
@@ -65,7 +62,8 @@ export function getComponentValues(dialog, element) {
   delete cleanData.childComponents;
   delete cleanData.nestedComponents;
   delete cleanData.nestedComponentsConfig;
-  return { ...cleanData, domRect, editor: { variables, attributes, selection }, html };
+
+  return { ...cleanData, domRect, editor: { attributes }, html };
 }
 
 export default function initEditor(listeners = true) {
@@ -79,7 +77,9 @@ export default function initEditor(listeners = true) {
               const mod = await component.js;
               if (mod && mod.default) {
                 const dialog = await mod.default();
-                // available dialog and component instances
+                const masterConfig = window.raqnComponentsMasterConfig;
+                const variations = masterConfig[componentName];
+                dialog.selection = variations;
                 window.raqnEditor[componentName] = { dialog, instances: [], name: componentName };
                 window.raqnEditor[componentName].instances = window.raqnInstances[componentName].map((item) =>
                   getComponentValues(dialog, item),
@@ -97,7 +97,7 @@ export default function initEditor(listeners = true) {
 
     publish(
       MessagesEvents.loaded,
-      { components: window.raqnEditor, bodyRect },
+      { components: window.raqnEditor, bodyRect, baseURL: getBaseUrl() },
       { usePostMessage: true, targetOrigin: '*' },
     );
 
