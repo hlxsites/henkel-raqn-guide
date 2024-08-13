@@ -18,7 +18,9 @@ export const MessagesEvents = {
 
 export function refresh(id) {
   Object.keys(window.raqnEditor).forEach((name) => {
-    window.raqnEditor[name].instances = window.raqnInstances[name].map((item) =>
+    const { webComponentName } = window.raqnInstances[name][0];
+    const instancesOrdered = Array.from(document.querySelectorAll(webComponentName));
+    window.raqnEditor[name].instances = instancesOrdered.map((item) =>
       // eslint-disable-next-line no-use-before-define
       getComponentValues(window.raqnEditor[name].dialog, item),
     );
@@ -42,6 +44,7 @@ export function updateComponent(component) {
 }
 
 export function getComponentValues(dialog, element) {
+  console.log('get', dialog, element);
   const html = element.innerHTML;
   window.document.body.style.height = 'auto';
   const domRect = element.getBoundingClientRect();
@@ -81,7 +84,9 @@ export default function initEditor(listeners = true) {
                 const variations = masterConfig[componentName];
                 dialog.selection = variations;
                 window.raqnEditor[componentName] = { dialog, instances: [], name: componentName };
-                window.raqnEditor[componentName].instances = window.raqnInstances[componentName].map((item) =>
+                const { webComponentName } = window.raqnInstances[componentName][0];
+                const instancesOrdered = Array.from(document.querySelectorAll(webComponentName));
+                window.raqnEditor[componentName].instances = instancesOrdered.map((item) =>
                   getComponentValues(dialog, item),
                 );
               }
