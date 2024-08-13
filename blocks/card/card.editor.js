@@ -1,59 +1,60 @@
 export default function config() {
   return {
-    sets: {
-      '--background': {
-        type: 'text',
-        label: 'Background',
-        helpText: 'The background color of the card.',
-      },
-      '--color': {
-        type: 'text',
-        label: 'Color',
-        helpText: 'The text color of the card.',
-      },
-      '--gap': {
-        type: 'text',
-        label: 'Gap',
-        helpText: 'The gap between cards.',
-      },
-      '--padding': {
-        type: 'text',
-        label: 'Padding',
-        helpText: 'The padding of the card.',
-      },
-    },
     attributes: {
-      'data-columns': {
-        type: 'text',
-        label: 'Number of Columns',
-        helpText: 'The number of columns in the card grid.',
-      },
-      'data-eager': {
-        type: 'text',
-        label: 'Eager Loading',
-        helpText: 'The number of images to load eagerly.',
-      },
-    },
-    selection: {
-      variant1: {
-        attributes: {
-          'data-columns': '2',
-          'data-ratio': '4/3',
-          'data-eager': '0',
+      data: {
+        ratio: {
+          type: 'select',
+          options: [
+            {
+              label: 'auto',
+              value: 'auto',
+            },
+            {
+              label: '4:3',
+              value: '4/3',
+            },
+            {
+              label: '16:9',
+              value: '16/9',
+            },
+            {
+              label: '1:1',
+              value: '1/1',
+            },
+          ],
+          label: 'Aspect Ratio',
+          helpText: 'The aspect ratio of the card.',
         },
-      },
-      variant2: {
-        attributes: {
-          'data-columns': '3',
-          'data-ratio': '4/3',
-          'data-eager': '0',
-        },
-      },
-      variant3: {
-        attributes: {
-          'data-columns': '4',
-          'data-ratio': '4/3',
-          'data-eager': '0',
+        columns: {
+          type: 'select',
+          options: [
+            {
+              label: '1 Column',
+              value: '1',
+            },
+            {
+              label: '2 Columns',
+              value: '2',
+            },
+            {
+              label: '3 Columns',
+              value: '3',
+            },
+            {
+              label: '4 Columns',
+              value: '4',
+            },
+            {
+              label: '5 Columns',
+              value: '5',
+            },
+            {
+              label: '6 Columns',
+              value: '6',
+            },
+          ],
+          label: 'Number of columns',
+          helpText: 'Number of columns in the card grid.',
         },
       },
     },

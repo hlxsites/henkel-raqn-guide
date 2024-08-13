@@ -20,7 +20,6 @@ export default class Hero extends ComponentBase {
 
   ready() {
     const child = this.querySelector(':has( div + div)');
-
     if (!child) return;
     child.replaceWith(...child.children);
   }

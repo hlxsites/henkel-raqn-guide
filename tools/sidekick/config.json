@@ -7,7 +7,7 @@
       "environments": ["preview"],
       "passConfig": true,
       "passReferrer": true,
-      "url": "https://raqn-web-static.azureedge.net/web-angular-integrations/455911-theme-editing/@henkel/theme-interface/external.html",
+      "url": "https://raqn-web-static.azureedge.net/web-angular-integrations/455911-theme-editing/henkel/theme-interface/external.html",
       "includePaths": ["**.docx**"]
     },
     {
@@ -21,11 +21,11 @@
     {
       "id": "palette",
       "title": "Tools",
-      "environments": [ "edit" ],
+      "environments": ["edit"],
       "isPalette": true,
       "paletteRect": "top: auto; bottom: 25px; left: 25px; height: 388px; width: 360px;",
       "url": "/tools/palette",
-      "includePaths": [ "**.Doc**" ]
+      "includePaths": ["**.Doc**"]
     }
   ]
 }

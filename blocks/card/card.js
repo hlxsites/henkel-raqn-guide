@@ -9,7 +9,7 @@ export default class Card extends ComponentBase {
     all: {
       data: {
         columns: '4',
-        ratio: '4/3',
+        ratio: 'auto',
         eager: '0',
       },
     },

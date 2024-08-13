@@ -7,12 +7,12 @@ import {
   capitalizeCaseAttr,
   deepMerge,
   classToFlat,
-  externalConfig,
   unflat,
   isObject,
   flatAsValue,
   flat,
 } from './libs.js';
+import { externalConfig } from './libs/external-config.js';
 
 export default class ComponentBase extends HTMLElement {
   static observedAttributes = [];
@@ -49,6 +49,7 @@ export default class ComponentBase extends HTMLElement {
     this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
     this.webComponentName = this.tagName.toLowerCase();
     this.componentName = this.webComponentName.replace(/^raqn-/, '');
+    this.overrideExternalConfig = false;
     this.wasInitBeforeConnected = false;
     this.fragmentPath = null;
     this.fragmentCache = 'default';
@@ -223,11 +224,15 @@ export default class ComponentBase extends HTMLElement {
     let values = classToFlat(configByClasses);
 
     // get the external config
-    if (values.config) {
-      const configs = unflat(await externalConfig.getConfig(this.webComponentName, values.config));
-      values = deepMerge({}, values, configs);
-      delete values.config;
+
+    const configs = unflat(await externalConfig.getConfig(this.componentName, values.config));
+
+    if (!this.overrideExternalConfig) {
+      values = deepMerge({}, configs, values);
+    } else {
+      values = deepMerge({}, configs, this.attributesValues, values);
     }
+    delete values.config;
 
     // add to attributesValues
     this.attributesValues = deepMerge({}, this.attributesValues, values);
@@ -318,7 +323,7 @@ export default class ComponentBase extends HTMLElement {
       this.classList.add(...flatAsValue(className).split(' '));
     } else {
       // strings are added as is
-      this.classList.add(className);
+      this.setAttribute('class', className);
     }
   }
 

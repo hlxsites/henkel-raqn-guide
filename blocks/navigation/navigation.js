@@ -1,5 +1,3 @@
-import component from '../../scripts/init.js';
-
 import Column from '../column/column.js';
 
 export default class Navigation extends Column {
@@ -16,46 +14,21 @@ export default class Navigation extends Column {
     this.active = {};
     this.isActive = false;
     this.navContentInit = false;
-    this.navCompactedContentInit = false;
   }
 
   async ready() {
     this.navContent = this.querySelector('ul');
     this.innerHTML = '';
-    this.navCompactedContent = this.navContent.cloneNode(true); // the clone need to be done before `this.navContent` is modified
     this.nav = document.createElement('nav');
     this.isCompact = this.dataset.compact === 'true';
     this.dataset.icon ??= 'menu';
     this.append(this.nav);
     this.nav.setAttribute('role', 'navigation');
     this.nav.setAttribute('id', 'navigation');
-
-    if (this.isCompact) {
-      await this.setupCompactedNav();
-    } else {
-      this.setupNav();
-    }
   }
 
   setupNav() {
-    if (!this.navContentInit) {
-      this.navContentInit = true;
-      this.setupClasses(this.navContent);
-    }
-    this.navButton?.remove();
-    this.nav.append(this.navContent);
-  }
-
-  async setupCompactedNav() {
-    if (!this.navCompactedContentInit) {
-      this.navCompactedContentInit = true;
-      await component.multiLoadAndDefine(['accordion', 'icon']);
-      this.setupClasses(this.navCompactedContent, true);
-      this.navCompactedContent.addEventListener('click', (e) => this.activate(e));
-    }
-
-    this.prepend(this.createButton());
-    this.nav.append(this.navCompactedContent);
+    this.setupClasses(this.navContent);
   }
 
   onAttributeCompactChanged({ oldValue, newValue }) {
@@ -77,24 +50,6 @@ export default class Navigation extends Column {
     if (!this.initialized) return;
     if (!this.isCompact) return;
     this.navIcon.dataset.icon = newValue;
-  }
-
-  createButton() {
-    this.navButton = document.createElement('button');
-    this.navButton.setAttribute('aria-label', 'Menu');
-    this.navButton.setAttribute('aria-expanded', 'false');
-    this.navButton.setAttribute('aria-controls', 'navigation');
-    this.navButton.setAttribute('aria-haspopup', 'true');
-    this.navButton.setAttribute('type', 'button');
-    this.navButton.innerHTML = `<raqn-icon data-icon=${this.dataset.icon}></raqn-icon>`;
-    this.navIcon = this.navButton.querySelector('raqn-icon');
-    this.navButton.addEventListener('click', () => {
-      this.isActive = !this.isActive;
-      this.classList.toggle('active');
-      this.navButton.setAttribute('aria-expanded', this.isActive);
-      this.navIcon.dataset.active = this.isActive;
-    });
-    return this.navButton;
   }
 
   addIcon(elem) {
