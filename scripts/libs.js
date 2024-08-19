@@ -207,7 +207,7 @@ export function stringToArray(val, options) {
   });
 }
 
-// retrive data from excel json format
+// retrieve data from excel json format
 export function readValue(data, extend = {}) {
   const k = Object.keys;
   const keys = k(data[0]).filter((item) => item !== 'key');
@@ -297,6 +297,7 @@ export function loadModule(urlWithoutExtension, loadCSS = true) {
 
     return { css, js };
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.log('could not load module', urlWithoutExtension, error);
   }
   return { css: Promise.resolve(), js: Promise.resolve() };

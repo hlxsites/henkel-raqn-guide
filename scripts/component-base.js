@@ -15,6 +15,8 @@ import {
 import { externalConfig } from './libs/external-config.js';
 
 export default class ComponentBase extends HTMLElement {
+  // All supported data attributes must be added to observedAttributes
+  // The order of observedAttributes is the order in which the values from config are added.
   static observedAttributes = [];
 
   static loaderConfig = {
@@ -129,6 +131,7 @@ export default class ComponentBase extends HTMLElement {
     try {
       this.wasInitBeforeConnected = true;
       this.initOptions = initOptions || {};
+      this.setInitialAttributesValues();
       await this.buildExternalConfig();
       this.runConfigsByViewport();
       this.addDefaultsToNestedConfig();
@@ -146,6 +149,29 @@ export default class ComponentBase extends HTMLElement {
     }
   }
 
+  /**
+   * When the element was created with data attributes before the ini() method is called
+   * use the data attr values as default for attributesValues
+   */
+  setInitialAttributesValues() {
+    const initialAttributesValues = { all: {} };
+
+    this.Handler.observedAttributes.map((dataAttr) => {
+      const [, key] = dataAttr.split('data-');
+      const value = this.dataset[key];
+      if (typeof value === 'undefined') return {};
+      initialAttributesValues.all[key] = value;
+      return initialAttributesValues;
+    });
+
+    this.attributesValues = deepMerge(
+      {},
+      this.attributesValues,
+      this.initOptions?.attributesValues || {},
+      initialAttributesValues,
+    );
+  }
+
   async connectComponent() {
     if (!this.initOptions.target) return this;
     const { targetsAsContainers } = this.initOptions.loaderConfig || {};
@@ -159,6 +185,8 @@ export default class ComponentBase extends HTMLElement {
 
   // Build-in method called after the element is added to the DOM.
   async connectedCallback() {
+    // Common identifier for raqn web components
+    this.setAttribute('raqnWebComponent', '');
     this.setAttribute('isloading', '');
     try {
       this.initialized = this.getAttribute('initialized');
@@ -193,13 +221,9 @@ export default class ComponentBase extends HTMLElement {
 
   async initOnConnected() {
     if (this.wasInitBeforeConnected) return;
-
+    this.setInitialAttributesValues();
     await this.buildExternalConfig();
-
     this.runConfigsByViewport();
-    delete this.dataset.configName;
-    delete this.dataset.configByClasses;
-
     this.addDefaultsToNestedConfig();
     // Add extra functionality to be run on init.
     await this.onInit();
@@ -236,15 +260,6 @@ export default class ComponentBase extends HTMLElement {
 
     // add to attributesValues
     this.attributesValues = deepMerge({}, this.attributesValues, values);
-  }
-
-  get sortedAttributes() {
-    const knownAttr = this.Handler.observedAttributes;
-    // Sometimes the order in which the attributes are set matters.
-    // Control the order by using the order of the observedAttributes.
-    return Object.entries(this.attributesValues).sort(
-      (a, b) => knownAttr.indexOf(`data-${a}`) - knownAttr.indexOf(`data-${b}`),
-    );
   }
 
   addDefaultsToNestedConfig() {
@@ -291,10 +306,8 @@ export default class ComponentBase extends HTMLElement {
     const { name } = getBreakPoints().active;
     const current = deepMerge({}, this.attributesValues.all, this.attributesValues[name]);
     this.className = '';
-    this.cleanDataset();
     Object.keys(current).forEach((key) => {
       const action = `apply${key.charAt(0).toUpperCase() + key.slice(1)}`;
-
       if (typeof this[action] === 'function') {
         return this[action]?.(current[key]);
       }
@@ -307,9 +320,19 @@ export default class ComponentBase extends HTMLElement {
     // received as {col:{ direction:2 }, columns: 2}
     const values = flat(entries);
     // transformed into values as {col-direction: 2, columns: 2}
-    Object.keys(values).forEach((key) => {
-      // camelCaseAttr converst col-direction into colDirection
-      this.dataset[camelCaseAttr(key)] = values[key];
+
+    // Add only supported data attributes from observedAttributes;
+    // Sometimes the order in which the attributes are set matters.
+    // Control the order by using the order of the observedAttributes.
+    this.Handler.observedAttributes.forEach((dataAttr) => {
+      const [, key] = dataAttr.split('data-');
+      const camelCaseAttribute = camelCaseAttr(key);
+
+      if (typeof values[key] !== 'undefined') {
+        this.dataset[camelCaseAttribute] = values[key];
+      } else {
+        delete this.dataset[camelCaseAttribute];
+      }
     });
   }
 
@@ -350,12 +373,6 @@ export default class ComponentBase extends HTMLElement {
       this.cachedChildren = Array.from(this.initOptions.target.children);
       this.cachedChildren.forEach((child) => instance.append(child));
       this.append(instance);
-    });
-  }
-
-  cleanDataset() {
-    Object.keys(this.dataset).forEach((key) => {
-      delete this.dataset[key];
     });
   }
 
