@@ -11,16 +11,21 @@ raqn-hero {
   color: var(--hero-color);
   display: grid;
   align-items: center;
+  gap: 20px;
   grid-template-columns: var(--hero-grid-template-columns, 1fr);
   padding-block: var(--hero-padding-block);
 }
 
 @media screen and (min-width: 767px) {
   raqn-hero {
-    --hero-grid-template-columns: 0.6fr 0.4fr;
+    --hero-grid-template-columns: 0.5fr 0.5fr;
   }
 }
 
 raqn-hero > div:first-child {
   order: var(--hero-hero-order);
+}
+
+raqn-hero > div:last-child {
+  max-width: 40vw;
 }
