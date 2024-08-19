@@ -136,8 +136,7 @@ export default class PopupTrigger extends ComponentBase {
 
     popup.dataset.url = this.popupSourceUrl;
     popup.dataset.active = true;
-    popup.dataset.type = 'flyout';
-
+    // Set the popupTrigger property of the popup component to this trigger instance
     popup.popupTrigger = this;
     return popup;
   }
