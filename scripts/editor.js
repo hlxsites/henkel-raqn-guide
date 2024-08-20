@@ -44,7 +44,6 @@ export function updateComponent(component) {
 }
 
 export function getComponentValues(dialog, element) {
-  console.log('get', dialog, element);
   const html = element.innerHTML;
   window.document.body.style.height = 'auto';
   const domRect = element.getBoundingClientRect();
@@ -102,7 +101,12 @@ export default function initEditor(listeners = true) {
 
     publish(
       MessagesEvents.loaded,
-      { components: window.raqnEditor, bodyRect, baseURL: getBaseUrl() },
+      {
+        components: window.raqnEditor,
+        bodyRect,
+        baseURL: getBaseUrl(),
+        masterConfig: window.raqnComponentsMasterConfig,
+      },
       { usePostMessage: true, targetOrigin: '*' },
     );
 
