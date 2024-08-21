@@ -1,73 +1,59 @@
 import Column from '../column/column.js';
 
 export default class Navigation extends Column {
-  static observedAttributes = ['data-icon', 'data-compact', ...Column.observedAttributes];
+  static observedAttributes = ['data-icon', 'data-compact', 'data-justify'];
 
-  static loaderConfig = {
-    ...Column.loaderConfig,
-  };
+  dependencies = ['icon', 'accordion'];
 
-  dependencies = ['icon'];
+  createButton() {
+    const button = document.createElement('button');
+    button.setAttribute('aria-label', 'Menu');
+    button.setAttribute('aria-expanded', 'false');
+    button.setAttribute('aria-controls', 'navigation');
+    button.setAttribute('aria-haspopup', 'true');
+    button.setAttribute('type', 'button');
+    button.setAttribute('tabindex', '0');
+    button.innerHTML = '<raqn-icon icon=menu></raqn-icon>';
+    button.addEventListener('click', () => {
+      this.classList.toggle('active');
+      button.setAttribute('aria-expanded', this.classList.contains('active'));
+    });
+    return button;
+  }
 
-  setDefaults() {
-    super.setDefaults();
+  ready() {
     this.active = {};
-    this.isActive = false;
-    this.navContentInit = false;
-  }
-
-  async ready() {
-    this.navContent = this.querySelector('ul');
-    this.innerHTML = '';
+    this.list = this.querySelector('ul');
     this.nav = document.createElement('nav');
-    this.isCompact = this.dataset.compact === 'true';
-    this.dataset.icon ??= 'menu';
+    this.nav.append(this.list);
+    this.setAttribute('role', 'navigation');
+    this.compact = this.getAttribute('compact') === 'true' || false;
+    this.icon = this.getAttribute('icon') || 'menu';
+    if (this.compact) {
+      this.nav.append(this.createButton());
+    }
     this.append(this.nav);
-    this.nav.setAttribute('role', 'navigation');
-    this.nav.setAttribute('id', 'navigation');
-  }
-
-  setupNav() {
-    this.setupClasses(this.navContent);
-  }
-
-  onAttributeCompactChanged({ oldValue, newValue }) {
-    if (!this.initialized) return;
-    if (oldValue === newValue) return;
-    this.isCompact = newValue === 'true';
-    this.nav.innerHTML = '';
-
-    if (this.isCompact) {
-      this.setupCompactedNav();
-    } else {
-      this.classList.remove('active');
-      this.navButton?.removeAttribute('aria-expanded');
-      this.setupNav();
+    this.setupClasses(this.list);
+    if (this.compact) {
+      this.addEventListener('click', (e) => this.activate(e));
     }
   }
 
-  onAttributeIconChanged({ newValue }) {
-    if (!this.initialized) return;
-    if (!this.isCompact) return;
-    this.navIcon.dataset.icon = newValue;
-  }
-
-  addIcon(elem) {
+  createIcon(name = this.icon) {
     const icon = document.createElement('raqn-icon');
-    icon.dataset.icon = 'chevron-right';
-    elem.append(icon);
+    icon.setAttribute('icon', name);
+    return icon;
   }
 
-  createAccordion(elem) {
-    const content = Array.from(elem.children);
-    const accordion = document.createElement('heliux-accordion');
-    accordion.append(...content);
-    elem.append(accordion);
+  creaeteAccordion(replaceChildrenElement) {
+    const accordion = document.createElement('raqn-accordion');
+    const children = Array.from(replaceChildrenElement.children);
+    accordion.append(...children);
+    replaceChildrenElement.append(accordion);
   }
 
-  setupClasses(ul, isCompact, level = 1) {
+  setupClasses(ul, level = 1) {
     const children = Array.from(ul.children);
-
     children.forEach((child) => {
       const hasChildren = child.querySelector('ul');
       child.classList.add(`level-${level}`);
@@ -75,13 +61,13 @@ export default class Navigation extends Column {
 
       if (hasChildren) {
         const anchor = child.querySelector('a');
-        if (isCompact) {
-          this.createAccordion(child);
+        if (this.compact) {
+          this.creaeteAccordion(child);
         } else if (level === 1) {
-          this.addIcon(anchor);
+          anchor.append(this.createIcon('chevron-right'));
         }
         child.classList.add('has-children');
-        this.setupClasses(hasChildren, isCompact, level + 1);
+        this.setupClasses(hasChildren, level + 1);
       }
     });
   }

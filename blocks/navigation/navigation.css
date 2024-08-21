@@ -8,7 +8,6 @@ raqn-navigation {
   margin: var(--margin);
   width: 100%;
   display: grid;
-  justify-content: center;
 }
 
 raqn-navigation > nav ul,
