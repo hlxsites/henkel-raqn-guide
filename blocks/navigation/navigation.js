@@ -133,19 +133,6 @@ export default class Navigation extends Column {
     elem.append(icon);
   }
 
-  createAccordionOld(elem) {
-    component.init({
-      componentName: 'accordion',
-      targets: [elem],
-      componentConfig: {
-        addToTargetMethod: 'append',
-      },
-      nestedComponentsConfig: {
-        button: { active: false },
-      },
-    });
-  }
-
   createAccordion(replaceChildrenElement) {
     const accordion = document.createElement('raqn-accordion');
     accordion.append(...replaceChildrenElement.childNodes);
@@ -182,7 +169,8 @@ export default class Navigation extends Column {
       const { level } = current.dataset;
       const currentLevel = Number(level);
       const activeLevel = Number(this.getAttribute('active'));
-      const isCurrentLevel = this.active[currentLevel] && this.active[currentLevel] === current;
+      const activeElem = this.active[currentLevel];
+      const isCurrentLevel = activeElem && activeElem === current;
       const hasActiveChildren = currentLevel < activeLevel;
 
       if (!isCurrentLevel || hasActiveChildren) {
@@ -191,7 +179,7 @@ export default class Navigation extends Column {
       }
 
       this.setAttribute('active', isCurrentLevel ? Math.max(0, currentLevel - 1) || '' : currentLevel);
-      this.active[currentLevel]?.classList.toggle('active');
+      activeElem?.classList.toggle('active');
       this.active[currentLevel] = isCurrentLevel ? null : current;
     }
   }
@@ -199,8 +187,10 @@ export default class Navigation extends Column {
   closeLevels(activeLevel, currentLevel = 1) {
     let whileCurrentLevel = currentLevel;
     while (whileCurrentLevel <= activeLevel) {
-      this.active[whileCurrentLevel].classList.remove('active');
-      const accordion = this.active[whileCurrentLevel].querySelector('raqn-accordion');  
+      const activeElem = this.active[currentLevel];
+      
+      activeElem.classList.remove('active');
+      const accordion = activeElem.querySelector('raqn-accordion');  
       const control = accordion.querySelector('.accordion-control');
       accordion.toggleControl(control);
       this.active[whileCurrentLevel] = null;

@@ -154,7 +154,7 @@ export default class ComponentBase extends HTMLElement {
    * When the element was created with data attributes before the ini() method is called
    * use the data attr values as default for attributesValues
    */
-  async setInitialAttributesValues() {
+  setInitialAttributesValues() {
     const initialAttributesValues = { all: {} };
 
     this.Handler.observedAttributes.map((dataAttr) => {
