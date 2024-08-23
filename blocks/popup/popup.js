@@ -5,6 +5,7 @@ import {
   popupState,
   focusTrap,
   focusFirstElementInContainer,
+  blockBodyScroll,
 } from '../../scripts/libs.js';
 
 /**
@@ -46,7 +47,6 @@ export default class Popup extends ComponentBase {
         classes: {
           popupClosing: 'popup__base--closing',
           popupFlyout: 'popup__base--flyout',
-          noScroll: 'no-scroll',
           hide: 'hide',
         },
       },
@@ -129,7 +129,7 @@ export default class Popup extends ComponentBase {
     popupState.closeActivePopup();
     popupState.activePopup = this;
 
-    this.blockBodyScroll(true);
+    blockBodyScroll(true);
     this.showPopup(true);
     this.toggleCloseOnEsc(true);
     focusFirstElementInContainer(this.elements.popupContainer);
@@ -215,7 +215,7 @@ export default class Popup extends ComponentBase {
 
   closePopup() {
     popupState.activePopup = null;
-    this.blockBodyScroll(false);
+    blockBodyScroll(false);
     this.updatePopupTrigger(false);
     this.toggleCloseOnEsc(false);
     this.classList.add('popup--closing');
@@ -230,7 +230,7 @@ export default class Popup extends ComponentBase {
     popupState.closeActivePopup();
     popupState.activePopup = this;
 
-    this.blockBodyScroll(true);
+    blockBodyScroll(true);
     await this.addFragmentContent();
     this.setInnerBlocks();
     await this.initChildComponents();
@@ -257,11 +257,6 @@ export default class Popup extends ComponentBase {
 
   updatePopupTrigger(isActive) {
     if (this.popupTrigger) this.popupTrigger.dataset.active = isActive;
-  }
-
-  blockBodyScroll(boolean) {
-    const { noScroll } = this.config.classes;
-    document.body.classList.toggle(noScroll, boolean);
   }
 
   showPopup(boolean) {

@@ -14,6 +14,9 @@ export const globalConfig = {
     medium: 500,
     bold: 700,
   },
+  classes: {
+    noScroll: 'no-scroll',
+  },
 };
 
 export const metaTags = {
@@ -467,3 +470,8 @@ export const classToFlat = (classes = [], valueLength = 1, extend = {}) =>
       return acc;
     }, extend),
   );
+
+export function blockBodyScroll(boolean) {
+  const { noScroll } = globalConfig.classes;
+  document.body.classList.toggle(noScroll, boolean);
+}
