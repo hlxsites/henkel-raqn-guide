@@ -2,6 +2,7 @@
   --max-width: 80%;
   --padding-container: 20px;
   --header-height: 110px;
+  --container-width: max(calc((100% - var(--max-width)) / 2), var(--padding-container));
 }
 
 @media screen and (max-width: 768px) {
@@ -182,7 +183,7 @@ main > div > *:not(.full-width) {
 }
 
 .full-width {
-  padding-inline: max(calc((100% - var(--max-width)) / 2), var(--padding-container));
+  padding-inline: var(--container-width);
 }
 
 main > div > div {
@@ -236,7 +237,8 @@ button {
 }
 
 .raqn-grid {
-  width: var(--max-width, 100%);
+  width: 100%;
+  padding-inline: var(--container-width);
   margin: 0 auto;
   display: grid;
   grid-template-columns: var(--grid-template-columns, 1fr);

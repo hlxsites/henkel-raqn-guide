@@ -129,6 +129,7 @@ export default class ComponentBase extends HTMLElement {
   // ! Needs to be called after the element is created;
   async init(initOptions) {
     try {
+      await this.Handler;
       this.wasInitBeforeConnected = true;
       this.initOptions = initOptions || {};
       this.setInitialAttributesValues();
@@ -221,6 +222,7 @@ export default class ComponentBase extends HTMLElement {
 
   async initOnConnected() {
     if (this.wasInitBeforeConnected) return;
+    await this.Handler;
     this.setInitialAttributesValues();
     await this.buildExternalConfig();
     this.runConfigsByViewport();
@@ -305,7 +307,7 @@ export default class ComponentBase extends HTMLElement {
   runConfigsByViewport() {
     const { name } = getBreakPoints().active;
     const current = deepMerge({}, this.attributesValues.all, this.attributesValues[name]);
-    this.className = '';
+    this.removeAttribute('class');
     Object.keys(current).forEach((key) => {
       const action = `apply${key.charAt(0).toUpperCase() + key.slice(1)}`;
       if (typeof this[action] === 'function') {
@@ -344,7 +346,7 @@ export default class ComponentBase extends HTMLElement {
     if (isObject(className)) {
       // if an object is passed, it's flat and splited
       this.classList.add(...flatAsValue(className).split(' '));
-    } else {
+    } else if (className) {
       // strings are added as is
       this.setAttribute('class', className);
     }
