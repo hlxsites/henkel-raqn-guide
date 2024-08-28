@@ -7,14 +7,16 @@ import {
   capitalizeCaseAttr,
   deepMerge,
   classToFlat,
-  externalConfig,
   unflat,
   isObject,
   flatAsValue,
   flat,
 } from './libs.js';
+import { externalConfig } from './libs/external-config.js';
 
 export default class ComponentBase extends HTMLElement {
+  // All supported data attributes must be added to observedAttributes
+  // The order of observedAttributes is the order in which the values from config are added.
   static observedAttributes = [];
 
   static loaderConfig = {
@@ -49,6 +51,7 @@ export default class ComponentBase extends HTMLElement {
     this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
     this.webComponentName = this.tagName.toLowerCase();
     this.componentName = this.webComponentName.replace(/^raqn-/, '');
+    this.overrideExternalConfig = false;
     this.wasInitBeforeConnected = false;
     this.fragmentPath = null;
     this.fragmentCache = 'default';
@@ -126,8 +129,10 @@ export default class ComponentBase extends HTMLElement {
   // ! Needs to be called after the element is created;
   async init(initOptions) {
     try {
+      await this.Handler;
       this.wasInitBeforeConnected = true;
       this.initOptions = initOptions || {};
+      this.setInitialAttributesValues();
       await this.buildExternalConfig();
       this.runConfigsByViewport();
       this.addDefaultsToNestedConfig();
@@ -145,6 +150,29 @@ export default class ComponentBase extends HTMLElement {
     }
   }
 
+  /**
+   * When the element was created with data attributes before the ini() method is called
+   * use the data attr values as default for attributesValues
+   */
+  setInitialAttributesValues() {
+    const initialAttributesValues = { all: {} };
+
+    this.Handler.observedAttributes.map((dataAttr) => {
+      const [, key] = dataAttr.split('data-');
+      const value = this.dataset[key];
+      if (typeof value === 'undefined') return {};
+      initialAttributesValues.all[key] = value;
+      return initialAttributesValues;
+    });
+
+    this.attributesValues = deepMerge(
+      {},
+      this.attributesValues,
+      this.initOptions?.attributesValues || {},
+      initialAttributesValues,
+    );
+  }
+
   async connectComponent() {
     if (!this.initOptions.target) return this;
     const { targetsAsContainers } = this.initOptions.loaderConfig || {};
@@ -158,6 +186,8 @@ export default class ComponentBase extends HTMLElement {
 
   // Build-in method called after the element is added to the DOM.
   async connectedCallback() {
+    // Common identifier for raqn web components
+    this.setAttribute('raqnWebComponent', '');
     this.setAttribute('isloading', '');
     try {
       this.initialized = this.getAttribute('initialized');
@@ -192,13 +222,10 @@ export default class ComponentBase extends HTMLElement {
 
   async initOnConnected() {
     if (this.wasInitBeforeConnected) return;
-
+    await this.Handler;
+    this.setInitialAttributesValues();
     await this.buildExternalConfig();
-
     this.runConfigsByViewport();
-    delete this.dataset.configName;
-    delete this.dataset.configByClasses;
-
     this.addDefaultsToNestedConfig();
     // Add extra functionality to be run on init.
     await this.onInit();
@@ -223,23 +250,18 @@ export default class ComponentBase extends HTMLElement {
     let values = classToFlat(configByClasses);
 
     // get the external config
-    if (values.config) {
-      const configs = unflat(await externalConfig.getConfig(this.webComponentName, values.config));
-      values = deepMerge({}, values, configs);
-      delete values.config;
+
+    const configs = unflat(await externalConfig.getConfig(this.componentName, values.config));
+
+    if (!this.overrideExternalConfig) {
+      values = deepMerge({}, configs, values);
+    } else {
+      values = deepMerge({}, configs, this.attributesValues, values);
     }
+    delete values.config;
 
     // add to attributesValues
     this.attributesValues = deepMerge({}, this.attributesValues, values);
-  }
-
-  get sortedAttributes() {
-    const knownAttr = this.Handler.observedAttributes;
-    // Sometimes the order in which the attributes are set matters.
-    // Control the order by using the order of the observedAttributes.
-    return Object.entries(this.attributesValues).sort(
-      (a, b) => knownAttr.indexOf(`data-${a}`) - knownAttr.indexOf(`data-${b}`),
-    );
   }
 
   addDefaultsToNestedConfig() {
@@ -285,11 +307,9 @@ export default class ComponentBase extends HTMLElement {
   runConfigsByViewport() {
     const { name } = getBreakPoints().active;
     const current = deepMerge({}, this.attributesValues.all, this.attributesValues[name]);
-    this.className = '';
-    this.cleanDataset();
+    this.removeAttribute('class');
     Object.keys(current).forEach((key) => {
       const action = `apply${key.charAt(0).toUpperCase() + key.slice(1)}`;
-
       if (typeof this[action] === 'function') {
         return this[action]?.(current[key]);
       }
@@ -302,9 +322,19 @@ export default class ComponentBase extends HTMLElement {
     // received as {col:{ direction:2 }, columns: 2}
     const values = flat(entries);
     // transformed into values as {col-direction: 2, columns: 2}
-    Object.keys(values).forEach((key) => {
-      // camelCaseAttr converst col-direction into colDirection
-      this.dataset[camelCaseAttr(key)] = values[key];
+
+    // Add only supported data attributes from observedAttributes;
+    // Sometimes the order in which the attributes are set matters.
+    // Control the order by using the order of the observedAttributes.
+    this.Handler.observedAttributes.forEach((dataAttr) => {
+      const [, key] = dataAttr.split('data-');
+      const camelCaseAttribute = camelCaseAttr(key);
+
+      if (typeof values[key] !== 'undefined') {
+        this.dataset[camelCaseAttribute] = values[key];
+      } else {
+        delete this.dataset[camelCaseAttribute];
+      }
     });
   }
 
@@ -316,9 +346,9 @@ export default class ComponentBase extends HTMLElement {
     if (isObject(className)) {
       // if an object is passed, it's flat and splited
       this.classList.add(...flatAsValue(className).split(' '));
-    } else {
+    } else if (className) {
       // strings are added as is
-      this.classList.add(className);
+      this.setAttribute('class', className);
     }
   }
 
@@ -345,12 +375,6 @@ export default class ComponentBase extends HTMLElement {
       this.cachedChildren = Array.from(this.initOptions.target.children);
       this.cachedChildren.forEach((child) => instance.append(child));
       this.append(instance);
-    });
-  }
-
-  cleanDataset() {
-    Object.keys(this.dataset).forEach((key) => {
-      delete this.dataset[key];
     });
   }
 

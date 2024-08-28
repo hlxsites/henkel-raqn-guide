@@ -8,13 +8,16 @@ raqn-navigation {
   margin: var(--margin);
   width: 100%;
   display: grid;
-  justify-content: center;
 }
 
 raqn-navigation > nav ul,
 raqn-navigation > nav p {
   display: none;
   padding: 0;
+}
+
+raqn-navigation > nav ul {
+  list-style: none;
 }
 
 raqn-navigation .level-1 a:not(:hover) {
@@ -26,13 +29,17 @@ raqn-navigation .level-1 a:hover {
 }
 
 raqn-navigation > nav > ul {
-  overflow-y: auto;
+  overflow-y: hidden;
   max-height: calc(100vh - var(--header-height));
 }
 
 raqn-navigation.active > nav ul,
 raqn-navigation.active > nav p {
   display: block;
+}
+
+raqn-navigation > nav a {
+  display: inline-block;
 }
 
 raqn-navigation.active > nav a {
@@ -74,7 +81,6 @@ raqn-navigation.active button {
 raqn-navigation.active > nav > ul {
   position: fixed;
   display: block;
-  list-style: none;
   max-width: 0;
   background: var(--background, #fff);
   min-width: 100%;
@@ -83,12 +89,9 @@ raqn-navigation.active > nav > ul {
   height: 100%;
   max-height: calc(100vh - var(--header-height, 64px));
   margin: 0 auto;
-  padding: 0;
-}
-
-raqn-navigation.active > nav > ul li {
-  max-width: var(--max-width, 100%);
-  margin: 0 auto;
+  padding-block: 0;
+  padding-inline: var(--container-width);
+  overflow-y: auto;
 }
 
 raqn-navigation.active > nav > ul li a {
@@ -106,6 +109,8 @@ raqn-navigation:not([data-compact='true']) > nav a {
 raqn-navigation:not([data-compact='true']) > nav ul {
   list-style: none;
   display: flex;
+  column-gap: var(--padding-vertical, 40px);
+  margin: 0;
 }
 
 raqn-navigation:not([data-compact='true']) > nav > ul {
@@ -121,8 +126,8 @@ raqn-navigation:not([data-compact='true']) > nav [data-icon='chevron-right'] {
   transform: rotate(90deg);
 }
 
-raqn-navigation:not([data-compact='true']) > nav .level-1 a {
-  padding: var(--padding-vertical, 10px) var(--padding-horizontal, 20px);
+raqn-navigation:not([data-compact='true']) > nav :where(.level-1, .level-2) > a {
+  padding-block: var(--padding-horizontal, 20px);
 }
 
 raqn-navigation:not([data-compact='true']) > nav .level-2 > a {
@@ -151,9 +156,11 @@ raqn-navigation:not([data-compact='true']) > nav .level-1 > ul {
   position: absolute;
   padding: 0;
   inset-block-start: var(--header-height, 64px);
-  inset-inline-start: calc((100vw - var(--max-width)) / 2);
+  inset-inline-start: 0;
+  width: 100%;
   transition: clip-path 0.4s ease-in-out;
   overflow: visible;
+  padding-inline: var(--container-width);
 }
 
 raqn-navigation:not([data-compact='true']) > nav .level-1 > ul .level-2 {
@@ -165,10 +172,9 @@ raqn-navigation:not([data-compact='true']) > nav .level-1 > ul .level-2 {
 
 raqn-navigation:not([data-compact='true']) > nav .level-1 > ul::after {
   content: ' ';
-  margin-inline: calc(-1 * ((100vw - var(--max-width)) / 2));
   position: absolute;
   height: 100%;
-  width: 100vw;
+  width: 100%;
   inset-inline-start: 0;
   background: var(--background, #fff);
   border-block-start: 1px solid var(--accent-background, #000);

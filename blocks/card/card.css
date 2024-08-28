@@ -18,11 +18,14 @@ raqn-card > div {
   border-block-end: var(--border-block-end, none);
   border-inline-start: var(--border-inline-start, none);
   border-inline-end: var(--border-inline-end, none);
+  aspect-ratio: var(--card-ratio, 16 / 9);
+  overflow: hidden;
 }
 
-raqn-card :where(a, button) {
-  position: relative;
-  z-index: 2;
+raqn-card > div img {
+  object-fit: cover;
+  width: 100%;
+  height: 100%;
 }
 
 /* Make entire item clickable */

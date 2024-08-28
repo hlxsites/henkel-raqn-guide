@@ -1,15 +1,39 @@
 import component from '../../scripts/init.js';
-
+import { blockBodyScroll } from '../../scripts/libs.js';
 import Column from '../column/column.js';
 
 export default class Navigation extends Column {
-  static observedAttributes = ['data-icon', 'data-compact', ...Column.observedAttributes];
+  static observedAttributes = ['data-menu-icon', 'data-item-icon', 'data-compact', ...Column.observedAttributes];
 
-  static loaderConfig = {
-    ...Column.loaderConfig,
+  dependencies = ['icon', 'accordion'];
+
+  attributesValues = {
+    all: {
+      data: {
+        menu: {
+          icon: 'menu__close',
+        },
+        item: {
+          icon: 'chevron-right',
+        },
+      },
+    },
+    m: {
+      data: {
+        compact: true,
+      },
+    },
+    x: {
+      data: {
+        compact: true,
+      },
+    },
+    xs: {
+      data: {
+        compact: true,
+      },
+    },
   };
-
-  dependencies = ['icon'];
 
   setDefaults() {
     super.setDefaults();
@@ -25,7 +49,6 @@ export default class Navigation extends Column {
     this.navCompactedContent = this.navContent.cloneNode(true); // the clone need to be done before `this.navContent` is modified
     this.nav = document.createElement('nav');
     this.isCompact = this.dataset.compact === 'true';
-    this.dataset.icon ??= 'menu';
     this.append(this.nav);
     this.nav.setAttribute('role', 'navigation');
     this.nav.setAttribute('id', 'navigation');
@@ -67,8 +90,13 @@ export default class Navigation extends Column {
     if (this.isCompact) {
       this.setupCompactedNav();
     } else {
-      this.classList.remove('active');
-      this.navButton?.removeAttribute('aria-expanded');
+      if (this.navButton) {
+        this.isActive = false;
+        this.classList.remove('active');
+        this.navButton.removeAttribute('aria-expanded');
+        this.navIcon.dataset.active = this.isActive;
+        this.closeAllLevels();
+      }
       this.setupNav();
     }
   }
@@ -86,43 +114,45 @@ export default class Navigation extends Column {
     this.navButton.setAttribute('aria-controls', 'navigation');
     this.navButton.setAttribute('aria-haspopup', 'true');
     this.navButton.setAttribute('type', 'button');
-    this.navButton.innerHTML = `<raqn-icon data-icon=${this.dataset.icon}></raqn-icon>`;
+    this.navButton.innerHTML = `<raqn-icon data-icon=${this.dataset.menuIcon}></raqn-icon>`;
     this.navIcon = this.navButton.querySelector('raqn-icon');
     this.navButton.addEventListener('click', () => {
       this.isActive = !this.isActive;
       this.classList.toggle('active');
       this.navButton.setAttribute('aria-expanded', this.isActive);
       this.navIcon.dataset.active = this.isActive;
+      blockBodyScroll(this.isActive);
+      this.closeAllLevels();
     });
     return this.navButton;
   }
 
   addIcon(elem) {
     const icon = document.createElement('raqn-icon');
-    icon.dataset.icon = 'chevron-right';
+    icon.dataset.icon = this.dataset.itemIcon;
     elem.append(icon);
   }
 
-  createAccordion(elem) {
-    const content = Array.from(elem.children);
-    const accordion = document.createElement('heliux-accordion');
-    accordion.append(...content);
-    elem.append(accordion);
+  createAccordion(replaceChildrenElement) {
+    const accordion = document.createElement('raqn-accordion');
+    accordion.append(...replaceChildrenElement.childNodes);
+    replaceChildrenElement.append(accordion);
   }
 
   setupClasses(ul, isCompact, level = 1) {
     const children = Array.from(ul.children);
 
-    children.forEach((child) => {
+    children.forEach(async (child) => {
       const hasChildren = child.querySelector('ul');
       child.classList.add(`level-${level}`);
       child.dataset.level = level;
 
       if (hasChildren) {
-        const anchor = child.querySelector('a');
         if (isCompact) {
           this.createAccordion(child);
         } else if (level === 1) {
+          const anchor = child.querySelector('a');
+
           this.addIcon(anchor);
         }
         child.classList.add('has-children');
@@ -132,16 +162,47 @@ export default class Navigation extends Column {
   }
 
   activate(e) {
-    e.preventDefault();
-    if (e.target.tagName.toLowerCase() === 'a') {
+    if (e.target.tagName.toLowerCase() === 'raqn-icon' || e.target.closest('raqn-icon')) {
+      e.preventDefault();
+
       const current = e.target.closest('li');
       const { level } = current.dataset;
-      if (this.active[level] && this.active[level] !== current) {
-        this.active[level].classList.remove('active');
+      const currentLevel = Number(level);
+      const activeLevel = Number(this.getAttribute('active'));
+      const activeElem = this.active[currentLevel];
+      const isCurrentLevel = activeElem && activeElem === current;
+      const hasActiveChildren = currentLevel < activeLevel;
+
+      if (!isCurrentLevel || hasActiveChildren) {
+        const whileCurrentLevel = isCurrentLevel && hasActiveChildren ? currentLevel + 1 : currentLevel;
+        this.closeLevels(activeLevel, whileCurrentLevel);
       }
-      this.active[level] = current;
-      this.setAttribute('active', level);
-      this.active[level].classList.toggle('active');
+
+      this.setAttribute('active', isCurrentLevel ? Math.max(0, currentLevel - 1) || '' : currentLevel);
+      activeElem?.classList.toggle('active');
+      this.active[currentLevel] = isCurrentLevel ? null : current;
+    }
+  }
+
+  closeLevels(activeLevel, currentLevel = 1) {
+    let whileCurrentLevel = currentLevel;
+    while (whileCurrentLevel <= activeLevel) {
+      const activeElem = this.active[currentLevel];
+      
+      activeElem.classList.remove('active');
+      const accordion = activeElem.querySelector('raqn-accordion');  
+      const control = accordion.querySelector('.accordion-control');
+      accordion.toggleControl(control);
+      this.active[whileCurrentLevel] = null;
+      whileCurrentLevel += 1;
+    }
+  }
+
+  closeAllLevels() {
+    const activeLevel = Number(this.getAttribute('active'));
+    if (activeLevel) {
+      this.closeLevels(activeLevel);
+      this.removeAttribute('active');
     }
   }
 }

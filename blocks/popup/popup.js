@@ -5,6 +5,7 @@ import {
   popupState,
   focusTrap,
   focusFirstElementInContainer,
+  blockBodyScroll,
 } from '../../scripts/libs.js';
 
 /**
@@ -46,7 +47,6 @@ export default class Popup extends ComponentBase {
         classes: {
           popupClosing: 'popup__base--closing',
           popupFlyout: 'popup__base--flyout',
-          noScroll: 'no-scroll',
           hide: 'hide',
         },
       },
@@ -55,8 +55,11 @@ export default class Popup extends ComponentBase {
 
   setDefaults() {
     super.setDefaults();
+    /**
+     * Optional special property to set a reference to a popupTrigger element which controls this popup.
+     * This will automatically control the states of the popupTrigger based on popup interaction.
+     */
     this.popupTrigger = null;
-    this.getConfigFromFragment = true;
   }
 
   setBinds() {
@@ -88,7 +91,7 @@ export default class Popup extends ComponentBase {
 
   template() {
     return `
-    <div class="popup__base">
+    <div class="popup__base ${this.dataset.type === 'flyout' ? this.config.classes.popupFlyout : ''}">
       <div class="popup__overlay"></div>
       <div class="popup__container"
         role="dialog"
@@ -126,41 +129,14 @@ export default class Popup extends ComponentBase {
     popupState.closeActivePopup();
     popupState.activePopup = this;
 
-    this.blockBodyScroll(true);
+    blockBodyScroll(true);
     this.showPopup(true);
     this.toggleCloseOnEsc(true);
     focusFirstElementInContainer(this.elements.popupContainer);
   }
 
   async addFragmentContent() {
-    if (this.getConfigFromFragment) {
-      // ! needs to be run when the url changes
-      this.initFromFragment();
-      this.getConfigFromFragment = false;
-      if (this.initialized) return;
-    }
-
     this.elements.popupContent.innerHTML = await this.fragmentContent;
-  }
-
-  async initFromFragment() {
-    const hostEl = document.createElement('div');
-    hostEl.innerHTML = await this.fragmentContent;
-    const configEl = hostEl.querySelector('.config-popup');
-
-    if (!configEl) return;
-    configEl.remove();
-    this.fragmentContent = hostEl.innerHTML;
-    const configByClass = (configEl.classList.toString()?.trim?.().split?.(' ') || []).filter(
-      (c) => c !== 'config-popup',
-    );
-
-    const configPopupAttributes = ['data-type', 'data-size', 'data-offset', 'data-height'];
-    await this.buildExternalConfig(null, configByClass, configPopupAttributes);
-
-    this.mergeConfigs();
-    this.setAttributesClassesAndProps();
-    this.addDefaultsToNestedConfig();
   }
 
   setInnerBlocks() {
@@ -170,7 +146,6 @@ export default class Popup extends ComponentBase {
 
   onAttributeUrlChanged({ oldValue, newValue }) {
     if (newValue === oldValue) return;
-    this.getConfigFromFragment = true;
     this.fragmentPath = `${newValue}.plain.html`;
     if (!this.initialized) return;
     this.loadFragment(this.fragmentPath);
@@ -215,6 +190,8 @@ export default class Popup extends ComponentBase {
       console.warn(`Values for attribute "${name}" must be "${modal}" or "${flyout}"`, this);
       return;
     }
+
+    if (!this.elements.popupBase) return;
     this.elements.popupBase.classList.toggle(this.config.classes.popupFlyout, newValue === flyout);
   }
 
@@ -238,7 +215,7 @@ export default class Popup extends ComponentBase {
 
   closePopup() {
     popupState.activePopup = null;
-    this.blockBodyScroll(false);
+    blockBodyScroll(false);
     this.updatePopupTrigger(false);
     this.toggleCloseOnEsc(false);
     this.classList.add('popup--closing');
@@ -253,7 +230,7 @@ export default class Popup extends ComponentBase {
     popupState.closeActivePopup();
     popupState.activePopup = this;
 
-    this.blockBodyScroll(true);
+    blockBodyScroll(true);
     await this.addFragmentContent();
     this.setInnerBlocks();
     await this.initChildComponents();
@@ -280,11 +257,6 @@ export default class Popup extends ComponentBase {
 
   updatePopupTrigger(isActive) {
     if (this.popupTrigger) this.popupTrigger.dataset.active = isActive;
-  }
-
-  blockBodyScroll(boolean) {
-    const { noScroll } = this.config.classes;
-    document.body.classList.toggle(noScroll, boolean);
   }
 
   showPopup(boolean) {

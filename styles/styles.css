@@ -1,8 +1,18 @@
+:root {
+  --max-width: 80%;
+  --padding-container: 20px;
+  --header-height: 110px;
+  --container-width: max(calc((100% - var(--max-width)) / 2), var(--padding-container));
+}
+
 @media screen and (max-width: 768px) {
-  body {
-    --raqn-max-width-default: var(--max-width, 80vw);
-    --max-width: 100vw;
+  :root {
+    --max-width: 100%;
   }
+}
+
+* {
+  box-sizing: border-box;
 }
 
 img {
@@ -12,10 +22,6 @@ img {
 
 html,
 body {
-  --raqn-max-width-default: 80vw;
-  --max-width: var(--raqn-max-width-default, 80vw);
-  --header-height: 110px;
-
   width: 100%;
   height: 100%;
   margin: 0;
@@ -26,6 +32,62 @@ body {
   font-weight: var(--p-font-weight, normal);
   font-style: var(--p-font-style, normal);
   line-height: var(--p-line-height, 1.2em);
+}
+
+h1 {
+  font-family: var(--h1-font-family, roboto);
+  font-size: var(--h1-font-size, 16px);
+  font-weight: var(--h1-font-weight, normal);
+  font-style: var(--h1-font-style, normal);
+  line-height: var(--h1-line-height, 1.2em);
+}
+
+h2 {
+  font-family: var(--h2-font-family, roboto);
+  font-size: var(--h2-font-size, 16px);
+  font-weight: var(--h2-font-weight, normal);
+  font-style: var(--h2-font-style, normal);
+  line-height: var(--h2-line-height, 1.2em);
+}
+
+h3 {
+  font-family: var(--h3-font-family, roboto);
+  font-size: var(--h3-font-size, 16px);
+  font-weight: var(--h3-font-weight, normal);
+  font-style: var(--h3-font-style, normal);
+  line-height: var(--h3-line-height, 1.3em);
+}
+
+h5 {
+  font-family: var(--h5-font-family, roboto);
+  font-size: var(--h5-font-size, 16px);
+  font-weight: var(--h5-font-weight, normal);
+  font-style: var(--h5-font-style, normal);
+  line-height: var(--h5-line-height, 1.5em);
+}
+
+h4 {
+  font-family: var(--h4-font-family, roboto);
+  font-size: var(--h4-font-size, 16px);
+  font-weight: var(--h4-font-weight, normal);
+  font-style: var(--h4-font-style, normal);
+  line-height: var(--h4-line-height, 1.4em);
+}
+
+h6 {
+  font-family: var(--h6-font-family, roboto);
+  font-size: var(--h6-font-size, 16px);
+  font-weight: var(--h6-font-weight, normal);
+  font-style: var(--h6-font-style, normal);
+  line-height: var(--h6-line-height, 1.6em);
+}
+
+label {
+  font-family: var(--label-font-family, roboto);
+  font-size: var(--label-font-size, 16px);
+  font-weight: var(--label-font-weight, normal);
+  font-style: var(--label-font-style, normal);
+  line-height: var(--label-line-height, 1.6em);
 }
 
 body {
@@ -110,34 +172,18 @@ head:has(meta[name='footer'][content='false' i]) + body > footer {
   display: none;
 }
 
-main > div {
-  max-width: var(--max-width, 100%);
-  margin: 0 auto;
+/* Use :where() to give lower specificity in order to not overwrite any display option set on the web component tag */
+:where([raqnWebComponent]) {
+  display: block;
 }
 
-main > div > * {
-  max-width: var(--max-width, 100%);
-  min-width: var(--max-width, 100%);
-  margin-inline: auto;
-  box-sizing: border-box;
-  background-color: var(--background, #fff);
-}
-
-main > .raqn-grid > * {
-  max-width: auto;
-  min-width: auto;
+main > div > *:not(.full-width) {
+  margin-inline: max(calc((100% - var(--max-width)) / 2 - var(--padding-container)), var(--padding-container));
+  padding-inline: var(--padding-container);
 }
 
 .full-width {
-  --outer-gap: calc((var(--raqn-max-width-default) - 100vw) / 2);
-  --inner-gap: calc((100vw - var(--max-width)) / 2);
-
-  display: grid;
-  min-width: 100vw;
-  max-width: none;
-  margin-inline-start: var(--outer-gap);
-  padding-inline: var(--inner-gap);
-  box-sizing: border-box;
+  padding-inline: var(--container-width);
 }
 
 main > div > div {
@@ -162,11 +208,14 @@ main > div > div > div {
 }
 
 a {
-  line-height: 1em;
   align-items: center;
   color: var(--highlight, inherit);
   text-decoration: none;
-  font-size: var(--font-size, 1em);
+  font-family: var(--a-font-family, roboto);
+  font-size: var(--a-font-size, 16px);
+  font-weight: var(--a-font-weight, normal);
+  font-style: var(--a-font-style, normal);
+  line-height: var(--a-line-height, 1.2em);
 }
 
 a:hover {
@@ -178,17 +227,18 @@ button {
   appearance: none;
   background-color: transparent;
   display: inline-flex;
-  line-height: 1em;
   align-items: center;
   text-decoration: none;
-}
-
-button:hover {
-  color: var(--scope-link-color-hover, inherit);
+  font-family: var(--button-font-family, roboto);
+  font-size: var(--button-font-size, 16px);
+  font-weight: var(--button-font-weight, normal);
+  font-style: var(--button-font-style, normal);
+  line-height: var(--button-line-height, 1.2em);
 }
 
 .raqn-grid {
-  width: var(--max-width, 100%);
+  width: 100%;
+  padding-inline: var(--container-width);
   margin: 0 auto;
   display: grid;
   grid-template-columns: var(--grid-template-columns, 1fr);

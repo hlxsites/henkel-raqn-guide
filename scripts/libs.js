@@ -14,6 +14,9 @@ export const globalConfig = {
     medium: 500,
     bold: 700,
   },
+  classes: {
+    noScroll: 'no-scroll',
+  },
 };
 
 export const metaTags = {
@@ -207,7 +210,7 @@ export function stringToArray(val, options) {
   });
 }
 
-// retrive data from excel json format
+// retrieve data from excel json format
 export function readValue(data, extend = {}) {
   const k = Object.keys;
   const keys = k(data[0]).filter((item) => item !== 'key');
@@ -274,67 +277,6 @@ export function deepMerge(origin, ...toMerge) {
   return deepMerge(origin, ...toMerge);
 }
 
-export const externalConfig = {
-  defaultConfig(rawConfig = []) {
-    return {
-      attributesValues: {},
-      nestedComponentsConfig: {},
-      props: {},
-      config: {},
-      rawConfig,
-      hasBreakpointsValues: false,
-    };
-  },
-
-  async getConfig(componentName, configName) {
-    if (!configName) return this.defaultConfig(); // to be removed in the feature and fallback to 'default'
-    const masterConfig = await this.loadConfig();
-    const componentConfig = masterConfig?.[componentName];
-    const parsedConfig = componentConfig?.[configName];
-    if (parsedConfig) return parsedConfig;
-
-    return {};
-  },
-
-  async loadConfig() {
-    window.raqnComponentsConfig ??= (async () => {
-      const { metaName, fallbackContent } = metaTags.componentsConfig;
-      const metaConfigPath = getMeta(metaName);
-      const configPath = (!!metaConfigPath && `${metaConfigPath}.json`) || `${fallbackContent}.json`;
-      let result = null;
-      try {
-        const response = await fetch(`${configPath}`);
-        if (response.ok) {
-          result = await response.json();
-        }
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error(error);
-      }
-      return result;
-    })();
-
-    window.raqnComponentsConfig = await window.raqnComponentsConfig;
-
-    return this.simplifiedConfig();
-  },
-
-  simplifiedConfig() {
-    window.raqnParsedConfigs = window.raqnParsedConfigs || {};
-    if (window.raqnComponentsConfig) {
-      Object.keys(window.raqnComponentsConfig).forEach((key) => {
-        if (!window.raqnComponentsConfig[key]) return;
-        const { data } = window.raqnComponentsConfig[key];
-        if (data && data.length > 0) {
-          window.raqnParsedConfigs[key] = window.raqnParsedConfigs[key] || {};
-          window.raqnParsedConfigs[key] = readValue(data, window.raqnParsedConfigs[key]);
-        }
-      });
-    }
-    return window.raqnParsedConfigs;
-  },
-};
-
 export function loadModule(urlWithoutExtension, loadCSS = true) {
   try {
     const js = import(`${urlWithoutExtension}.js`);
@@ -358,6 +300,7 @@ export function loadModule(urlWithoutExtension, loadCSS = true) {
 
     return { css, js };
   } catch (error) {
+    // eslint-disable-next-line no-console
     console.log('could not load module', urlWithoutExtension, error);
   }
   return { css: Promise.resolve(), js: Promise.resolve() };
@@ -527,3 +470,8 @@ export const classToFlat = (classes = [], valueLength = 1, extend = {}) =>
       return acc;
     }, extend),
   );
+
+export function blockBodyScroll(boolean) {
+  const { noScroll } = globalConfig.classes;
+  document.body.classList.toggle(noScroll, boolean);
+}

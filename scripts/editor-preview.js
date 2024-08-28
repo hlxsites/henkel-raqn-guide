@@ -18,6 +18,7 @@ export default async function preview(component, classes, uuid) {
   const loader = new ComponentLoader({ componentName });
   await loader.init();
   const webComponent = document.createElement(component.webComponentName);
+  webComponent.overrideExternalConfig = true;
   webComponent.innerHTML = component.html;
   webComponent.attributesValues = deepMerge({}, webComponent.attributesValues, component.attributesValues);
   main.appendChild(webComponent);
