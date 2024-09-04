@@ -213,7 +213,7 @@ export default class ComponentBase extends HTMLElement {
     this.setAttribute('isloading', '');
     try {
       this.initialized = this.getAttribute('initialized');
-      this.initSubscriptions(); // must subscribe each time the element is added to the document
+      this.initSubscriptions(); // must subscribe each type the element is added to the document
       if (!this.initialized) {
         await this.initOnConnected();
         this.setAttribute('id', this.uuid);

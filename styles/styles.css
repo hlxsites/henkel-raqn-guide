@@ -197,7 +197,7 @@ main > div > *:not(.full-width) {
   margin-inline: var(--container-width);
 }
 
-/* Change the above behavior by setting the full-with class on the block. This will make the background take the full with of the page */
+/* Change the above behavior by setting the full-with class on the block. This will make the background take the full width of the page */
 .full-width {
   padding-inline: var(--container-width);
 }

@@ -31,7 +31,6 @@ export default class Grid extends ComponentBase {
 
   setDefaults() {
     super.setDefaults();
-    // this.gridItems = [];
   }
 
   get gridItems() {
@@ -158,6 +157,7 @@ export default class Grid extends ComponentBase {
     });
 
     if (missingItems.length) {
+      // eslint-disable-next-line no-console
       console.warn(`The following items are not included in the areas template: ${missingItems.join(',')}`, this);
     }
 
@@ -190,9 +190,6 @@ export default class Grid extends ComponentBase {
     }
   }
 
-  /**
-   * hide grid if there are no grid items
-   */
   async connected() {
     await this.collectGridItemsFromBlocks();
   }
@@ -210,7 +207,6 @@ export default class Grid extends ComponentBase {
     if (!this.isInitAsBlock) return;
 
     await this.recursiveItems(this.nextElementSibling);
-    // this.append(...this.gridItems);
   }
 
   async recursiveItems(elem, children = []) {
