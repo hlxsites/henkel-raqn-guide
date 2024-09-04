@@ -194,8 +194,7 @@ img {
 
 /* Container: make all content act as a container where background of the container is limited to the content area */
 main > div > *:not(.full-width) {
-  margin-inline: max(calc((100% - var(--max-width)) / 2 - var(--padding-container)), var(--padding-container));
-  padding-inline: var(--padding-container);
+  margin-inline: var(--container-width);
 }
 
 /* Change the above behavior by setting the full-with class on the block. This will make the background take the full with of the page */
