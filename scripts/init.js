@@ -93,6 +93,7 @@ export const onLoadComponents = {
   ],
 
   async init() {
+    await this.setupTemplateAndAutoBlocks();
     this.setLcp();
     this.setStructure();
     this.queryAllBlocks();
@@ -100,6 +101,13 @@ export const onLoadComponents = {
     this.setLcpBlocks();
     this.setLazyBlocks();
     this.initBlocks();
+  },
+
+  async setupTemplateAndAutoBlocks() {
+    const template = getMeta('template');
+    if(template) {
+      await import(`/templates/${template}.js`);
+    }
   },
 
   queryAllBlocks() {
