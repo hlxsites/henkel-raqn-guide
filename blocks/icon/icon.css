@@ -2,7 +2,7 @@ raqn-icon {
   display: inline-flex;
   text-align: center;
   font-size: 1.2em;
-  line-height: 1.2em;
+  line-height: 1;
   width: var(--icon-size, 1.2em);
   height: var(--icon-size, 1.2em);
   justify-content: var(--icon-align, start);

@@ -1,0 +1,39 @@
+raqn-grid {
+  /* Set to initial to prevent inheritance for nested grids */
+  --grid-height: initial;
+  --grid-width: 100%;
+  --grid-justify-items: initial;
+  --grid-align-items: initial;
+  --grid-justify-content: initial;
+  --grid-align-content: initial;
+  --grid-columns: initial;
+  --grid-rows: initial;
+  --grid-auto-columns: initial;
+  --grid-auto-rows: initial;
+  --grid-tpl-areas: initial;
+  --grid-tpl-columns: repeat(var(--grid-columns, 2), 1fr);
+  --grid-tpl-rows: repeat(var(--grid-rows, 0), 1fr);
+
+  display: grid;
+
+  /* defaults to 2 columns */
+  grid-template-columns: var(--grid-tpl-columns);
+  grid-template-rows: var(--grid-tpl-rows);
+  grid-template-areas: var(--grid-tpl-areas);
+  grid-auto-columns: var(--grid-auto-columns);
+  grid-auto-rows: var(--grid-auto-rows);
+  gap: var(--gap, 20px);
+  justify-items: var(--grid-justify-items);
+  align-items: var(--grid-align-items);
+  justify-content: var(--grid-justify-content);
+  align-content: var(--grid-align-content);
+  height: var(--grid-height);
+}
+
+/* 
+ * First level grids will (as any other block) will act as a container
+ * and width should not be applied.
+ */
+raqn-grid:not(main > div > raqn-grid) {
+  width: var(--grid-width);
+}

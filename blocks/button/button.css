@@ -16,7 +16,7 @@ raqn-button {
 
 raqn-button :where(a, button) {
   display: inline-flex;
-  line-height: var(--icon-size, 1em);
+  line-height: var(--icon-size, 1);
   background: var(--accent-background, #000);
   color: var(--accent-text, #fff);
   text-transform: none;
