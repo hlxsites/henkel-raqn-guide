@@ -5,12 +5,13 @@ export default class Column extends ComponentBase {
 
   connected() {
     this.position = parseInt(this.dataset.position, 10);
-    this.dataset.justify ??= 'stretch';
     this.calculateGridTemplateColumns();
   }
 
   calculateGridTemplateColumns() {
-    this.style.setProperty('justify-content', this.dataset.justify);
+    if (this.dataset.justify) {
+      this.style.setProperty('justify-content', this.dataset.justify);
+    }
     if (this.position) {
       const parent = this.parentElement;
       const children = Array.from(parent.children);
