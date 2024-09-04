@@ -11,13 +11,20 @@ export default class DeveloperToc extends ComponentBase {
     return node.page && node.segment === 'README';
   }
 
+  toLink(path) {
+    if(window.location.host.startsWith('localhost') || window.location.host.search(/\.aem\.(page|live)/) > 0) {
+      return path;
+    }
+    return `/${sitePathPrefix}${path}`;
+  }
+
   async loadPageHierarchy() {
     const response = await fetch(`/${sitePathPrefix}/query-index.json`);
     if(!response.ok) return [];
     const json = await response.json();
 
     const pageHierarchy = [];
-    const pageHierarchyObject = {children:pageHierarchy};
+    const pageHierarchyObject = { children:pageHierarchy };
     let currentNode;
     json.data.forEach(page => {
       const segments = page.path.split('/').slice(1);
@@ -65,7 +72,7 @@ export default class DeveloperToc extends ComponentBase {
 
   generateRepository(repository) {
     const a = document.createElement('a');
-    a.href = repository.link;
+    a.href = this.toLink(repository.link);
     a.innerText = repository.segment;
     return `<li class=${repository.active ? 'active' : ''}><h3>${a.outerHTML}</h3>`;
   }
@@ -86,7 +93,7 @@ export default class DeveloperToc extends ComponentBase {
     const li = document.createElement('li');
     if(link) {
       const a = document.createElement('a');
-      a.href = link;
+      a.href = this.toLink(link);
       a.innerText = node.segment;
       li.innerHTML = a.outerHTML;
     } else {
