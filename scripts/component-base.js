@@ -180,7 +180,7 @@ export default class ComponentBase extends HTMLElement {
 
     this.dataAttributesKeys.forEach(({ noData, noDataCamelCase }) => {
       const value = this.dataset[noDataCamelCase];
-      // TODO check this
+
       if (typeof value === 'undefined') return {};
       const initialValue = unFlat({ [noData]: value });
       initialAttributesValues.all.data = deepMerge({}, initialAttributesValues.all.data, initialValue);
