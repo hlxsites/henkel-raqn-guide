@@ -10,7 +10,7 @@ export default class Accordion extends ComponentBase {
         button: {
           componentName: 'button',
           loaderConfig: {
-            targetsSelectorsPrefix: ':scope > :is(:nth-child(even)) >',
+            targetsSelectorsPrefix: ':scope > :is(:nth-child(even))',
           },
         },
       },

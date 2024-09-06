@@ -3,6 +3,7 @@
   "rules": {
     "no-descending-specificity": null,
     "custom-property-pattern": null,
+    "declaration-block-no-redundant-longhand-properties": null,
     "selector-class-pattern": [
       "^[a-z]([-]?[a-z0-9]+)*(__[a-z0-9]([-]?[a-z0-9]+)*)?(--[a-z0-9]([-]?[a-z0-9]+)*)?$",
       {

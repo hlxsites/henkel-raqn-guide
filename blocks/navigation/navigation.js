@@ -23,7 +23,7 @@ export default class Navigation extends Column {
         compact: true,
       },
     },
-    x: {
+    s: {
       data: {
         compact: true,
       },
@@ -116,6 +116,7 @@ export default class Navigation extends Column {
     this.navButton.setAttribute('type', 'button');
     this.navButton.innerHTML = `<raqn-icon data-icon=${this.dataset.menuIcon}></raqn-icon>`;
     this.navIcon = this.navButton.querySelector('raqn-icon');
+
     this.navButton.addEventListener('click', () => {
       this.isActive = !this.isActive;
       this.classList.toggle('active');
@@ -124,6 +125,7 @@ export default class Navigation extends Column {
       blockBodyScroll(this.isActive);
       this.closeAllLevels();
     });
+
     return this.navButton;
   }
 
@@ -188,9 +190,9 @@ export default class Navigation extends Column {
     let whileCurrentLevel = currentLevel;
     while (whileCurrentLevel <= activeLevel) {
       const activeElem = this.active[currentLevel];
-      
+
       activeElem.classList.remove('active');
-      const accordion = activeElem.querySelector('raqn-accordion');  
+      const accordion = activeElem.querySelector('raqn-accordion');
       const control = accordion.querySelector('.accordion-control');
       accordion.toggleControl(control);
       this.active[whileCurrentLevel] = null;
