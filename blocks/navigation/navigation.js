@@ -1,9 +1,9 @@
 import component from '../../scripts/init.js';
 import { blockBodyScroll } from '../../scripts/libs.js';
-import Column from '../column/column.js';
+import ComponentBase from '../../scripts/component-base.js';
 
-export default class Navigation extends Column {
-  static observedAttributes = ['data-menu-icon', 'data-item-icon', 'data-compact', ...Column.observedAttributes];
+export default class Navigation extends ComponentBase {
+  static observedAttributes = ['data-menu-icon', 'data-item-icon', 'data-compact'];
 
   dependencies = ['icon', 'accordion'];
 
