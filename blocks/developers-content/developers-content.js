@@ -3,12 +3,32 @@ import ComponentBase from '../../scripts/component-base.js';
 const sitePathPrefix = 'developers';
 
 export default class DeveloperToc extends ComponentBase {
+  static loaderConfig = {
+    ...ComponentBase.loaderConfig,
+    targetsSelectors: 'main > div:first-child',
+    targetsSelectorsLimit: 1,
+  };
+  
+  extendConfig() {
+    return [
+      ...super.extendConfig(),
+      {
+        contentFromTargets: false,
+        addToTargetMethod: 'replaceWith',
+        targetsAsContainers: {
+          addToTargetMethod: 'prepend',
+          contentFromTargets: false,
+        },
+      },
+    ];
+  }
+
   ready() {
     this.generateTablesOfContent();
   }
 
   isIndex(node) {
-    return node.page && node.segment === 'README';
+    return node.page && (node.segment === 'README' || node.segment === 'readme');
   }
 
   toLink(path) {
@@ -60,13 +80,13 @@ export default class DeveloperToc extends ComponentBase {
       if(!node.page && !node.link) {
         const firstChildPage = node.children.find((child) => child.page);
         if(firstChildPage) {
-          node.link = firstChildPage.path;
+          node.link = firstChildPage.page.path;
         }
       }
       node.children.forEach((child) => postProcessHierarchy(child));
     };
     postProcessHierarchy(pageHierarchyObject);
-
+    
     return [pageHierarchy, currentNode];
   }
 
