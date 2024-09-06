@@ -83,8 +83,8 @@ With the component loader, it will be rendered as:
   <div>
     <h2 id="get-started-1">Get started</h2>
     <p>
-      Learn the basics: how to best get started and create a page. And how to
-      transfer your brand theme to the new capabilities of RAQN web.
+      Learn the basics: how to best get started and create a page. And how to transfer your brand theme to the new
+      capabilities of RAQN web.
     </p>
   </div>
 </raqn-hero>
@@ -141,8 +141,8 @@ Now, let's add a little style at `hero.css`:
 ```css
 /* Block-specific CSS goes here */
 raqn-hero {
-  --hero-background-color: var(--scope-background, black);
-  --hero-color: var(--scope-color, white);
+  --hero-background-color: var(--background, black);
+  --hero-color: var(--text, white);
   --hero-grid-template-columns: 0.6fr 0.4fr;
   --hero-hero-order: 0;
 
@@ -186,10 +186,10 @@ To set a param only to a specific viewport, prefix it with the viewport key:
 
 1. **xs**: 0 to 479,
 1. **s**: 480 to 767,
-2. **m**: 768 to 1023,
-3. **l**: 1024 to 1279,
-4. **xl**: 1280 to 1919,
-5. **xxl**: 1920.
+1. **m**: 768 to 1023,
+1. **l**: 1024 to 1279,
+1. **xl**: 1280 to 1919,
+1. **xxl**: 1920.
 
 Let's set the order param to apply only on the S (0 to 767) viewport:
 

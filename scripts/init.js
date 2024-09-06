@@ -1,8 +1,17 @@
 import ComponentLoader from './component-loader.js';
-import { globalConfig, metaTags, eagerImage, getMeta, getMetaGroup, mergeUniqueArrays } from './libs.js';
+import {
+  globalConfig,
+  metaTags,
+  eagerImage,
+  getMeta,
+  getMetaGroup,
+  mergeUniqueArrays,
+  getBlocksAndGrids,
+} from './libs.js';
 
 const component = {
   async init(settings) {
+    // some components may have multiple targets
     const { componentName = this.getBlockData(settings?.targets?.[0]).componentName } = settings || {};
     try {
       const loader = new ComponentLoader({
@@ -10,7 +19,6 @@ const component = {
         componentName,
       });
       const instances = await loader.init();
-
       const init = {
         componentName,
         instances: [],
@@ -36,6 +44,24 @@ const component = {
   async multiInit(settings) {
     const initializing = await Promise.allSettled(settings.map((s) => this.init(s)));
     const initialized = initializing.map((data) => data.value || data.reason);
+    const status = {
+      allInitialized: initialized.every((c) => !(c.initError || c.failedInstances.length)),
+      instances: initialized,
+    };
+    return status;
+  },
+
+  async multiSequentialInit(settings) {
+    const initialized = [];
+    const sequentialInit = async (set) => {
+      if (!set.length) return;
+      const initializing = await this.init(set.shift());
+      initialized.unshift(initializing);
+      sequentialInit(set);
+    };
+
+    await sequentialInit([...settings]);
+
     const status = {
       allInitialized: initialized.every((c) => !(c.initError || c.failedInstances.length)),
       instances: initialized,
@@ -70,7 +96,7 @@ const component = {
   },
 };
 
-const onLoadComponents = {
+export const onLoadComponents = {
   // default content
   staticStructureComponents: [
     {
@@ -142,6 +168,12 @@ const onLoadComponents = {
         componentName: name.trim(),
       };
     });
+    const template = getMeta(metaTags.template.metaName);
+    if(template) {
+      this.structureComponents = [...this.structureComponents, {
+        componentName: template,
+      }];
+    }
   },
 
   setLcpBlocks() {
@@ -149,7 +181,11 @@ const onLoadComponents = {
   },
 
   setLazyBlocks() {
-    this.lazyBlocks = this.blocksData.filter((data) => !this.findLcp(data));
+    const allLazy = this.blocksData.filter((data) => !this.findLcp(data));
+    const { grids, blocks } = getBlocksAndGrids(allLazy);
+
+    this.lazyBlocks = blocks;
+    this.grids = grids;
   },
 
   findLcp(data) {
@@ -159,16 +195,21 @@ const onLoadComponents = {
     );
   },
 
-  initBlocks() {
+  async initBlocks() {
     // Keep the page hidden until specific components are initialized to prevent CLS
     component.multiInit(this.lcpBlocks).then(() => {
-      document.body.style.setProperty('display', 'unset');
+      window.postMessage({ message: 'raqn:components:loaded' });
+      document.body.style.setProperty('display', 'block');
     });
-    component.multiInit(this.lazyBlocks);
+
+    await component.multiInit(this.lazyBlocks);
+    // grids must be initialized sequentially starting from the deepest level.
+    // all the blocks that will be contained by the grids must be already initialized before they are added to the grids.
+    component.multiSequentialInit(this.grids);
   },
 };
 
-const globalInit = {
+export const globalInit = {
   async init() {
     this.setLang();
     this.initEagerImages();
@@ -190,5 +231,43 @@ const globalInit = {
 };
 
 globalInit.init();
+
+// init editor if message from parent
+window.addEventListener('message', async (e) => {
+  if (e && e.data) {
+    const { message, params } = e.data;
+    if (!Array.isArray(params)) {
+      const query = new URLSearchParams(window.location.search);
+      switch (message) {
+        case 'raqn:editor:start':
+          (async function startEditor() {
+            const editor = await import('./editor.js');
+            const { origin, target, preview = false } = params;
+            setTimeout(() => {
+              editor.default(origin, target, preview);
+            }, 2000);
+          })();
+          break;
+        // other cases?
+        case 'raqn:editor:preview:component':
+          // preview editor with only a component
+          if (query.has('preview')) {
+            (async function startEditor() {
+              const preview = query.get('preview');
+              const win = await import('./editor-preview.js');
+              const { uuid } = params;
+
+              if (uuid === preview) {
+                win.default(params.component, params.classes, uuid);
+              }
+            })();
+          }
+          break;
+        default:
+          break;
+      }
+    }
+  }
+});
 
 export default component;

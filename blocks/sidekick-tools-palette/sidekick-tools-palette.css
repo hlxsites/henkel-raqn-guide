@@ -13,7 +13,7 @@ raqn-sidekick-tools-palette ul {
   margin: 0;
   overflow-y: auto;
   overflow-x: hidden;
-  transition: transform .2s ease-in-out;
+  transition: transform 0.2s ease-in-out;
 }
 
 raqn-sidekick-tools-palette h3,
@@ -29,7 +29,7 @@ raqn-sidekick-tools-palette li {
 }
 
 raqn-sidekick-tools-palette h3.hidden {
-    display: none;
+  display: none;
 }
 
 raqn-sidekick-tools-palette .menu-wrapper {
@@ -50,7 +50,7 @@ raqn-sidekick-tools-palette h4::after {
   padding: 3px;
   position: absolute;
   right: 14px;
-  transition: transform .2s ease-in-out;
+  transition: transform 0.2s ease-in-out;
   transform: rotate(-45deg);
 }
 
@@ -73,7 +73,7 @@ raqn-sidekick-tools-palette h3::before {
   display: inline-block;
   padding: 3px;
   margin: auto 10px;
-  transition: transform .2s ease-in-out;
+  transition: transform 0.2s ease-in-out;
   transform: rotate(-45deg);
 }
 
@@ -82,8 +82,8 @@ raqn-sidekick-tools-palette .submenu ul.hidden {
 }
 
 raqn-sidekick-tools-palette ul:first-child li:hover,
-raqn-sidekick-tools-palette h3:hover, 
-raqn-sidekick-tools-palette h4:hover, 
+raqn-sidekick-tools-palette h3:hover,
+raqn-sidekick-tools-palette h4:hover,
 raqn-sidekick-tools-palette .submenu ul li:hover,
 raqn-sidekick-tools-palette .submenu .selectable:hover {
   cursor: pointer;
@@ -116,5 +116,5 @@ raqn-sidekick-tools-palette .submenu p {
 }
 
 raqn-sidekick-tools-palette .submenu p.details {
-  font-size: .8rem;
+  font-size: 0.8rem;
 }

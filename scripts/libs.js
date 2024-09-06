@@ -1,6 +1,11 @@
 export const globalConfig = {
   semanticBlocks: ['header', 'footer'],
-  blockSelector: '[class]:not(style, [class^="config-" i])',
+  blockSelector: `
+  [class]:not(
+    style,
+    [class^="config-" i],
+    [class^="grid-item" i]
+  )`,
   breakpoints: {
     xs: 0,
     s: 480,
@@ -13,6 +18,9 @@ export const globalConfig = {
     regular: 400,
     medium: 500,
     bold: 700,
+  },
+  classes: {
+    noScroll: 'no-scroll',
   },
 };
 
@@ -40,6 +48,10 @@ export const metaTags = {
     metaNamePrefix: 'structure',
     // contentType: 'boolean string',
   },
+  template: {
+    metaName: 'template',
+    // contentType: 'string template name',
+  },
   lcp: {
     metaName: 'lcp',
     fallbackContent: ['theming', 'header', 'breadcrumbs'],
@@ -49,14 +61,29 @@ export const metaTags = {
     metaName: 'eager-images',
     // contentType: 'number string',
   },
-  theming: {
-    metaName: 'theming',
-    fallbackContent: 'theming.json',
+  themecolor: {
+    metaName: 'color',
+    fallbackContent: 'color',
+    // contentType: 'path without extension',
+  },
+  themefont: {
+    metaName: 'color',
+    fallbackContent: 'font',
+    // contentType: 'path without extension',
+  },
+  themelayout: {
+    metaName: 'layout',
+    fallbackContent: 'layout',
+    // contentType: 'path without extension',
+  },
+  themecomponent: {
+    metaName: 'component',
+    fallbackContent: 'components-config',
     // contentType: 'path without extension',
   },
   theme: {
     metaName: 'theme',
-    fallbackContent: 'theme-default',
+    fallbackContent: 'color-default font-default',
     // contentType: 'string theme name',
   },
 };
@@ -64,11 +91,14 @@ export const metaTags = {
 export const camelCaseAttr = (val) => val.replace(/-([a-z])/g, (k) => k[1].toUpperCase());
 export const capitalizeCaseAttr = (val) => camelCaseAttr(val.replace(/^[a-z]/g, (k) => k.toUpperCase()));
 
-export function matchMediaQuery(breakpointMin, breakpointMax) {
+export function getMediaQuery(breakpointMin, breakpointMax) {
   const min = `(min-width: ${breakpointMin}px)`;
   const max = breakpointMax ? ` and (max-width: ${breakpointMax}px)` : '';
+  return `${min}${max}`;
+}
 
-  return window.matchMedia(`${min}${max}`);
+export function matchMediaQuery(breakpointMin, breakpointMax) {
+  return window.matchMedia(getMediaQuery(breakpointMin, breakpointMax));
 }
 
 export function getBreakPoints() {
@@ -189,6 +219,26 @@ export function stringToArray(val, options) {
   });
 }
 
+// retrieve data from excel json format
+export function readValue(data, extend = {}) {
+  const k = Object.keys;
+  const keys = k(data[0]).filter((item) => item !== 'key');
+
+  return data.reduce((acc, row) => {
+    const mainKey = row.key;
+    keys.reduce((a, key) => {
+      if (!row[key]) return a;
+      if (!a[key]) {
+        a[key] = { [mainKey]: row[key] };
+      } else {
+        a[key][mainKey] = row[key];
+      }
+      return a;
+    }, acc);
+    return acc;
+  }, extend);
+}
+
 export function getMeta(name, settings) {
   const { getArray = false } = settings || {};
   const meta = document.querySelector(`meta[name="${name}"]`);
@@ -226,7 +276,12 @@ export function deepMerge(origin, ...toMerge) {
   if (isOnlyObject(origin) && isOnlyObject(merge)) {
     Object.keys(merge).forEach((key) => {
       if (isOnlyObject(merge[key])) {
-        if (!origin[key]) Object.assign(origin, { [key]: {} });
+        const noKeyInOrigin = !origin[key];
+        // overwrite origin non object values with objects
+        const overwriteOriginWithObject = !isOnlyObject(origin[key]) && isOnlyObject(merge[key]);
+        if (noKeyInOrigin || overwriteOriginWithObject) {
+          Object.assign(origin, { [key]: {} });
+        }
         deepMerge(origin[key], merge[key]);
       } else {
         Object.assign(origin, { [key]: merge[key] });
@@ -237,266 +292,33 @@ export function deepMerge(origin, ...toMerge) {
   return deepMerge(origin, ...toMerge);
 }
 
-export const externalConfig = {
-  defaultConfig(rawConfig = []) {
-    return {
-      attributesValues: {},
-      nestedComponentsConfig: {},
-      props: {},
-      config: {},
-      rawConfig,
-      hasBreakpointsValues: false,
-    };
-  },
-
-  async getConfig(componentName, configName, knownAttributes) {
-    if (!configName) return this.defaultConfig(); // to be removed in the feature and fallback to 'default'
-    const masterConfig = await this.loadConfig();
-    const componentConfig = masterConfig?.[componentName];
-    let parsedConfig = componentConfig?.parsed?.[configName];
-    if (parsedConfig) return parsedConfig;
-    const rawConfig = componentConfig?.data.filter((conf) => conf.configName?.trim() === configName /* ?? 'default' */);
-    if (!rawConfig?.length) {
+export function loadModule(urlWithoutExtension, loadCSS = true) {
+  try {
+    const js = import(`${urlWithoutExtension}.js`);
+    if (!loadCSS) return { js, css: Promise.resolve() };
+    const css = new Promise((resolve, reject) => {
+      const cssHref = `${urlWithoutExtension}.css`;
+      if (!document.querySelector(`head > link[href="${cssHref}"]`)) {
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = cssHref;
+        link.onload = resolve;
+        link.onerror = reject;
+        document.head.append(link);
+      } else {
+        resolve();
+      }
+    }).catch((error) =>
       // eslint-disable-next-line no-console
-      console.error(`The config named '${configName}' for '${componentName}' webComponent is not valid.`);
-      return this.defaultConfig();
-    }
-    const safeConfig = JSON.parse(JSON.stringify(rawConfig));
-    parsedConfig = this.parseRawConfig(safeConfig, knownAttributes);
-    componentConfig.parsed ??= {};
-    componentConfig.parsed[configName] = parsedConfig;
-
-    return parsedConfig;
-  },
-
-  async loadConfig() {
-    window.raqnComponentsConfig ??= (async () => {
-      const { metaName, fallbackContent } = metaTags.componentsConfig;
-      const metaConfigPath = getMeta(metaName);
-      const configPath = (!!metaConfigPath && `${metaConfigPath}.json`) || `${fallbackContent}.json`;
-      let result = null;
-      try {
-        const response = await fetch(`${configPath}`);
-        if (response.ok) {
-          result = await response.json();
-        }
-      } catch (error) {
-        // eslint-disable-next-line no-console
-        console.error(error);
-      }
-      return result;
-    })();
-
-    window.raqnComponentsConfig = await window.raqnComponentsConfig;
-
-    return window.raqnComponentsConfig;
-  },
-
-  parseRawConfig(configArr, knownAttributes) {
-    const parsedConfig = configArr?.reduce((acc, breakpointConfig) => {
-      const breakpoint = breakpointConfig.viewport.toLowerCase();
-      const isMainConfig = breakpoint === 'all';
-
-      Object.entries(breakpointConfig).forEach(([key, val]) => {
-        if (val.trim() === '') return;
-        if (![...Object.keys(globalConfig.breakpoints), 'all'].includes(breakpoint)) return;
-        if (!isMainConfig) acc.hasBreakpointsValues = true;
-
-        const parsedVal = stringToJsVal(val, { trim: true });
-
-        if (knownAttributes.includes(key) || key === 'class') {
-          this.parseAttrValues(parsedVal, acc, key, breakpoint);
-        } else if (isMainConfig) {
-          const configPrefix = 'config-';
-          const propPrefix = 'prop-';
-          if (key.startsWith(configPrefix)) {
-            this.parseConfig(parsedVal, acc, key, configPrefix);
-          } else if (key.startsWith(propPrefix)) {
-            acc.props[key.slice(propPrefix.length)] = parsedVal;
-          } else if (key === 'nest') {
-            this.parseNestedConfig(val, acc);
-          }
-        }
-      });
-      return acc;
-    }, this.defaultConfig(configArr));
-
-    return parsedConfig;
-  },
-
-  parseAttrValues(parsedVal, acc, key, breakpoint) {
-    const keyProp = key.replace(/^data-/, '');
-    const camelAttr = camelCaseAttr(keyProp);
-    acc.attributesValues[camelAttr] ??= {};
-    acc.attributesValues[camelAttr][breakpoint] = parsedVal;
-  },
-
-  parseConfig(parsedVal, acc, key, configPrefix) {
-    const configKeys = key.slice(configPrefix.length).split('.');
-    const indexLength = configKeys.length - 1;
-    configKeys.reduce((cof, confKey, index) => {
-      cof[confKey] = index < indexLength ? {} : parsedVal;
-      return cof[confKey];
-    }, acc.config);
-  },
-
-  parseNestedConfig(val, acc) {
-    const parsedVal = stringToArray(val).reduce((nestConf, confVal) => {
-      const [componentName, activeOrConfigName] = confVal.split('=');
-      const parsedActiveOrConfigName = stringToJsVal(activeOrConfigName);
-      const isString = typeof parsedActiveOrConfigName === 'string';
-      nestConf[componentName] ??= {
-        componentName,
-        externalConfigName: isString ? parsedActiveOrConfigName : null,
-        active: isString || parsedActiveOrConfigName,
-      };
-      return nestConf;
-    }, {});
-    acc.nestedComponentsConfig = parsedVal;
-  },
-};
-
-export const configFromClasses = {
-  getConfig(componentName, configByClasses, knownAttributes) {
-    const nestedComponentsConfig = this.nestedConfigFromClasses(configByClasses);
-    const { attributesValues, hasBreakpointsValues } = this.attributeValuesFromClasses(
-      componentName,
-      configByClasses,
-      knownAttributes,
+      console.log('Could not load module style', urlWithoutExtension, error),
     );
-    return {
-      attributesValues,
-      nestedComponentsConfig,
-      hasBreakpointsValues,
-    };
-  },
 
-  nestedComponentsNames(configByClasses) {
-    const nestPrefix = 'nest-'; //
-
-    return configByClasses.flatMap((c) => (c.startsWith(nestPrefix) ? [c.slice(nestPrefix.length)] : []));
-  },
-
-  nestedConfigFromClasses(configByClasses) {
-    const nestedComponentsNames = this.nestedComponentsNames(configByClasses);
-    const nestedComponentsConfig = configByClasses.reduce((acc, c) => {
-      let value = c;
-
-      const classBreakpoint = this.classBreakpoint(c);
-      const isBreakpoint = this.isBreakpoint(classBreakpoint);
-
-      if (isBreakpoint) value = value.slice(classBreakpoint.length + 1);
-
-      const componentName = nestedComponentsNames.find((prefix) => value.startsWith(prefix));
-      if (componentName) {
-        acc[componentName] ??= { componentName, active: true };
-        const val = value.slice(componentName.length + 1);
-        const active = 'active-';
-        if (val.startsWith(active)) {
-          acc[componentName].active = stringToJsVal(val.slice(active.length));
-        } else {
-          acc[componentName].configByClasses ??= '';
-          acc[componentName].configByClasses += `${isBreakpoint ? `${classBreakpoint}-` : ''}${val} `;
-        }
-      }
-      return acc;
-    }, {});
-    return nestedComponentsConfig;
-  },
-
-  attributeValuesFromClasses(componentName, configByClasses, knownAttributes) {
-    let hasBreakpointsValues = false;
-    const nestedComponentsNames = this.nestedComponentsNames(configByClasses);
-    const onlyKnownAttributes = knownAttributes.filter((a) => a !== 'class');
-    const attributesValues = configByClasses
-      .filter((c) => c !== componentName && c !== 'block')
-      .reduce((acc, c) => {
-        let value = c;
-        let isKnownAttribute = null;
-
-        const classBreakpoint = this.classBreakpoint(c);
-        const isBreakpoint = this.isBreakpoint(classBreakpoint);
-
-        if (isBreakpoint) {
-          hasBreakpointsValues = true;
-          value = value.slice(classBreakpoint.length + 1);
-        }
-
-        const excludeNested = nestedComponentsNames.find((prefix) => value.startsWith(prefix));
-        if (excludeNested) return acc;
-
-        let key = 'class';
-        const isClassValue = value.startsWith(key);
-        if (isClassValue) {
-          value = value.slice(key.length + 1);
-        } else {
-          [isKnownAttribute] = onlyKnownAttributes.flatMap((attribute) => {
-            const noDataPrefix = attribute.replace(/^data-/, '');
-            if (!value.startsWith(`${noDataPrefix}-`)) return [];
-            return noDataPrefix;
-          });
-          if (isKnownAttribute) {
-            key = isKnownAttribute;
-            value = value.slice(isKnownAttribute.length + 1);
-          }
-        }
-
-        const isClass = key === 'class';
-        const camelCaseKey = camelCaseAttr(key);
-        if (isKnownAttribute || isClass) acc[camelCaseKey] ??= {};
-        if (isKnownAttribute) acc[camelCaseKey][classBreakpoint] = value;
-        if (isClass) {
-          acc[camelCaseKey][classBreakpoint] ??= '';
-          acc[camelCaseKey][classBreakpoint] += `${value} `;
-        }
-        return acc;
-      }, {});
-
-    return { attributesValues, hasBreakpointsValues };
-  },
-  classBreakpoint(c) {
-    return Object.keys(globalConfig.breakpoints).find((b) => c.startsWith(`${b}-`)) || 'all';
-  },
-  isBreakpoint(classBreakpoint) {
-    return classBreakpoint !== 'all';
-  },
-};
-
-export async function buildConfig(componentName, externalConf, configByClasses, knownAttributes = []) {
-  const configPrefix = 'config-';
-  let config;
-  const externalConfigName =
-    configByClasses.find((c) => c.startsWith(configPrefix))?.slice?.(configPrefix.length) || externalConf;
-
-  if (externalConfigName) {
-    config = await externalConfig.getConfig(componentName, externalConfigName, knownAttributes);
-  } else {
-    config = configFromClasses.getConfig(componentName, configByClasses, knownAttributes);
-  }
-
-  return config;
-}
-
-export function loadModule(urlWithoutExtension) {
-  const js = import(`${urlWithoutExtension}.js`);
-  const css = new Promise((resolve, reject) => {
-    const cssHref = `${urlWithoutExtension}.css`;
-    if (!document.querySelector(`head > link[href="${cssHref}"]`)) {
-      const link = document.createElement('link');
-      link.rel = 'stylesheet';
-      link.href = cssHref;
-      link.onload = resolve;
-      link.onerror = reject;
-      document.head.append(link);
-    } else {
-      resolve();
-    }
-  }).catch((error) =>
+    return { css, js };
+  } catch (error) {
     // eslint-disable-next-line no-console
-    console.error('could not load module style', urlWithoutExtension, error),
-  );
-
-  return { css, js };
+    console.log('Could not load module', urlWithoutExtension, error);
+  }
+  return { css: Promise.resolve(), js: Promise.resolve() };
 }
 
 export function mergeUniqueArrays(...arrays) {
@@ -591,3 +413,137 @@ export const focusTrap = (elem, { dynamicContent } = { dynamicContent: false }) 
     }
   });
 };
+
+/**
+ * flattenProperties: convert objects from {a:{b:{c:{d:1}}}} to all subkeys as strings {'a-b-c-d':1}
+ *
+ * @param {Object} obj - Object to flatten
+ * @param {String} alreadyFlat - prefix or recursive keys.
+ * */
+
+export function flat(obj = {}, alreadyFlat = '', sep = '-', maxDepth = 10) {
+  const f = {};
+  // check if its a object
+  Object.keys(obj).forEach((k) => {
+    // get the value
+    const value = obj[k].valueOf() || obj[k];
+    // append key to already flatten Keys
+    const key = `${alreadyFlat ? `${alreadyFlat}${sep}` : ''}${k}`;
+    // if still a object fo recursive
+    if (isObject(value) && maxDepth > 0) {
+      Object.assign(f, flat(value, key, sep, maxDepth - 1));
+    } else {
+      // there is a real value so add key to flat object
+      f[key] = value;
+    }
+  });
+  return f;
+}
+
+export function flatAsValue(data, sep = '-') {
+  return Object.entries(data)
+    .reduce((acc, [key, value]) => {
+      if (isObject(value)) {
+        return flatAsValue(value, acc);
+      }
+      return `${acc} ${key}${sep}${value}`;
+    }, '')
+    .trim();
+}
+
+export function flatAsClasses(data, sep = '-') {
+  return Object.entries(data)
+    .reduce((acc, [key, value]) => {
+      const accm = acc ? `${acc} ` : '';
+      if (isObject(value)) {
+        const flatSubValues = flatAsClasses(value, sep);
+        // add current key as prefix to sublevel flatten values
+        const valuesWithKey = flatSubValues.replace(/^|\s/g, ` ${key}${sep}`).trim();
+        return `${accm}${valuesWithKey}`;
+      }
+      return `${accm}${key}${sep}${value}`;
+    }, '')
+    .trim();
+}
+
+/**
+ * unFlattenProperties: convert objects from subkeys as strings {'a-b-c-d':1} to tree {a:{b:{c:{d:1}}}}
+ *
+ * @param {Object} obj - Object to unflatten
+ * */
+
+export function unFlat(f, sep = '-') {
+  const un = {};
+  // for each key create objects
+  Object.keys(f).forEach((key) => {
+    const properties = key.split(sep);
+    const value = f[key];
+    properties.reduce((unflating, prop, i) => {
+      if (!unflating[prop]) {
+        const step = i < properties.length - 1 ? { [prop]: {} } : { [prop]: value };
+        Object.assign(unflating, step);
+      }
+      return unflating[prop];
+    }, un);
+  });
+  return un;
+}
+
+export const classToFlat = (classes = [], valueLength = 1, extend = {}) =>
+  unFlat(
+    classes.reduce((acc, c) => {
+      const length = c.split('-').length - valueLength;
+      const key = c.split('-').slice(0, length).join('-');
+      const value = c.split('-').slice(length).join('-');
+      if (!acc[key]) acc[key] = {};
+      acc[key] = value;
+      return acc;
+    }, extend),
+  );
+
+export function blockBodyScroll(boolean) {
+  const { noScroll } = globalConfig.classes;
+  document.body.classList.toggle(noScroll, boolean);
+}
+
+// Separate any other blocks from grids and grid-item because:
+// grids must be initialized only after all the other blocks are initialized
+// grid-item component are going to be generated and initialized by the grid component and should be excluded from blocks.
+export function getBlocksAndGrids(elements) {
+  const blocksAndGrids = elements.reduce(
+    (acc, block) => {
+      // exclude grid items
+      if (block.componentName === 'grid-item') return acc;
+      if (block.componentName === 'grid') {
+        // separate grids
+        acc.grids.push(block);
+      } else {
+        // separate the rest of blocks
+        acc.blocks.push(block);
+      }
+      return acc;
+    },
+    { grids: [], blocks: [] },
+  );
+
+  // if a grid doesn't specify its level will default to level 1
+  const getGridLevel = (elem) => {
+    const levelClass = [...elem.classList].find((cls) => cls.startsWith('data-level-')) || 'data-level-1';
+    return Number(levelClass.slice('data-level-'.length));
+  };
+
+  // Based on how each gird is identifying it's own grid items, the grid initialization
+  // must be done starting from the deepest level grids.
+  // This is because each grid can contain other grids in their grid-items
+  // To achieve this infinite nesting each grid deeper than level 1 must specify their level of
+  // nesting with the data-level= option e.g data-level=2
+  blocksAndGrids.grids.sort(({ targets: [elemA] }, { targets: [elemB] }) => {
+    const levelA = getGridLevel(elemA);
+    const levelB = getGridLevel(elemB);
+    if (levelA <= levelB) return 1;
+    if (levelA > levelB) return -1;
+    return 0;
+  });
+
+  return blocksAndGrids;
+}

@@ -1,0 +1,8 @@
+raqn-developers-content h2, 
+raqn-developers-content h2 a, 
+raqn-developers-content h3,
+raqn-developers-content h3 a,
+raqn-developers-content a {
+  margin: 10px;
+  font-size: var(--scope-font-size, 1.3);
+}

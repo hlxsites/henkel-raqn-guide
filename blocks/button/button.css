@@ -5,30 +5,38 @@ raqn-button {
   display: grid;
   align-content: center;
   align-items: center;
-  justify-items: var(--scope-justify, start);
+  justify-items: var(--justify, start);
+
+  --border-radius: 0;
+  --border-block-start: 1px solid transparent;
+  --border-block-end: 1px solid transparent;
+  --border-inline-start: 1px solid transparent;
+  --border-inline-end: 1px solid transparent;
 }
 
 raqn-button :where(a, button) {
   display: inline-flex;
-  line-height: var(--scope-icon-size, 1em);
-  background: var(--scope-accent-background, #000);
-  color: var(--scope-accent-color, #fff);
+  line-height: var(--icon-size, 1);
+  background: var(--accent-background, #000);
+  color: var(--accent-text, #fff);
   text-transform: none;
-  border-radius: var(--scope-border-radius, 0);
-  border-block-start: var(--scope-border-block-start, 1px solid transparent);
-  border-block-end: var(--scope-border-block-end, 1px solid transparent);
-  border-inline-start: var(--scope-border-inline-start, 1px solid transparent);
-  border-inline-end: var(--scope-border-inline-end, 1px solid transparent);
-  padding: 10px 20px;
+  border-radius: var(--border-radius, 0);
+  border-block-start: var(--border-block-start, 1px solid transparent);
+  border-block-end: var(--border-block-end, 1px solid transparent);
+  border-inline-start: var(--border-inline-start, 1px solid transparent);
+  border-inline-end: var(--border-inline-end, 1px solid transparent);
+  border-color: var(--accent-border, none);
+  padding-block: var(--button-padding-block, 10px);
+  padding-inline: var(--button-padding-inline, 20px);
   overflow: hidden;
   text-decoration: none;
   text-align: start;
 }
 
 raqn-button :where(a, button):hover {
-  background: var(--scope-accent-background-hover, #fff);
-  color: var(--scope-accent-color-hover, #fff);
-  border-color: currentcolor;
+  background: var(--hover-background, #fff);
+  color: var(--hover-text, #fff);
+  border-color: var(--hover-border, #fff);
   cursor: pointer;
 }
 

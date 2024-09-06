@@ -1,5 +1,5 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { stringToJsVal } from '../../scripts/libs.js';
+import { flatAsValue, isObject, stringToJsVal } from '../../scripts/libs.js';
 
 export default class Icon extends ComponentBase {
   static observedAttributes = ['data-active', 'data-icon'];
@@ -53,12 +53,18 @@ export default class Icon extends ComponentBase {
     this.setAttribute('aria-hidden', 'true');
   }
 
+  // ${viewport}-icon-${value} or icon-${value}
+  applyIcon(icon) {
+    this.dataset.icon = isObject(icon) ? flatAsValue(icon) : icon;
+  }
+
   // Same icon component can be reused with any other icons just by changing the attribute
   async onAttributeIconChanged({ oldValue, newValue }) {
     if (oldValue === newValue) return;
 
     // ! The initial and active icon names are separated with a double underline
-    // ! The active icon is optional; 
+    // ! The active icon is optional;
+    if (!newValue) return;
     const [initial, active] = newValue.split('__');
     this.#initialIcon = initial;
     this.#activeIcon = active || null;

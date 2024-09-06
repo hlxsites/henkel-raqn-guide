@@ -10,7 +10,7 @@ export default class Accordion extends ComponentBase {
         button: {
           componentName: 'button',
           loaderConfig: {
-            targetsSelectorsPrefix: ':scope > :is(:nth-child(even)) >',
+            targetsSelectorsPrefix: ':scope > :is(:nth-child(even))',
           },
         },
       },
@@ -34,10 +34,18 @@ export default class Accordion extends ComponentBase {
     this.setupContent(children.filter((_, ind) => ind % 2 === 1));
   }
 
+  createIcon(elem) {
+    const icon = document.createElement('raqn-icon');
+    icon.dataset.icon = 'chevron-right';
+
+    const hasIcon = elem?.querySelectorAll(`raqn-icon[data-icon="${icon.dataset.icon}"]`)?.length;
+    if (!hasIcon) {
+      elem.append(icon);
+    }
+  }
+
   setupControls(controls) {
     controls.forEach((control, index) => {
-      const icon = document.createElement('raqn-icon');
-      icon.dataset.icon = 'chevron-right';
       const children = Array.from(control.children);
       if (children.length === 0) {
         const child = document.createElement('span');
@@ -45,7 +53,7 @@ export default class Accordion extends ComponentBase {
         control.innerHTML = '';
         control.append(child);
       }
-      control.children[0].append(icon);
+      this.createIcon(control.children[0]);
       control.setAttribute('role', 'button');
       control.setAttribute('aria-expanded', 'false');
       control.setAttribute('tabindex', '0');

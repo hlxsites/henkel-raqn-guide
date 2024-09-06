@@ -12,6 +12,14 @@ export default class Header extends ComponentBase {
     },
   };
 
+  attributesValues = {
+    all: {
+      class: {
+        color: 'primary',
+      },
+    },
+  };
+
   fragmentPath = metaFragment || `${fallbackContent}.plain.html`;
 
   dependencies = ['navigation', 'image'];
