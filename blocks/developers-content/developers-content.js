@@ -57,7 +57,7 @@ export default class DeveloperToc extends ComponentBase {
           node = {
             nodePath,
             segment,
-            active: window.location.pathname.startsWith(nodePath),
+            active: window.location.pathname.startsWith(`/${sitePathPrefix}${nodePath}`),
             children: [],
           };
           if(nodePath === page.path) {

@@ -50,7 +50,7 @@ export const metaTags = {
   },
   template: {
     metaName: 'template',
-    // contentType: 'boolean string',
+    // contentType: 'string template name',
   },
   lcp: {
     metaName: 'lcp',
