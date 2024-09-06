@@ -48,6 +48,10 @@ export const metaTags = {
     metaNamePrefix: 'structure',
     // contentType: 'boolean string',
   },
+  template: {
+    metaName: 'structure',
+    // contentType: 'boolean string',
+  },
   lcp: {
     metaName: 'lcp',
     fallbackContent: ['theming', 'header', 'breadcrumbs'],

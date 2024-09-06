@@ -168,6 +168,12 @@ export const onLoadComponents = {
         componentName: name.trim(),
       };
     });
+    const template = getMeta(metaTags.template.metaName);
+    if(template) {
+      this.structureComponents = [...this.structureComponents, {
+        componentName: template,
+      }];
+    }
   },
 
   setLcpBlocks() {
