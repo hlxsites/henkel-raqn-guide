@@ -49,7 +49,7 @@ export const metaTags = {
     // contentType: 'boolean string',
   },
   template: {
-    metaName: 'structure',
+    metaName: 'template',
     // contentType: 'boolean string',
   },
   lcp: {
