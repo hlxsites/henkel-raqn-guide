@@ -29,11 +29,6 @@ export const metaTags = {
     metaName: 'breadcrumb-root',
     fallbackContent: '/',
   },
-  componentsConfig: {
-    metaName: 'components-config',
-    fallbackContent: 'components-config',
-    // contentType: 'path without extension',
-  },
   icons: {
     metaName: 'icons',
     fallbackContent: '/assets/icons',
