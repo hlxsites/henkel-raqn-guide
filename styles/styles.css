@@ -245,16 +245,6 @@ button {
   line-height: var(--button-line-height, 1.2);
 }
 
-.raqn-grid {
-  width: 100%;
-  padding-inline: var(--container-width);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: var(--grid-template-columns, 1fr);
-  align-items: center;
-  justify-items: start;
-}
-
 /* Hide raqn web components based on different states */
 [isloading],
 .hide-with-error,
