@@ -29,19 +29,19 @@ export const metaTags = {
     metaName: 'breadcrumb-root',
     fallbackContent: '/',
   },
-  componentsConfig: {
-    metaName: 'components-config',
-    fallbackContent: 'components-config',
+  icons: {
+    metaName: 'icons',
+    fallbackContent: '/assets/icons',
     // contentType: 'path without extension',
   },
   header: {
     metaName: 'header',
-    fallbackContent: 'header',
+    fallbackContent: '/header',
     // contentType: 'path without extension',
   },
   footer: {
     metaName: 'footer',
-    fallbackContent: 'footer',
+    fallbackContent: '/footer',
     // contentType: 'path without extension',
   },
   structure: {
@@ -63,22 +63,22 @@ export const metaTags = {
   },
   themecolor: {
     metaName: 'color',
-    fallbackContent: 'color',
+    fallbackContent: '/color',
     // contentType: 'path without extension',
   },
   themefont: {
     metaName: 'color',
-    fallbackContent: 'font',
+    fallbackContent: '/font',
     // contentType: 'path without extension',
   },
   themelayout: {
     metaName: 'layout',
-    fallbackContent: 'layout',
+    fallbackContent: '/layout',
     // contentType: 'path without extension',
   },
   themecomponent: {
     metaName: 'component',
-    fallbackContent: 'components-config',
+    fallbackContent: '/components-config',
     // contentType: 'path without extension',
   },
   theme: {

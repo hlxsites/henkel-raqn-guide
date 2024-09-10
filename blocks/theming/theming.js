@@ -163,9 +163,7 @@ export default class Theming extends ComponentBase {
         return fetch(`${path}.json`).then((response) => this.processFragment(response, fragment));
       }),
     );
-    //
-    await fetch('color.json').then((response) => this.processFragment(response, 'color'));
-    await fetch('font.json').then((response) => this.processFragment(response, 'font'));
+
     await fetch('/fonts/index.json').then((response) => this.processFragment(response, 'fontface'));
     this.styles();
   }
