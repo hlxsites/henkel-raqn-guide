@@ -7,14 +7,18 @@ import {
   capitalizeCaseAttr,
   deepMerge,
   classToFlat,
-  unflat,
+  unFlat,
   isObject,
   flatAsValue,
   flat,
+  mergeUniqueArrays,
+  getBlocksAndGrids,
 } from './libs.js';
 import { externalConfig } from './libs/external-config.js';
 
 export default class ComponentBase extends HTMLElement {
+  // All supported data attributes must be added to observedAttributes
+  // The order of observedAttributes is the order in which the values from config are added.
   static observedAttributes = [];
 
   static loaderConfig = {
@@ -63,10 +67,16 @@ export default class ComponentBase extends HTMLElement {
       nestedComponents: [],
       // from inner html blocks
       innerComponents: [],
+      // from inner html blocks
+      innerGrids: [],
     };
+    // set only if content is loaded externally
     this.innerBlocks = [];
+    // set only if content is loaded externally
+    this.innerGrids = [];
     this.initError = null;
     this.breakpoints = getBreakPoints();
+    this.dataAttributesKeys = this.setDataAttributesKeys();
 
     // use the this.extendConfig() method to extend the default config
     this.config = {
@@ -124,11 +134,26 @@ export default class ComponentBase extends HTMLElement {
     this.onBreakpointChange = this.onBreakpointChange.bind(this);
   }
 
+  async setDataAttributesKeys() {
+    const { observedAttributes } = await this.Handler;
+    this.dataAttributesKeys = observedAttributes.map((dataAttr) => {
+      const [, key] = dataAttr.split('data-');
+
+      return {
+        data: dataAttr,
+        noData: key,
+        noDataCamelCase: camelCaseAttr(key),
+      };
+    });
+  }
+
   // ! Needs to be called after the element is created;
   async init(initOptions) {
     try {
+      await this.Handler;
       this.wasInitBeforeConnected = true;
       this.initOptions = initOptions || {};
+      this.setInitialAttributesValues();
       await this.buildExternalConfig();
       this.runConfigsByViewport();
       this.addDefaultsToNestedConfig();
@@ -146,6 +171,30 @@ export default class ComponentBase extends HTMLElement {
     }
   }
 
+  /**
+   * When the element was created with data attributes before the ini() method is called
+   * use the data attr values as default for attributesValues
+   */
+  setInitialAttributesValues() {
+    const initialAttributesValues = { all: { data: {} } };
+
+    this.dataAttributesKeys.forEach(({ noData, noDataCamelCase }) => {
+      const value = this.dataset[noDataCamelCase];
+
+      if (typeof value === 'undefined') return {};
+      const initialValue = unFlat({ [noData]: value });
+      initialAttributesValues.all.data = deepMerge({}, initialAttributesValues.all.data, initialValue);
+      return initialAttributesValues;
+    });
+
+    this.attributesValues = deepMerge(
+      {},
+      this.attributesValues,
+      this.initOptions?.attributesValues || {},
+      initialAttributesValues,
+    );
+  }
+
   async connectComponent() {
     if (!this.initOptions.target) return this;
     const { targetsAsContainers } = this.initOptions.loaderConfig || {};
@@ -159,10 +208,12 @@ export default class ComponentBase extends HTMLElement {
 
   // Build-in method called after the element is added to the DOM.
   async connectedCallback() {
+    // Common identifier for raqn web components
+    this.setAttribute('raqnWebComponent', '');
     this.setAttribute('isloading', '');
     try {
       this.initialized = this.getAttribute('initialized');
-      this.initSubscriptions(); // must subscribe each time the element is added to the document
+      this.initSubscriptions(); // must subscribe each type the element is added to the document
       if (!this.initialized) {
         await this.initOnConnected();
         this.setAttribute('id', this.uuid);
@@ -193,20 +244,17 @@ export default class ComponentBase extends HTMLElement {
 
   async initOnConnected() {
     if (this.wasInitBeforeConnected) return;
-
+    await this.Handler;
+    this.setInitialAttributesValues();
     await this.buildExternalConfig();
-
     this.runConfigsByViewport();
-    delete this.dataset.configName;
-    delete this.dataset.configByClasses;
-
     this.addDefaultsToNestedConfig();
     // Add extra functionality to be run on init.
     await this.onInit();
   }
 
   async buildExternalConfig() {
-    let configByClasses = this.initOptions.configByClasses || [];
+    let configByClasses = mergeUniqueArrays(this.initOptions.configByClasses, this.classList);
     // normalize the configByClasses to serializable format
     const { byName } = getBreakPoints();
     configByClasses = configByClasses
@@ -224,27 +272,26 @@ export default class ComponentBase extends HTMLElement {
     let values = classToFlat(configByClasses);
 
     // get the external config
+    // TODO With the unFlatten approach of setting this.attributesValues there is an increased amount of processing
+    // each time a viewport changes when we need to flatten again the values
+    // better approach would be to generate this.attributesValues in the final state needed by each time of data:
+    // - class -  as arrays with unique values
+    // - data - as flatten values with camel case keys
+    // - attributes - as flatten values with hyphen separated keys.
+    // for anything else set them flatten as they come from from external config
+    const configs = unFlat(await externalConfig.getConfig(this.componentName, values.config));
 
-    const configs = unflat(await externalConfig.getConfig(this.componentName, values.config));
-
-    if (!this.overrideExternalConfig) {
-      values = deepMerge({}, configs, values);
-    } else {
+    if (this.overrideExternalConfig) {
+      // Used for preview functionality
       values = deepMerge({}, configs, this.attributesValues, values);
+    } else {
+      values = deepMerge({}, configs, values);
     }
+
     delete values.config;
 
     // add to attributesValues
     this.attributesValues = deepMerge({}, this.attributesValues, values);
-  }
-
-  get sortedAttributes() {
-    const knownAttr = this.Handler.observedAttributes;
-    // Sometimes the order in which the attributes are set matters.
-    // Control the order by using the order of the observedAttributes.
-    return Object.entries(this.attributesValues).sort(
-      (a, b) => knownAttr.indexOf(`data-${a}`) - knownAttr.indexOf(`data-${b}`),
-    );
   }
 
   addDefaultsToNestedConfig() {
@@ -290,11 +337,9 @@ export default class ComponentBase extends HTMLElement {
   runConfigsByViewport() {
     const { name } = getBreakPoints().active;
     const current = deepMerge({}, this.attributesValues.all, this.attributesValues[name]);
-    this.className = '';
-    this.cleanDataset();
+    this.removeAttribute('class');
     Object.keys(current).forEach((key) => {
       const action = `apply${key.charAt(0).toUpperCase() + key.slice(1)}`;
-
       if (typeof this[action] === 'function') {
         return this[action]?.(current[key]);
       }
@@ -307,9 +352,16 @@ export default class ComponentBase extends HTMLElement {
     // received as {col:{ direction:2 }, columns: 2}
     const values = flat(entries);
     // transformed into values as {col-direction: 2, columns: 2}
-    Object.keys(values).forEach((key) => {
-      // camelCaseAttr converst col-direction into colDirection
-      this.dataset[camelCaseAttr(key)] = values[key];
+
+    // Add only supported data attributes from observedAttributes;
+    // Sometimes the order in which the attributes are set matters.
+    // Control the order by using the order of the observedAttributes.
+    this.dataAttributesKeys.forEach(({ noData, noDataCamelCase }) => {
+      if (typeof values[noData] !== 'undefined') {
+        this.dataset[noDataCamelCase] = values[noData];
+      } else {
+        delete this.dataset[noDataCamelCase];
+      }
     });
   }
 
@@ -319,9 +371,9 @@ export default class ComponentBase extends HTMLElement {
 
     // classes can be serialized as a string or an object
     if (isObject(className)) {
-      // if an object is passed, it's flat and splited
+      // if an object is passed, it's flat and splitted
       this.classList.add(...flatAsValue(className).split(' '));
-    } else {
+    } else if (className) {
       // strings are added as is
       this.setAttribute('class', className);
     }
@@ -334,7 +386,7 @@ export default class ComponentBase extends HTMLElement {
     const values = flat(entries);
     // transformed into values as {col-direction: 2, columns: 2}
     Object.keys(values).forEach((key) => {
-      // camelCaseAttr converst col-direction into colDirection
+      // camelCaseAttr converts col-direction into colDirection
       this.setAttribute(key, values[key]);
     });
   }
@@ -350,12 +402,6 @@ export default class ComponentBase extends HTMLElement {
       this.cachedChildren = Array.from(this.initOptions.target.children);
       this.cachedChildren.forEach((child) => instance.append(child));
       this.append(instance);
-    });
-  }
-
-  cleanDataset() {
-    Object.keys(this.dataset).forEach((key) => {
-      delete this.dataset[key];
     });
   }
 
@@ -393,6 +439,7 @@ export default class ComponentBase extends HTMLElement {
 
   async initChildComponents() {
     await Promise.allSettled([this.initNestedComponents(), this.initInnerBlocks()]);
+    await this.initInnerGrids();
   }
 
   async initNestedComponents() {
@@ -418,10 +465,20 @@ export default class ComponentBase extends HTMLElement {
 
   async initInnerBlocks() {
     if (!this.innerBlocks.length) return;
-    const innerBlocksSettings = this.innerBlocks.map((block) => ({ targets: [block] }));
-    this.childComponents.innerComponents = await component.multiInit(innerBlocksSettings);
+
+    this.childComponents.innerComponents = await component.multiInit(this.innerBlocks);
 
     const { allInitialized } = this.childComponents.innerComponents;
+    const { hideOnChildrenError } = this.config;
+    this.hideWithError(!allInitialized && hideOnChildrenError, 'has-inner-error');
+  }
+
+  async initInnerGrids() {
+    if (!this.innerGrids.length) return;
+
+    this.childComponents.innerGrids = await component.multiSequentialInit(this.innerGrids);
+
+    const { allInitialized } = this.childComponents.innerGrids;
     const { hideOnChildrenError } = this.config;
     this.hideWithError(!allInitialized && hideOnChildrenError, 'has-inner-error');
   }
@@ -445,7 +502,7 @@ export default class ComponentBase extends HTMLElement {
     if (response.ok) {
       this.fragmentContent = response.text();
       await this.addFragmentContent();
-      this.setInnerBlocks();
+      this.setInnerBlocksAndGrids();
     }
   }
 
@@ -453,8 +510,13 @@ export default class ComponentBase extends HTMLElement {
     this.innerHTML = await this.fragmentContent;
   }
 
-  setInnerBlocks() {
-    this.innerBlocks = [...this.querySelectorAll(globalConfig.blockSelector)];
+  // Set only if content is loaded externally;
+  setInnerBlocksAndGrids() {
+    const { blocks, grids } = getBlocksAndGrids(
+      [...this.querySelectorAll(globalConfig.blockSelector)].map((elem) => component.getBlockData(elem)),
+    );
+    this.innerBlocks = blocks;
+    this.innerGrids = grids;
   }
 
   queryElements() {

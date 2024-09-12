@@ -1,5 +1,9 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { flatAsValue, isObject, stringToJsVal } from '../../scripts/libs.js';
+import { flatAsValue, isObject, stringToJsVal , getMeta, metaTags} from '../../scripts/libs.js';
+
+const { metaName, fallbackContent } = metaTags.icons;
+const metaIcons = getMeta(metaName);
+const metaPath = !!metaIcons && `${metaIcons}`;
 
 export default class Icon extends ComponentBase {
   static observedAttributes = ['data-active', 'data-icon'];
@@ -46,7 +50,8 @@ export default class Icon extends ComponentBase {
   }
 
   iconUrl(iconName) {
-    return `assets/icons/${iconName}.svg`;
+    const path = metaPath || fallbackContent;
+    return `${path}/${iconName}.svg`;
   }
 
   async connected() {

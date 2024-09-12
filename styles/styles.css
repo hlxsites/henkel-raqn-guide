@@ -1,114 +1,18 @@
+:root {
+  --max-width: 80%;
+  --padding-container: 20px;
+  --header-height: 110px;
+  --container-width: max(calc((100% - var(--max-width)) / 2), var(--padding-container));
+}
+
 @media screen and (max-width: 768px) {
-  body {
-    --raqn-max-width-default: var(--max-width, 80vw);
-    --max-width: 100vw;
+  :root {
+    --max-width: 100%;
   }
 }
 
-img {
-  width: 100%;
-  object-fit: cover;
-}
-
-html,
-body {
-  --raqn-max-width-default: 80vw;
-  --max-width: var(--raqn-max-width-default, 80vw);
-  --header-height: 110px;
-
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  padding: 0;
-  color: var(--text, #000);
-  font-family: var(--p-font-family, roboto);
-  font-size: var(--p-font-size, 16px);
-  font-weight: var(--p-font-weight, normal);
-  font-style: var(--p-font-style, normal);
-  line-height: var(--p-line-height, 1.2em);
-}
-
-h1 {
-  font-family: var(--h1-font-family, roboto);
-  font-size: var(--h1-font-size, 16px);
-  font-weight: var(--h1-font-weight, normal);
-  font-style: var(--h1-font-style, normal);
-  line-height: var(--h1-line-height, 1.2em);
-}
-
-h2 {
-  font-family: var(--h2-font-family, roboto);
-  font-size: var(--h2-font-size, 16px);
-  font-weight: var(--h2-font-weight, normal);
-  font-style: var(--h2-font-style, normal);
-  line-height: var(--h2-line-height, 1.2em);
-}
-
-h3 {
-  font-family: var(--h3-font-family, roboto);
-  font-size: var(--h3-font-size, 16px);
-  font-weight: var(--h3-font-weight, normal);
-  font-style: var(--h3-font-style, normal);
-  line-height: var(--h3-line-height, 1.3em);
-}
-
-h5 {
-  font-family: var(--h5-font-family, roboto);
-  font-size: var(--h5-font-size, 16px);
-  font-weight: var(--h5-font-weight, normal);
-  font-style: var(--h5-font-style, normal);
-  line-height: var(--h5-line-height, 1.5em);
-}
-
-h4 {
-  font-family: var(--h4-font-family, roboto);
-  font-size: var(--h4-font-size, 16px);
-  font-weight: var(--h4-font-weight, normal);
-  font-style: var(--h4-font-style, normal);
-  line-height: var(--h4-line-height, 1.4em);
-}
-
-h6 {
-  font-family: var(--h6-font-family, roboto);
-  font-size: var(--h6-font-size, 16px);
-  font-weight: var(--h6-font-weight, normal);
-  font-style: var(--h6-font-style, normal);
-  line-height: var(--h6-line-height, 1.6em);
-}
-
-label {
-  font-family: var(--label-font-family, roboto);
-  font-size: var(--label-font-size, 16px);
-  font-weight: var(--label-font-weight, normal);
-  font-style: var(--label-font-style, normal);
-  line-height: var(--label-line-height, 1.6em);
-}
-
-body {
-  display: none;
-  background: var(--background, #fff);
-  padding: 0;
-  margin: 0;
-  width: 100%;
-}
-
-main {
-  background: var(--background, #fff);
-  padding: 0;
-  margin: 0;
-  width: 100%;
-  position: relative;
-  min-height: 100%;
-}
-
-body.no-scroll {
-  block-size: 100vh;
-  overflow: hidden;
-  position: relative;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
+* {
+  box-sizing: border-box;
 }
 
 html,
@@ -144,15 +48,46 @@ li,
 label,
 legend,
 caption {
-  font-size: 100%;
   vertical-align: baseline;
 }
 
-h1,
-h2,
-h3,
-h4 {
-  color: var(--title, #000);
+html {
+  font-size: 100%;
+}
+
+html,
+body {
+  min-width: 100%;
+  min-height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  display: none;
+  background: var(--background, #fff);
+  padding: 0;
+  margin: 0;
+  width: 100%;
+}
+
+body.no-scroll {
+  block-size: 100vh;
+  overflow: hidden;
+  position: relative;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+body > * {
+  color: var(--text, #000);
+  font-family: var(--p-font-family, roboto);
+  font-size: var(--p-font-size, 1rem);
+  font-weight: var(--p-font-weight, normal);
+  font-style: var(--p-font-style, normal);
+  line-height: var(--p-line-height, 1.2);
 }
 
 header {
@@ -166,55 +101,119 @@ head:has(meta[name='footer'][content='false' i]) + body > footer {
   display: none;
 }
 
-main > div {
-  max-width: var(--max-width, 100%);
-  margin: 0 auto;
+main {
+  background: var(--background, #fff);
+  padding: 0;
+  margin: 0;
+  width: 100%;
+  position: relative;
+  min-height: 100%;
 }
 
-main > div > * {
-  max-width: var(--max-width, 100%);
-  min-width: var(--max-width, 100%);
-  margin-inline: auto;
-  box-sizing: border-box;
-  background-color: var(--background, #fff);
+h1,
+h2,
+h3,
+h4 {
+  color: var(--title, #000);
 }
 
-main > .raqn-grid > * {
-  max-width: auto;
-  min-width: auto;
+h1 {
+  font-family: var(--h1-font-family, roboto);
+  font-size: var(--h1-font-size, 1rem);
+  font-weight: var(--h1-font-weight, normal);
+  font-style: var(--h1-font-style, normal);
+  line-height: var(--h1-line-height, 1.2);
 }
 
+h2 {
+  font-family: var(--h2-font-family, roboto);
+  font-size: var(--h2-font-size, 1rem);
+  font-weight: var(--h2-font-weight, normal);
+  font-style: var(--h2-font-style, normal);
+  line-height: var(--h2-line-height, 1.2);
+}
+
+h3 {
+  font-family: var(--h3-font-family, roboto);
+  font-size: var(--h3-font-size, 1rem);
+  font-weight: var(--h3-font-weight, normal);
+  font-style: var(--h3-font-style, normal);
+  line-height: var(--h3-line-height, 1.3);
+}
+
+h5 {
+  font-family: var(--h5-font-family, roboto);
+  font-size: var(--h5-font-size, 1rem);
+  font-weight: var(--h5-font-weight, normal);
+  font-style: var(--h5-font-style, normal);
+  line-height: var(--h5-line-height, 1.5);
+}
+
+h4 {
+  font-family: var(--h4-font-family, roboto);
+  font-size: var(--h4-font-size, 1rem);
+  font-weight: var(--h4-font-weight, normal);
+  font-style: var(--h4-font-style, normal);
+  line-height: var(--h4-line-height, 1.4);
+}
+
+h6 {
+  font-family: var(--h6-font-family, roboto);
+  font-size: var(--h6-font-size, 1rem);
+  font-weight: var(--h6-font-weight, normal);
+  font-style: var(--h6-font-style, normal);
+  line-height: var(--h6-line-height, 1.6);
+}
+
+label {
+  font-family: var(--label-font-family, roboto);
+  font-size: var(--label-font-size, 1rem);
+  font-weight: var(--label-font-weight, normal);
+  font-style: var(--label-font-style, normal);
+  line-height: var(--label-line-height, 1.6);
+}
+
+img {
+  width: 100%;
+  object-fit: cover;
+}
+
+picture,
+img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+}
+
+/* Set default block style to all raqn web components 
+   Use :where() to give lower specificity in order to not overwrite any display option set on the web component tag 
+*/
+:where([raqnWebComponent]) {
+  display: block;
+}
+
+/* Container: make all content act as a container where background of the container is limited to the content area */
+main > div > *:not(.full-width) {
+  margin-inline: var(--container-width);
+}
+
+/* Change the above behavior by setting the full-with class on the block. This will make the background take the full width of the page */
 .full-width {
-  --outer-gap: calc((var(--raqn-max-width-default) - 100vw) / 2);
-  --inner-gap: calc((100vw - var(--max-width)) / 2);
-
-  display: grid;
-  min-width: 100vw;
-  max-width: none;
-  margin-inline-start: var(--outer-gap);
-  padding-inline: var(--inner-gap);
-  box-sizing: border-box;
+  padding-inline: var(--container-width);
 }
 
+/* TODO Check if this is still needed */
 main > div > div {
   background: var(--background, #fff);
   color: var(--text, #000);
   padding: var(--padding, 0);
 }
 
+/* TODO Check if this is still needed */
 main > div > div > div {
   max-width: var(--max-width, 100%);
   margin: var(--margin, 0 auto);
   width: 100%;
-}
-
-.breadcrumbs {
-  display: grid;
-  grid-template-columns: var(--grid-template-columns, 1fr);
-  gap: var(--gap, 20px);
-  align-items: center;
-  justify-items: start;
-  min-height: var(--font-size, 1.2em);
 }
 
 a {
@@ -222,10 +221,10 @@ a {
   color: var(--highlight, inherit);
   text-decoration: none;
   font-family: var(--a-font-family, roboto);
-  font-size: var(--a-font-size, 16px);
+  font-size: var(--a-font-size, 1rem);
   font-weight: var(--a-font-weight, normal);
   font-style: var(--a-font-style, normal);
-  line-height: var(--a-line-height, 1.2em);
+  line-height: var(--a-line-height, 1.2);
 }
 
 a:hover {
@@ -240,28 +239,13 @@ button {
   align-items: center;
   text-decoration: none;
   font-family: var(--button-font-family, roboto);
-  font-size: var(--button-font-size, 16px);
+  font-size: var(--button-font-size, 1rem);
   font-weight: var(--button-font-weight, normal);
   font-style: var(--button-font-style, normal);
-  line-height: var(--button-line-height, 1.2em);
+  line-height: var(--button-line-height, 1.2);
 }
 
-.raqn-grid {
-  width: var(--max-width, 100%);
-  margin: 0 auto;
-  display: grid;
-  grid-template-columns: var(--grid-template-columns, 1fr);
-  align-items: center;
-  justify-items: start;
-}
-
-picture,
-img {
-  display: block;
-  max-width: 100%;
-  height: auto;
-}
-
+/* Hide raqn web components based on different states */
 [isloading],
 .hide-with-error,
 .hide {

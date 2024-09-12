@@ -1,5 +1,13 @@
 import ComponentLoader from './component-loader.js';
-import { globalConfig, metaTags, eagerImage, getMeta, getMetaGroup, mergeUniqueArrays } from './libs.js';
+import {
+  globalConfig,
+  metaTags,
+  eagerImage,
+  getMeta,
+  getMetaGroup,
+  mergeUniqueArrays,
+  getBlocksAndGrids,
+} from './libs.js';
 
 const component = {
   async init(settings) {
@@ -43,6 +51,24 @@ const component = {
     return status;
   },
 
+  async multiSequentialInit(settings) {
+    const initialized = [];
+    const sequentialInit = async (set) => {
+      if (!set.length) return;
+      const initializing = await this.init(set.shift());
+      initialized.unshift(initializing);
+      sequentialInit(set);
+    };
+
+    await sequentialInit([...settings]);
+
+    const status = {
+      allInitialized: initialized.every((c) => !(c.initError || c.failedInstances.length)),
+      instances: initialized,
+    };
+    return status;
+  },
+
   async loadAndDefine(componentName) {
     const status = await new ComponentLoader({ componentName }).loadAndDefine();
     return { componentName, status };
@@ -62,12 +88,11 @@ const component = {
   getBlockData(block) {
     const tagName = block.tagName.toLowerCase();
     const lcp = block.classList.contains('lcp');
-    const orignalClasses = block.getAttribute('class');
     let componentName = tagName;
     if (!globalConfig.semanticBlocks.includes(tagName)) {
       componentName = block.classList.item(0);
     }
-    return { targets: [block], componentName, lcp, orignalClasses };
+    return { targets: [block], componentName, lcp };
   },
 };
 
@@ -143,6 +168,12 @@ export const onLoadComponents = {
         componentName: name.trim(),
       };
     });
+    const template = getMeta(metaTags.template.metaName);
+    if(template) {
+      this.structureComponents = [...this.structureComponents, {
+        componentName: template,
+      }];
+    }
   },
 
   setLcpBlocks() {
@@ -150,7 +181,11 @@ export const onLoadComponents = {
   },
 
   setLazyBlocks() {
-    this.lazyBlocks = this.blocksData.filter((data) => !this.findLcp(data));
+    const allLazy = this.blocksData.filter((data) => !this.findLcp(data));
+    const { grids, blocks } = getBlocksAndGrids(allLazy);
+
+    this.lazyBlocks = blocks;
+    this.grids = grids;
   },
 
   findLcp(data) {
@@ -160,13 +195,17 @@ export const onLoadComponents = {
     );
   },
 
-  initBlocks() {
+  async initBlocks() {
     // Keep the page hidden until specific components are initialized to prevent CLS
     component.multiInit(this.lcpBlocks).then(() => {
       window.postMessage({ message: 'raqn:components:loaded' });
       document.body.style.setProperty('display', 'block');
     });
-    component.multiInit(this.lazyBlocks);
+
+    await component.multiInit(this.lazyBlocks);
+    // grids must be initialized sequentially starting from the deepest level.
+    // all the blocks that will be contained by the grids must be already initialized before they are added to the grids.
+    component.multiSequentialInit(this.grids);
   },
 };
 

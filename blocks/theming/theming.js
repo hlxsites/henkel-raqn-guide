@@ -1,5 +1,5 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { flat, getBreakPoints, getMediaQuery, getMeta, metaTags, readValue, unflat } from '../../scripts/libs.js';
+import { flat, getBreakPoints, getMediaQuery, getMeta, metaTags, readValue, unFlat } from '../../scripts/libs.js';
 
 const k = Object.keys;
 
@@ -102,7 +102,7 @@ export default class Theming extends ComponentBase {
   defineVariations() {
     const names = k(this.variations);
     const result = names.reduce((a, name) => {
-      const unflatted = unflat(this.variations[name]);
+      const unflatted = unFlat(this.variations[name]);
       return (
         a +
         this.reduceViewports(unflatted, (actionData) => {
@@ -163,9 +163,7 @@ export default class Theming extends ComponentBase {
         return fetch(`${path}.json`).then((response) => this.processFragment(response, fragment));
       }),
     );
-    //
-    await fetch('color.json').then((response) => this.processFragment(response, 'color'));
-    await fetch('font.json').then((response) => this.processFragment(response, 'font'));
+
     await fetch('/fonts/index.json').then((response) => this.processFragment(response, 'fontface'));
     this.styles();
   }

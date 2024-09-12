@@ -1,9 +1,14 @@
 export const globalConfig = {
   semanticBlocks: ['header', 'footer'],
-  blockSelector: '[class]:not(style, [class^="config-" i])',
+  blockSelector: `
+  [class]:not(
+    style,
+    [class^="config-" i],
+    [class^="grid-item" i]
+  )`,
   breakpoints: {
     xs: 0,
-    s: 320,
+    s: 480,
     m: 768,
     l: 1024,
     xl: 1280,
@@ -14,6 +19,9 @@ export const globalConfig = {
     medium: 500,
     bold: 700,
   },
+  classes: {
+    noScroll: 'no-scroll',
+  },
 };
 
 export const metaTags = {
@@ -21,24 +29,28 @@ export const metaTags = {
     metaName: 'breadcrumb-root',
     fallbackContent: '/',
   },
-  componentsConfig: {
-    metaName: 'components-config',
-    fallbackContent: 'components-config',
+  icons: {
+    metaName: 'icons',
+    fallbackContent: '/assets/icons',
     // contentType: 'path without extension',
   },
   header: {
     metaName: 'header',
-    fallbackContent: 'header',
+    fallbackContent: '/header',
     // contentType: 'path without extension',
   },
   footer: {
     metaName: 'footer',
-    fallbackContent: 'footer',
+    fallbackContent: '/footer',
     // contentType: 'path without extension',
   },
   structure: {
     metaNamePrefix: 'structure',
     // contentType: 'boolean string',
+  },
+  template: {
+    metaName: 'template',
+    // contentType: 'string template name',
   },
   lcp: {
     metaName: 'lcp',
@@ -51,22 +63,22 @@ export const metaTags = {
   },
   themecolor: {
     metaName: 'color',
-    fallbackContent: 'color',
+    fallbackContent: '/color',
     // contentType: 'path without extension',
   },
   themefont: {
     metaName: 'color',
-    fallbackContent: 'font',
+    fallbackContent: '/font',
     // contentType: 'path without extension',
   },
   themelayout: {
     metaName: 'layout',
-    fallbackContent: 'layout',
+    fallbackContent: '/layout',
     // contentType: 'path without extension',
   },
   themecomponent: {
     metaName: 'component',
-    fallbackContent: 'components-config',
+    fallbackContent: '/components-config',
     // contentType: 'path without extension',
   },
   theme: {
@@ -207,10 +219,11 @@ export function stringToArray(val, options) {
   });
 }
 
-// retrive data from excel json format
+// retrieve data from excel json format
 export function readValue(data, extend = {}) {
   const k = Object.keys;
   const keys = k(data[0]).filter((item) => item !== 'key');
+
   return data.reduce((acc, row) => {
     const mainKey = row.key;
     keys.reduce((a, key) => {
@@ -263,7 +276,12 @@ export function deepMerge(origin, ...toMerge) {
   if (isOnlyObject(origin) && isOnlyObject(merge)) {
     Object.keys(merge).forEach((key) => {
       if (isOnlyObject(merge[key])) {
-        if (!origin[key]) Object.assign(origin, { [key]: {} });
+        const noKeyInOrigin = !origin[key];
+        // overwrite origin non object values with objects
+        const overwriteOriginWithObject = !isOnlyObject(origin[key]) && isOnlyObject(merge[key]);
+        if (noKeyInOrigin || overwriteOriginWithObject) {
+          Object.assign(origin, { [key]: {} });
+        }
         deepMerge(origin[key], merge[key]);
       } else {
         Object.assign(origin, { [key]: merge[key] });
@@ -292,12 +310,13 @@ export function loadModule(urlWithoutExtension, loadCSS = true) {
       }
     }).catch((error) =>
       // eslint-disable-next-line no-console
-      console.log('could not load module style', urlWithoutExtension, error),
+      console.log('Could not load module style', urlWithoutExtension, error),
     );
 
     return { css, js };
   } catch (error) {
-    console.log('could not load module', urlWithoutExtension, error);
+    // eslint-disable-next-line no-console
+    console.log('Could not load module', urlWithoutExtension, error);
   }
   return { css: Promise.resolve(), js: Promise.resolve() };
 }
@@ -432,13 +451,28 @@ export function flatAsValue(data, sep = '-') {
     .trim();
 }
 
+export function flatAsClasses(data, sep = '-') {
+  return Object.entries(data)
+    .reduce((acc, [key, value]) => {
+      const accm = acc ? `${acc} ` : '';
+      if (isObject(value)) {
+        const flatSubValues = flatAsClasses(value, sep);
+        // add current key as prefix to sublevel flatten values
+        const valuesWithKey = flatSubValues.replace(/^|\s/g, ` ${key}${sep}`).trim();
+        return `${accm}${valuesWithKey}`;
+      }
+      return `${accm}${key}${sep}${value}`;
+    }, '')
+    .trim();
+}
+
 /**
  * unFlattenProperties: convert objects from subkeys as strings {'a-b-c-d':1} to tree {a:{b:{c:{d:1}}}}
  *
  * @param {Object} obj - Object to unflatten
  * */
 
-export function unflat(f, sep = '-') {
+export function unFlat(f, sep = '-') {
   const un = {};
   // for each key create objects
   Object.keys(f).forEach((key) => {
@@ -456,7 +490,7 @@ export function unflat(f, sep = '-') {
 }
 
 export const classToFlat = (classes = [], valueLength = 1, extend = {}) =>
-  unflat(
+  unFlat(
     classes.reduce((acc, c) => {
       const length = c.split('-').length - valueLength;
       const key = c.split('-').slice(0, length).join('-');
@@ -466,3 +500,50 @@ export const classToFlat = (classes = [], valueLength = 1, extend = {}) =>
       return acc;
     }, extend),
   );
+
+export function blockBodyScroll(boolean) {
+  const { noScroll } = globalConfig.classes;
+  document.body.classList.toggle(noScroll, boolean);
+}
+
+// Separate any other blocks from grids and grid-item because:
+// grids must be initialized only after all the other blocks are initialized
+// grid-item component are going to be generated and initialized by the grid component and should be excluded from blocks.
+export function getBlocksAndGrids(elements) {
+  const blocksAndGrids = elements.reduce(
+    (acc, block) => {
+      // exclude grid items
+      if (block.componentName === 'grid-item') return acc;
+      if (block.componentName === 'grid') {
+        // separate grids
+        acc.grids.push(block);
+      } else {
+        // separate the rest of blocks
+        acc.blocks.push(block);
+      }
+      return acc;
+    },
+    { grids: [], blocks: [] },
+  );
+
+  // if a grid doesn't specify its level will default to level 1
+  const getGridLevel = (elem) => {
+    const levelClass = [...elem.classList].find((cls) => cls.startsWith('data-level-')) || 'data-level-1';
+    return Number(levelClass.slice('data-level-'.length));
+  };
+
+  // Based on how each gird is identifying it's own grid items, the grid initialization
+  // must be done starting from the deepest level grids.
+  // This is because each grid can contain other grids in their grid-items
+  // To achieve this infinite nesting each grid deeper than level 1 must specify their level of
+  // nesting with the data-level= option e.g data-level=2
+  blocksAndGrids.grids.sort(({ targets: [elemA] }, { targets: [elemB] }) => {
+    const levelA = getGridLevel(elemA);
+    const levelB = getGridLevel(elemB);
+    if (levelA <= levelB) return 1;
+    if (levelA > levelB) return -1;
+    return 0;
+  });
+
+  return blocksAndGrids;
+}
