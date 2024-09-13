@@ -85,7 +85,7 @@ export default class Theming extends ComponentBase {
       style.classList.add(cssSegment);
       document.head.appendChild(style);
     });
-    const themeMeta = getMeta('theme', { getFallback: true, getArray: true, divider: ' ' });
+    const themeMeta = getMeta('theme', { getArray: true, divider: ' ' });
     document.body.classList.add(...themeMeta, 'color-default', 'font-default');
   }
 
@@ -161,7 +161,7 @@ export default class Theming extends ComponentBase {
   }
 
   async loadFragment() {
-    const themeConfigs = getMetaGroup(metaTags.themeConfig.metaNamePrefix, { getFallback: true });
+    const themeConfigs = getMetaGroup(metaTags.themeConfig.metaNamePrefix);
 
     // Get the configs async
     const configsResponses = await Promise.allSettled(

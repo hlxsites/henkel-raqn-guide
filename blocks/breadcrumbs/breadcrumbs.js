@@ -28,7 +28,7 @@ export default class Breadcrumbs extends ComponentBase {
     this.classList.add('full-width');
     this.classList.add('breadcrumbs');
     const { origin, pathname } = window.location;
-    let breadcrumbRoot = getMeta(metaTags.breadcrumbRoot.metaName, { getFallback: true });
+    let breadcrumbRoot = getMeta(metaTags.breadcrumbRoot.metaName);
     breadcrumbRoot = breadcrumbRoot?.startsWith('/') ? breadcrumbRoot : `/${breadcrumbRoot}`;
 
     this.pathPages = `${origin}${pathname}`.split(`${origin}${breadcrumbRoot}`).join('/').split('/');

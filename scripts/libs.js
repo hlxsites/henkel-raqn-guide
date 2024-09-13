@@ -249,7 +249,7 @@ export function readValue(data, extend = {}) {
 }
 
 export function getMeta(name, settings) {
-  const { getArray = false, divider = ',', getFallback = false } = settings || {};
+  const { getArray = false, divider = ',', getFallback = true } = settings || {};
   const meta = document.querySelector(`meta[name="${name}"]`);
   if (!meta) {
     if (getFallback) {
@@ -265,7 +265,7 @@ export function getMeta(name, settings) {
 }
 
 export function getMetaGroup(group, settings) {
-  const { getFallback = false, getArray = false, divider = ',' } = settings || {};
+  const { getFallback = true, getArray = false, divider = ',' } = settings || {};
 
   const prefix = `${group}-`;
   const metaGroup = [...document.querySelectorAll(`meta[name^="${prefix}"]`)];

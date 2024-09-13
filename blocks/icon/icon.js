@@ -1,7 +1,7 @@
 import ComponentBase from '../../scripts/component-base.js';
 import { flatAsValue, isObject, stringToJsVal, getMeta, metaTags } from '../../scripts/libs.js';
 
-const metaIcons = getMeta(metaTags.icons.metaName, { getFallback: true });
+const metaIcons = getMeta(metaTags.icons.metaName);
 
 export default class Icon extends ComponentBase {
   static observedAttributes = ['data-active', 'data-icon'];

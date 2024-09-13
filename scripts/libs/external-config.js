@@ -17,7 +17,7 @@ export const externalConfig = {
   async loadConfig() {
     window.raqnComponentsConfig ??= (async () => {
       const { metaName } = metaTags.themeConfigComponent;
-      const metaConfigPath = getMeta(metaName, { getFallback: true });
+      const metaConfigPath = getMeta(metaName);
       const configPath = `${metaConfigPath}.json`;
       let result = null;
       try {
