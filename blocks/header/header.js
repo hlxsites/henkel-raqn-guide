@@ -2,6 +2,7 @@ import ComponentBase from '../../scripts/component-base.js';
 import { eagerImage, getMeta, metaTags } from '../../scripts/libs.js';
 
 const metaHeader = getMeta(metaTags.header.metaName, { getFallback: true });
+
 export default class Header extends ComponentBase {
   static loaderConfig = {
     ...ComponentBase.loaderConfig,

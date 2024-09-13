@@ -2,6 +2,7 @@ import ComponentBase from '../../scripts/component-base.js';
 import { getMeta, metaTags } from '../../scripts/libs.js';
 
 const metaFooter = getMeta(metaTags.footer.metaName, { getFallback: true });
+
 export default class Footer extends ComponentBase {
   static loaderConfig = {
     ...ComponentBase.loaderConfig,
