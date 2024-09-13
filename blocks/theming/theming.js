@@ -1,5 +1,14 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { flat, getBreakPoints, getMediaQuery, getMeta, metaTags, readValue, unFlat } from '../../scripts/libs.js';
+import {
+  flat,
+  getBreakPoints,
+  getMediaQuery,
+  getMetaGroup,
+  getMeta,
+  metaTags,
+  readValue,
+  unFlat,
+} from '../../scripts/libs.js';
 
 const k = Object.keys;
 
@@ -76,26 +85,23 @@ export default class Theming extends ComponentBase {
       style.classList.add(cssSegment);
       document.head.appendChild(style);
     });
-    const themeMeta = getMeta('theme');
-    document.body.classList.add(themeMeta, 'color-default', 'font-default');
+    const themeMeta = getMeta('theme', { getFallback: true, getArray: true, divider: ' ' });
+    document.body.classList.add(...themeMeta, 'color-default', 'font-default');
   }
 
-  async processFragment(response, type = 'color') {
-    if (response.ok) {
-      const responseData = await response.json();
-      this.themeJson[type] = responseData;
-      if (type === 'fontface') {
-        this.fontFaceTemplate(responseData);
-      } else if (type === 'component') {
-        Object.keys(responseData).forEach((key) => {
-          if (key.indexOf(':') === 0 || responseData[key].data.length === 0) return;
-          this.componentsConfig[key] = this.componentsConfig[key] || {};
-          this.componentsConfig[key] = readValue(responseData[key].data, this.componentsConfig[key]);
-        });
-      } else {
-        this.variations = readValue(responseData.data, this.variations);
-        this.defineVariations();
-      }
+  processFragment(responseData, type = 'color') {
+    this.themeJson[type] = responseData;
+    if (type === 'fontface') {
+      this.fontFaceTemplate(responseData);
+    } else if (type === 'component') {
+      Object.keys(responseData).forEach((key) => {
+        if (key.indexOf(':') === 0 || responseData[key].data.length === 0) return;
+        this.componentsConfig[key] = this.componentsConfig[key] || {};
+        this.componentsConfig[key] = readValue(responseData[key].data, this.componentsConfig[key]);
+      });
+    } else {
+      this.variations = readValue(responseData.data, this.variations);
+      this.defineVariations();
     }
   }
 
@@ -155,16 +161,28 @@ export default class Theming extends ComponentBase {
   }
 
   async loadFragment() {
-    Promise.all(
-      ['color', 'font', 'layout', 'component'].map(async (fragment) => {
-        const metaKey = `theme${fragment}`;
+    const themeConfigs = getMetaGroup(metaTags.themeConfig.metaNamePrefix, { getFallback: true });
 
-        const path = getMeta(metaTags[metaKey].metaName) || metaTags[metaKey].fallbackContent;
-        return fetch(`${path}.json`).then((response) => this.processFragment(response, fragment));
+    // Get the configs async
+    const configsResponses = await Promise.allSettled(
+      themeConfigs.map(async ({ name, content }) => {
+        const response = await fetch(`${content}.json`);
+        if (response.ok) {
+          return {
+            type: name,
+            data: await response.json(),
+          };
+        }
+        return { type: null, data: null };
       }),
     );
 
-    await fetch('/fonts/index.json').then((response) => this.processFragment(response, 'fontface'));
+    // Create the the Styles synchronous
+    configsResponses.forEach(({ value = {} }) => {
+      if (!value.type) return;
+      this.processFragment(value.data, value.type);
+    });
+
     this.styles();
   }
 }
