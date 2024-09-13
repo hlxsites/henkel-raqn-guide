@@ -89,20 +89,24 @@ export default class Theming extends ComponentBase {
     document.body.classList.add(...themeMeta, 'color-default', 'font-default');
   }
 
-  processFragment(responseData, type = 'color') {
-    this.themeJson[type] = responseData;
-    if (type === 'fontface') {
-      this.fontFaceTemplate(responseData);
-    } else if (type === 'component') {
-      Object.keys(responseData).forEach((key) => {
-        if (key.indexOf(':') === 0 || responseData[key].data.length === 0) return;
-        this.componentsConfig[key] = this.componentsConfig[key] || {};
-        this.componentsConfig[key] = readValue(responseData[key].data, this.componentsConfig[key]);
-      });
-    } else {
-      this.variations = readValue(responseData.data, this.variations);
-      this.defineVariations();
+  async processFragment(response, type = 'color') {
+    if (response.ok) {
+      const responseData = await response.json();
+      this.themeJson[type] = responseData;
+      if (type === 'fontface') {
+        this.fontFaceTemplate(responseData);
+      } else if (type === 'component') {
+        Object.keys(responseData).forEach((key) => {
+          if (key.indexOf(':') === 0 || responseData[key].data.length === 0) return;
+          this.componentsConfig[key] = this.componentsConfig[key] || {};
+          this.componentsConfig[key] = readValue(responseData[key].data, this.componentsConfig[key]);
+        });
+      } else {
+        this.variations = readValue(responseData.data, this.variations);
+      }
+      return this.themeJson[type];
     }
+    return false;
   }
 
   defineVariations() {
@@ -163,26 +167,13 @@ export default class Theming extends ComponentBase {
   async loadFragment() {
     const themeConfigs = getMetaGroup(metaTags.themeConfig.metaNamePrefix);
 
-    // Get the configs async
-    const configsResponses = await Promise.allSettled(
-      themeConfigs.map(async ({ name, content }) => {
-        const response = await fetch(`${content}.json`);
-        if (response.ok) {
-          return {
-            type: name,
-            data: await response.json(),
-          };
-        }
-        return { type: null, data: null };
-      }),
+    await Promise.allSettled(
+      themeConfigs.map(async ({ name, content }) =>
+        fetch(`${content}.json`).then((response) => this.processFragment(response, name)),
+      ),
     );
 
-    // Create the the Styles synchronous
-    configsResponses.forEach(({ value = {} }) => {
-      if (!value.type) return;
-      this.processFragment(value.data, value.type);
-    });
-
+    this.defineVariations();
     this.styles();
   }
 }
