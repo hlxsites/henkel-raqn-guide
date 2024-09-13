@@ -61,23 +61,32 @@ export const metaTags = {
     metaName: 'eager-images',
     // contentType: 'number string',
   },
-  themecolor: {
-    metaName: 'color',
+  themeConfig: {
+    metaNamePrefix: 'theme-config',
+    // contentType: 'boolean string',
+  },
+  themeConfigColor: {
+    metaName: 'theme-config-color',
     fallbackContent: '/color',
     // contentType: 'path without extension',
   },
-  themefont: {
-    metaName: 'color',
+  themeConfigFont: {
+    metaName: 'theme-config-font',
     fallbackContent: '/font',
     // contentType: 'path without extension',
   },
-  themelayout: {
-    metaName: 'layout',
+  themeConfigFontFiles: {
+    metaName: 'theme-config-fontface',
+    fallbackContent: '/fonts/index',
+    // contentType: 'path without extension',
+  },
+  themeConfigLayout: {
+    metaName: 'theme-config-layout',
     fallbackContent: '/layout',
     // contentType: 'path without extension',
   },
-  themecomponent: {
-    metaName: 'component',
+  themeConfigComponent: {
+    metaName: 'theme-config-component',
     fallbackContent: '/components-config',
     // contentType: 'path without extension',
   },
@@ -240,25 +249,43 @@ export function readValue(data, extend = {}) {
 }
 
 export function getMeta(name, settings) {
-  const { getArray = false } = settings || {};
+  const { getArray = false, divider = ',', getFallback = false } = settings || {};
   const meta = document.querySelector(`meta[name="${name}"]`);
   if (!meta) {
-    return null;
+    if (getFallback) {
+      const fallback = Object.values(metaTags).find(({ metaName }) => metaName === name)?.fallbackContent;
+      return getArray ? stringToArray(fallback, { divider }) : fallback;
+    }
+    return getArray ? [] : null;
   }
+
   const val = stringToJsVal(meta.content);
-  if (getArray) {
-    return stringToArray(val);
-  }
-  return val;
+
+  return getArray ? stringToArray(val, { divider }) : val;
 }
 
-export function getMetaGroup(group) {
+export function getMetaGroup(group, settings) {
+  const { getFallback = false, getArray = false, divider = ',' } = settings || {};
+
   const prefix = `${group}-`;
   const metaGroup = [...document.querySelectorAll(`meta[name^="${prefix}"]`)];
-  return metaGroup.map((meta) => ({
-    name: meta.name.replace(new RegExp(`^${prefix}`), ''),
-    content: stringToJsVal(meta.content),
-  }));
+
+  if (getFallback) {
+    const metaKeys = Object.values(metaTags).filter(
+      ({ metaName }) => metaName?.startsWith(prefix) && !metaGroup.some((meta) => meta.name === metaName),
+    );
+    const defaultMeta = metaKeys.map(({ metaName, fallbackContent }) => ({ name: metaName, content: fallbackContent }));
+    metaGroup.push(...defaultMeta);
+  }
+
+  return metaGroup.map((meta) => {
+    const val = stringToJsVal(meta.content);
+    return {
+      nameWithPrefix: meta.name,
+      name: meta.name.replace(new RegExp(`^${prefix}`), ''),
+      content: getArray ? stringToArray(val, { divider }) : val,
+    };
+  });
 }
 
 export function isObject(item) {
