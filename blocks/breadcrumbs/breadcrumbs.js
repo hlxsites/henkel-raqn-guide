@@ -29,11 +29,7 @@ export default class Breadcrumbs extends ComponentBase {
     this.classList.add('breadcrumbs');
     const { origin, pathname } = window.location;
     let breadcrumbRoot = getMeta(metaTags.breadcrumbRoot.metaName);
-    if (breadcrumbRoot) {
-      breadcrumbRoot = breadcrumbRoot?.starsWith('/') ? breadcrumbRoot : `/${breadcrumbRoot}`;
-    } else {
-      breadcrumbRoot = metaTags.breadcrumbRoot.fallbackContent;
-    }
+    breadcrumbRoot = breadcrumbRoot?.startsWith('/') ? breadcrumbRoot : `/${breadcrumbRoot}`;
 
     this.pathPages = `${origin}${pathname}`.split(`${origin}${breadcrumbRoot}`).join('/').split('/');
     this.innerHTML = `
