@@ -1,9 +1,7 @@
 import ComponentBase from '../../scripts/component-base.js';
 import { getMeta, metaTags } from '../../scripts/libs.js';
 
-const { metaName, fallbackContent } = metaTags.footer;
-const metaFooter = getMeta(metaName);
-const metaFragment = !!metaFooter && `${metaFooter}.plain.html`;
+const metaFooter = getMeta(metaTags.footer.metaName, { getFallback: true });
 export default class Footer extends ComponentBase {
   static loaderConfig = {
     ...ComponentBase.loaderConfig,
@@ -12,7 +10,7 @@ export default class Footer extends ComponentBase {
     },
   };
 
-  fragmentPath = metaFragment || `${fallbackContent}.plain.html`;
+  fragmentPath = `${metaFooter}.plain.html`;
 
   extendConfig() {
     return [

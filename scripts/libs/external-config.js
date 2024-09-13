@@ -16,9 +16,9 @@ export const externalConfig = {
 
   async loadConfig() {
     window.raqnComponentsConfig ??= (async () => {
-      const { metaName, fallbackContent } = metaTags.themecomponent;
-      const metaConfigPath = getMeta(metaName);
-      const configPath = (!!metaConfigPath && `${metaConfigPath}.json`) || `${fallbackContent}.json`;
+      const { metaName } = metaTags.themeConfigComponent;
+      const metaConfigPath = getMeta(metaName, { getFallback: true });
+      const configPath = `${metaConfigPath}.json`;
       let result = null;
       try {
         const response = await fetch(`${configPath}`);

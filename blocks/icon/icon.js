@@ -1,10 +1,7 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { flatAsValue, isObject, stringToJsVal , getMeta, metaTags} from '../../scripts/libs.js';
+import { flatAsValue, isObject, stringToJsVal, getMeta, metaTags } from '../../scripts/libs.js';
 
-const { metaName, fallbackContent } = metaTags.icons;
-const metaIcons = getMeta(metaName);
-const metaPath = !!metaIcons && `${metaIcons}`;
-
+const metaIcons = getMeta(metaTags.icons.metaName, { getFallback: true });
 export default class Icon extends ComponentBase {
   static observedAttributes = ['data-active', 'data-icon'];
 
@@ -50,7 +47,7 @@ export default class Icon extends ComponentBase {
   }
 
   iconUrl(iconName) {
-    const path = metaPath || fallbackContent;
+    const path = `${metaIcons}`;
     return `${path}/${iconName}.svg`;
   }
 
