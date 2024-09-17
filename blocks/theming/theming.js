@@ -1,5 +1,14 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { flat, getBreakPoints, getMediaQuery, getMeta, metaTags, readValue, unFlat } from '../../scripts/libs.js';
+import {
+  flat,
+  getBreakPoints,
+  getMediaQuery,
+  getMetaGroup,
+  getMeta,
+  metaTags,
+  readValue,
+  unFlat,
+} from '../../scripts/libs.js';
 
 const k = Object.keys;
 
@@ -76,8 +85,8 @@ export default class Theming extends ComponentBase {
       style.classList.add(cssSegment);
       document.head.appendChild(style);
     });
-    const themeMeta = getMeta('theme');
-    document.body.classList.add(themeMeta, 'color-default', 'font-default');
+    const themeMeta = getMeta('theme', { getArray: true, divider: ' ' });
+    document.body.classList.add(...themeMeta, 'color-default', 'font-default');
   }
 
   async processFragment(response, type = 'color') {
@@ -94,9 +103,10 @@ export default class Theming extends ComponentBase {
         });
       } else {
         this.variations = readValue(responseData.data, this.variations);
-        this.defineVariations();
       }
+      return this.themeJson[type];
     }
+    return false;
   }
 
   defineVariations() {
@@ -155,16 +165,15 @@ export default class Theming extends ComponentBase {
   }
 
   async loadFragment() {
-    Promise.all(
-      ['color', 'font', 'layout', 'component'].map(async (fragment) => {
-        const metaKey = `theme${fragment}`;
+    const themeConfigs = getMetaGroup(metaTags.themeConfig.metaNamePrefix);
 
-        const path = getMeta(metaTags[metaKey].metaName) || metaTags[metaKey].fallbackContent;
-        return fetch(`${path}.json`).then((response) => this.processFragment(response, fragment));
-      }),
+    await Promise.allSettled(
+      themeConfigs.map(async ({ name, content }) =>
+        fetch(`${content}.json`).then((response) => this.processFragment(response, name)),
+      ),
     );
 
-    await fetch('/fonts/index.json').then((response) => this.processFragment(response, 'fontface'));
+    this.defineVariations();
     this.styles();
   }
 }

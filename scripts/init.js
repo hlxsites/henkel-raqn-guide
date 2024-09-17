@@ -161,7 +161,7 @@ export const onLoadComponents = {
   },
 
   setStructure() {
-    const structureComponents = getMetaGroup(metaTags.structure.metaNamePrefix);
+    const structureComponents = getMetaGroup(metaTags.structure.metaNamePrefix, { getFallback: false });
     this.structureComponents = structureComponents.flatMap(({ name, content }) => {
       if (content !== true) return [];
       return {

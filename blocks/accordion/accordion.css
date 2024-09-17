@@ -6,14 +6,17 @@ raqn-accordion {
   background: var(--accordion-background);
   color: var(--accordion-color);
   margin: var(--margin, 0);
-  padding: var(--padding, 0);
+  padding: var(--padding, 1em);
   display: grid;
 }
 
 raqn-accordion raqn-icon {
-  align-self: end;
+  --icon-size: var(--h3-font-size, 1rem);
+
+  align-self: center;
   transform: rotate(90deg);
   transition: transform 0.2s ease-in-out;
+  margin: var(--margin, 1em);
 }
 
 raqn-accordion accordion-control.active raqn-icon {

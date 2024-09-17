@@ -1,9 +1,8 @@
 import ComponentBase from '../../scripts/component-base.js';
 import { eagerImage, getMeta, metaTags } from '../../scripts/libs.js';
 
-const { metaName, fallbackContent } = metaTags.header;
-const metaHeader = getMeta(metaName);
-const metaFragment = !!metaHeader && `${metaHeader}.plain.html`;
+const metaHeader = getMeta(metaTags.header.metaName);
+
 export default class Header extends ComponentBase {
   static loaderConfig = {
     ...ComponentBase.loaderConfig,
@@ -20,7 +19,7 @@ export default class Header extends ComponentBase {
     },
   };
 
-  fragmentPath = metaFragment || `${fallbackContent}.plain.html`;
+  fragmentPath = `${metaHeader}.plain.html`;
 
   dependencies = ['navigation', 'image'];
 
