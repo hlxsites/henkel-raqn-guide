@@ -1,6 +1,6 @@
 import ComponentBase from '../../scripts/component-base.js';
 
-const sitePathPrefix = 'developers';
+const sitePathPrefix = window.location.hostname === 'docs.raqn.io' ? '/developers' : '';
 
 export default class DeveloperToc extends ComponentBase {
   static loaderConfig = {
@@ -35,11 +35,11 @@ export default class DeveloperToc extends ComponentBase {
     if(window.location.host.startsWith('localhost') || window.location.host.search(/\.aem\.(page|live)/) > 0) {
       return path;
     }
-    return `/${sitePathPrefix}${path}`;
+    return `${sitePathPrefix}${path}`;
   }
 
   async loadPageHierarchy() {
-    const response = await fetch(`/${sitePathPrefix}/query-index.json`);
+    const response = await fetch(`${sitePathPrefix}/query-index.json`);
     if(!response.ok) return [];
     const json = await response.json();
 
@@ -57,7 +57,7 @@ export default class DeveloperToc extends ComponentBase {
           node = {
             nodePath,
             segment,
-            active: window.location.pathname.startsWith(`/${sitePathPrefix}${nodePath}`),
+            active: window.location.pathname.startsWith(`${sitePathPrefix}${nodePath}`),
             children: [],
           };
           if(nodePath === page.path) {
@@ -130,6 +130,13 @@ export default class DeveloperToc extends ComponentBase {
     return li.outerHTML;
   }
 
+  findRepositoryRoot(node){
+    if(node.children.length === 1 && !node.children[0].page) {
+      return this.findRepositoryRoot(node.children[0]);
+    }
+    return node;
+  }
+
   async generateTablesOfContent() {
     const [pageHierarchy, currentNode] = await this.loadPageHierarchy();
     const currentOrg = pageHierarchy.find((org) => org.active);
@@ -141,8 +148,9 @@ export default class DeveloperToc extends ComponentBase {
     if(currentRepository && currentNode) {
       const h2 = document.createElement('h2');
       h2.innerText = `${currentOrg.segment} - ${currentProject.segment} - ${currentRepository.segment}`;
+      const root = this.findRepositoryRoot(currentRepository);
       tocs += `<hr><div class="active">${h2.outerHTML}
-        <ul>${currentRepository.children.map((child) => this.generatePages(child)).join('')}</ul></div>`;
+        <ul>${root.children.map((child) => this.generatePages(child)).join('')}</ul></div>`;
     }
 
     this.innerHTML = tocs;
