@@ -9,7 +9,8 @@
     "lint": "npm run lint:js && npm run lint:css",
     "lint:fix": "npm run lint:js -- --fix && npm run lint:css -- --fix",
     "semantic-release": "semantic-release --debug",
-    "prepare": "husky install"
+    "prepare": "husky install",
+    "update-mermaid": "rm -rf blocks/mermaid/libs && mkdir -p blocks/mermaid/libs/chunks && mkdir -p node_modules/.tmp-mermaid && cd node_modules/.tmp-mermaid && npm pack mermaid && tar -xvzf mermaid-*.tgz && cp package/dist/mermaid.esm.min.mjs* ../../blocks/mermaid/libs && cp -r package/dist/chunks/mermaid.esm.min ../../blocks/mermaid/libs/chunks/"
   },
   "repository": {
     "type": "git",
