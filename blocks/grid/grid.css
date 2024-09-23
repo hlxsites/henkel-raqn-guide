@@ -19,12 +19,9 @@ raqn-grid {
   display: grid;
 
   /* defaults to 2 columns */
-  grid-template-columns: var(--grid-tpl-columns);
-  grid-template-rows: var(--grid-tpl-rows);
-  grid-template-areas: var(--grid-tpl-areas);
-  grid-auto-columns: var(--grid-auto-columns);
-  grid-auto-rows: var(--grid-auto-rows);
-  gap: var(--gap, 20px);
+  grid-template-columns: var(--grid-template-columns, 1fr 1fr);
+  grid-template-rows: var(--grid-template-rows, 1fr);
+  gap: var(--grid-gap, 20px);
   justify-items: var(--grid-justify-items);
   align-items: var(--grid-align-items);
   justify-content: var(--grid-justify-content);

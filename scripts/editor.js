@@ -1,4 +1,4 @@
-import { deepMerge, getBaseUrl, loadModule } from './libs.js';
+import { deepMerge, flat, getBaseUrl, loadModule } from './libs.js';
 import { publish } from './pubsub.js';
 
 window.raqnEditor = window.raqnEditor || {};
@@ -54,8 +54,23 @@ export function getComponentValues(dialog, element) {
     return data;
   }, {});
   attributes = Object.keys(attributes).reduce((data, attribute) => {
-    const value = element.getAttribute(attribute);
+    if (attribute === 'data') {
+      const flatData = flat(element.dataset);
+      Object.keys(flatData).forEach((key) => {
+        const value = flatData[key];
+        if (attributes[attribute] && attributes[attribute][key]) {
+          if (data[attribute]) {
+            const extend = { ...attributes[attribute][key], value };
+            data[attribute][key] = extend;
+          } else {
+            data[attribute] = { [key]: { ...attributes[attribute][key], value } };
+          }
+        }
+      });
+      return data;
+    }
 
+    const value = element.getAttribute(attribute);
     data[attribute] = { ...attributes[attribute], value };
     return data;
   }, {});
@@ -64,8 +79,8 @@ export function getComponentValues(dialog, element) {
   delete cleanData.childComponents;
   delete cleanData.nestedComponents;
   delete cleanData.nestedComponentsConfig;
-
-  return { ...cleanData, domRect, editor: { attributes }, html };
+  const editor = { ...dialog, attributes };
+  return { ...cleanData, domRect, dialog, editor, html };
 }
 
 export default function initEditor(listeners = true) {
@@ -104,7 +119,7 @@ export default function initEditor(listeners = true) {
       {
         components: window.raqnEditor,
         bodyRect,
-        baseURL: getBaseUrl(),
+        baseURL: window.location.origin + getBaseUrl(),
         masterConfig: window.raqnComponentsMasterConfig,
       },
       { usePostMessage: true, targetOrigin: '*' },

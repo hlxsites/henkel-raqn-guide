@@ -25,6 +25,10 @@ export const globalConfig = {
 };
 
 export const metaTags = {
+  basepath: {
+    metaName: 'basepath',
+    fallbackContent: '/',
+  },
   breadcrumbRoot: {
     metaName: 'breadcrumb-root',
     fallbackContent: '/',
@@ -354,7 +358,16 @@ export function mergeUniqueArrays(...arrays) {
 }
 
 export function getBaseUrl() {
-  return document.head.querySelector('base').href;
+  const basepath = getMeta(metaTags.basepath.metaName);
+  const base = document.head.querySelector('base');
+
+  if (!base) {
+    const element = document.createElement('base');
+    element.href = basepath;
+    document.head.append(element);
+  }
+  console.log('basepath', basepath);
+  return basepath;
 }
 
 export function isHomePage(url) {

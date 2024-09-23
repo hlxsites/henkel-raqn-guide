@@ -155,7 +155,7 @@ export const onLoadComponents = {
     const defaultLcp = fallbackContent;
     const lcp = lcpMeta?.length ? lcpMeta : defaultLcp;
     // theming must be in LCP to prevent CLS
-    this.lcp = mergeUniqueArrays(lcp, ['theming']).map((componentName) => ({
+    this.lcp = mergeUniqueArrays(['grid'], lcp, ['theming']).map((componentName) => ({
       componentName: componentName.trim(),
     }));
   },
@@ -169,10 +169,13 @@ export const onLoadComponents = {
       };
     });
     const template = getMeta(metaTags.template.metaName);
-    if(template) {
-      this.structureComponents = [...this.structureComponents, {
-        componentName: template,
-      }];
+    if (template) {
+      this.structureComponents = [
+        ...this.structureComponents,
+        {
+          componentName: template,
+        },
+      ];
     }
   },
 
@@ -197,12 +200,12 @@ export const onLoadComponents = {
 
   async initBlocks() {
     // Keep the page hidden until specific components are initialized to prevent CLS
-    component.multiInit(this.lcpBlocks).then(() => {
+    await component.multiInit(this.lcpBlocks).then(() => {
       window.postMessage({ message: 'raqn:components:loaded' });
       document.body.style.setProperty('display', 'block');
     });
 
-    await component.multiInit(this.lazyBlocks);
+    component.multiInit(this.lazyBlocks);
     // grids must be initialized sequentially starting from the deepest level.
     // all the blocks that will be contained by the grids must be already initialized before they are added to the grids.
     component.multiSequentialInit(this.grids);
@@ -230,7 +233,7 @@ export const globalInit = {
   },
 };
 
-globalInit.init();
+// globalInit.init();
 
 // init editor if message from parent
 window.addEventListener('message', async (e) => {

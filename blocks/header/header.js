@@ -33,6 +33,7 @@ export default class Header extends ComponentBase {
   }
 
   connected() {
+    console.log('Header connected');
     eagerImage(this, 1);
   }
 }

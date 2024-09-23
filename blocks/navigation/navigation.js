@@ -36,6 +36,7 @@ export default class Navigation extends ComponentBase {
   };
 
   setDefaults() {
+    console.log('Navigation setDefaults');
     super.setDefaults();
     this.active = {};
     this.isActive = false;
@@ -44,6 +45,7 @@ export default class Navigation extends ComponentBase {
   }
 
   async ready() {
+    console.log('Navigation ready');
     this.navContent = this.querySelector('ul');
     this.innerHTML = '';
     this.navCompactedContent = this.navContent.cloneNode(true); // the clone need to be done before `this.navContent` is modified
@@ -61,6 +63,7 @@ export default class Navigation extends ComponentBase {
   }
 
   setupNav() {
+    console.log('Navigation setupNav');
     if (!this.navContentInit) {
       this.navContentInit = true;
       this.setupClasses(this.navContent);
@@ -70,6 +73,7 @@ export default class Navigation extends ComponentBase {
   }
 
   async setupCompactedNav() {
+    console.log('Navigation setupCompactedNav');
     if (!this.navCompactedContentInit) {
       this.navCompactedContentInit = true;
       await component.multiLoadAndDefine(['accordion', 'icon']);
