@@ -1,0 +1,7 @@
+raqn-personalisation,
+.personalisation,
+raqn-example-personalisation,
+.example-personalisation,
+.personalisation-hidden {
+  display: none;
+}
