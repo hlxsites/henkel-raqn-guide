@@ -1,6 +1,8 @@
 import ComponentBase from '../../scripts/component-base.js';
 
-localStorage.setItem('personalisationContext', JSON.stringify({history:{'latest':{service:'IoT services'}},user:{industry:'Medical'}}));
+if(localStorage.getItem('personalisationContext')) {
+  localStorage.setItem('personalisationContext', JSON.stringify({history:{'latest':{service:'IoT services'}},user:{industry:'Medical'}}));
+}
 
 const query = `query RaqnwebSearchAllFiltersQuery($term: String, $site: RaqnwebSite!, $tab: String, $size: Int) {
   raqnwebSearch(term: $term, site: $site, tab: $tab, size: $size) {
