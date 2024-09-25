@@ -1,2 +1,4 @@
 tools/importer/helix-importer-ui/*
 blocks/mermaid/libs/*
+blocks/redoc/libs/*
+blocks/swagger-ui/libs/*
