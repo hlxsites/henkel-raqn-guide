@@ -366,7 +366,6 @@ export function getBaseUrl() {
     element.href = basepath;
     document.head.append(element);
   }
-  console.log('basepath', basepath);
   return basepath;
 }
 
@@ -544,46 +543,4 @@ export const classToFlat = (classes = [], valueLength = 1, extend = {}) =>
 export function blockBodyScroll(boolean) {
   const { noScroll } = globalConfig.classes;
   document.body.classList.toggle(noScroll, boolean);
-}
-
-// Separate any other blocks from grids and grid-item because:
-// grids must be initialized only after all the other blocks are initialized
-// grid-item component are going to be generated and initialized by the grid component and should be excluded from blocks.
-export function getBlocksAndGrids(elements) {
-  const blocksAndGrids = elements.reduce(
-    (acc, block) => {
-      // exclude grid items
-      if (block.componentName === 'grid-item') return acc;
-      if (block.componentName === 'grid') {
-        // separate grids
-        acc.grids.push(block);
-      } else {
-        // separate the rest of blocks
-        acc.blocks.push(block);
-      }
-      return acc;
-    },
-    { grids: [], blocks: [] },
-  );
-
-  // if a grid doesn't specify its level will default to level 1
-  const getGridLevel = (elem) => {
-    const levelClass = [...elem.classList].find((cls) => cls.startsWith('data-level-')) || 'data-level-1';
-    return Number(levelClass.slice('data-level-'.length));
-  };
-
-  // Based on how each gird is identifying it's own grid items, the grid initialization
-  // must be done starting from the deepest level grids.
-  // This is because each grid can contain other grids in their grid-items
-  // To achieve this infinite nesting each grid deeper than level 1 must specify their level of
-  // nesting with the data-level= option e.g data-level=2
-  blocksAndGrids.grids.sort(({ targets: [elemA] }, { targets: [elemB] }) => {
-    const levelA = getGridLevel(elemA);
-    const levelB = getGridLevel(elemB);
-    if (levelA <= levelB) return 1;
-    if (levelA > levelB) return -1;
-    return 0;
-  });
-
-  return blocksAndGrids;
 }

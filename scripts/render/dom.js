@@ -1,9 +1,18 @@
 import { classToFlat } from '../libs.js';
-import { cleanEmptyNodes, cleanEmptyTextNodes, loadModules, templating, toWebComponent } from './components.js';
-import { prepareGrid, recursive } from './rules.js';
+import {
+  prepareGrid,
+  recursive,
+  cleanEmptyNodes,
+  cleanEmptyTextNodes,
+  inject,
+  loadModules,
+  toWebComponent,
+} from './dom-reducers.js';
 
+// define instances for web components
 window.raqnInstances = window.raqnInstances || {};
 
+// recursive apply the path of the parent / current node
 export const recursiveParent = (node) => {
   const current = `${node.tag}${node.class.length > 0 ? `.${[...node.class].join('.')}` : ''}`;
   if (node.parentNode) {
@@ -12,6 +21,7 @@ export const recursiveParent = (node) => {
   return current;
 };
 
+// proxy object to enhance virtual dom node object.
 export const nodeProxy = (node) => {
   const p = new Proxy(node, {
     get(target, prop) {
@@ -59,6 +69,7 @@ export const nodeProxy = (node) => {
   return p;
 };
 
+// extract the virtual dom from the real dom
 export const generateDom = (virtualdom) => {
   const dom = [];
   // eslint-disable-next-line no-plusplus
@@ -82,7 +93,7 @@ export const generateDom = (virtualdom) => {
   }
   return dom;
 };
-
+// render the virtual dom into real dom
 export const renderVirtualDom = (virtualdom) => {
   const dom = [];
   // eslint-disable-next-line no-plusplus
@@ -124,20 +135,22 @@ export const renderVirtualDom = (virtualdom) => {
   return dom;
 };
 
+// receives a array of action to reduce the virtual dom
 export const curryManipulation =
   (items = []) =>
   (virtualdom) =>
     items.reduce((acc, m) => m(acc, 0), virtualdom);
 
+// preset manipulation for main page
 export const manipulation = curryManipulation([
   recursive(cleanEmptyTextNodes),
   recursive(cleanEmptyNodes),
-  templating,
+  inject,
   recursive(toWebComponent),
   recursive(prepareGrid),
   loadModules,
 ]);
-
+// preset manipulation for framents and external HTML
 export const generalManipulation = curryManipulation([
   recursive(cleanEmptyTextNodes),
   recursive(cleanEmptyNodes),

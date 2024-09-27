@@ -225,7 +225,6 @@ export default class ComponentBase extends HTMLElement {
         this.setAttribute('id', this.uuid);
         await this.loadFragment(this.fragmentPath);
         await this.connected(); // manipulate/create the html
-        await this.initChildComponents();
         this.dataAttributesKeys = await this.setDataAttributesKeys();
         this.addListeners(); // html is ready add listeners
         await this.ready(); // add extra functionality
@@ -443,36 +442,6 @@ export default class ComponentBase extends HTMLElement {
     if (Object.keys(this.attributesValues).length > 1) {
       listenBreakpointChange(this.onBreakpointChange);
     }
-  }
-
-  async initChildComponents() {
-    await Promise.allSettled([this.initNestedComponents(), this.initInnerBlocks()]);
-    await this.initInnerGrids();
-  }
-
-  async initNestedComponents() {
-    if (!Object.keys(this.nestedComponentsConfig).length) return;
-    const { allInitialized } = this.childComponents.nestedComponents;
-    const { hideOnChildrenError } = this.config;
-    this.hideWithError(!allInitialized && hideOnChildrenError, 'has-nested-error');
-  }
-
-  async initInnerBlocks() {
-    if (!this.innerBlocks.length) return;
-
-    const { allInitialized } = this.childComponents.innerComponents;
-    const { hideOnChildrenError } = this.config;
-    this.hideWithError(!allInitialized && hideOnChildrenError, 'has-inner-error');
-  }
-
-  async initInnerGrids() {
-    if (!this.innerGrids.length) return;
-
-    // this.childComponents.innerGrids = await component.multiSequentialInit(this.innerGrids);
-
-    const { allInitialized } = this.childComponents.innerGrids;
-    const { hideOnChildrenError } = this.config;
-    this.hideWithError(!allInitialized && hideOnChildrenError, 'has-inner-error');
   }
 
   async loadFragment(path) {

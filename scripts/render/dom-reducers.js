@@ -1,108 +1,61 @@
 // eslint-disable-next-line import/prefer-default-export
 
 import { loadModule } from '../libs.js';
+import { componentList, injectedComponents } from './component-list.js';
 
 window.loadedComponents = window.loadedComponents || {};
 window.inicialization = window.inicialization || [];
 window.raqnComponents = window.raqnComponents || {};
 const { loadedComponents } = window;
 
-export const componentList = {
-  grid: {
-    tag: 'raqn-grid',
-    script: '/blocks/grid/grid',
-    priority: 2,
-  },
-  picture: {
-    tag: 'raqn-image',
-    script: '/blocks/image/image',
-    priority: 0,
-    transform: (node) => {
-      const nextSibling = { ...node.nextSibling };
-      if (nextSibling && nextSibling.tag === 'a') {
-        const { aria } = nextSibling.children[0].text;
-        node.attributes.push({ name: 'aria-label', value: aria });
-        nextSibling.children = [node];
-        node.parentNode.children.splice(nextSibling.indexInParent, 1, {
-          tag: 'textNode',
-          text: '',
-        });
-        return nextSibling;
-      }
-      return node;
-    },
-  },
-  navigation: {
-    tag: 'raqn-navigation',
-    script: '/blocks/navigation/navigation',
-    priority: 0,
-    dependencies: ['accordion', 'icon'],
-  },
-  'grid-item': {
-    tag: 'raqn-grid-item',
-    script: '/blocks/grid-item/grid-item',
-    priority: 2,
-  },
-  icon: {
-    tag: 'raqn-icon',
-    script: '/blocks/icon/icon',
-    priority: 0,
-  },
-  card: {
-    tag: 'raqn-card',
-    script: '/blocks/card/card',
-    priority: 2,
-  },
-  header: {
-    tag: 'raqn-header',
-    script: '/blocks/header/header',
-    priority: 1,
-  },
-  footer: {
-    tag: 'raqn-footer',
-    script: '/blocks/footer/footer',
-    priority: 1,
-  },
-  theming: {
-    tag: 'raqn-theming',
-    script: '/blocks/theming/theming',
-    priority: 0,
-  },
-  accordion: {
-    tag: 'raqn-accordion',
-    script: '/blocks/accordion/accordion',
-    priority: 1,
-  },
-  a: {
-    tag: 'raqn-button',
-    priority: 0,
-    script: '/blocks/button/button',
-    transform: (node) => {
-      if (
-        !node.nextSibling &&
-        node.parentNode.tag === 'div' &&
-        !['raqn-image', 'picture'].includes(node.children[0].tag)
-      ) {
-        const child = { ...node };
-        node.tag = 'raqn-button';
-        node.children = [child];
-      }
-      return node;
-    },
-  },
+export const filterNodes = (nodes, tag, className) => {
+  const filtered = [];
+  // eslint-disable-next-line no-plusplus
+  for (let i = 0; i < nodes.length; i++) {
+    const node = nodes[i];
+
+    if (node.tag === tag && (className ? node.class.includes(className) : true)) {
+      node.inicialIndex = i;
+      filtered.push(node);
+    }
+  }
+  return filtered;
 };
 
-export const injectedComponents = [
-  {
-    tag: 'div',
-    class: ['theming'],
-    children: [],
-    attributes: [],
-  },
-];
+export const prepareGrid = (node) => {
+  if (node.children && node.children.length > 0) {
+    const grids = filterNodes(node.children, 'raqn-grid');
+    const gridItems = filterNodes(node.children, 'raqn-grid-item');
+
+    grids.map((grid, i) => {
+      const inicial = node.children.indexOf(grid);
+      const nextGridIndex = grids[i + 1] ? node.children.indexOf(grids[i + 1]) : node.children.length;
+      gridItems.map((item) => {
+        const itemIndex = node.children.indexOf(item);
+        // get elements between grid and item and insert into grid
+        if (itemIndex > inicial && itemIndex < nextGridIndex) {
+          const children = node.children.splice(inicial + 1, itemIndex - inicial);
+          const gridItem = children.pop(); // remove grid item from children
+          gridItem.children = children;
+          grid.children.push(gridItem);
+        }
+      });
+      return grid;
+    });
+  }
+  return node;
+};
+// Compare this snippet from scripts/render/dom.js:
+
+export const recursive = (fn) => (nodes, level) =>
+  nodes.map((node) => {
+    if (node.children) {
+      node.children = recursive(fn)(node.children, level + 1);
+    }
+    return fn(node, level);
+  });
 
 // eslint-disable-next-line prefer-destructuring
-
 export const toWebComponent = (node) => {
   Object.keys(componentList).forEach((componentClass) => {
     if ((node.class && node.class.includes(componentClass)) || node.tag === componentClass) {
@@ -156,12 +109,13 @@ export const loadModules = (nodes) => {
   return nodes;
 };
 
-export const templating = (nodes) => {
+// Just inject components that are not in the list
+export const inject = (nodes) => {
   const items = nodes.slice();
   items.unshift(...injectedComponents);
   return items;
 };
-
+// clear empty text nodes or nodes with only text breaklines and spaces
 export const cleanEmptyTextNodes = (node) => {
   // remove empty text nodes to avoid rendering those
   if (node.children) {
@@ -176,6 +130,7 @@ export const cleanEmptyTextNodes = (node) => {
   return node;
 };
 
+// clear empty nodes that are not necessary to avoid rendering
 export const cleanEmptyNodes = (node) => {
   if (node.tag === 'p' && node.children.length === 1 && ['a', 'picture'].includes(node.children[0].tag)) {
     return node.children[0];

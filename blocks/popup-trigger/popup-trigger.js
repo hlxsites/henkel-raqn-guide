@@ -1,5 +1,5 @@
 import ComponentBase from '../../scripts/component-base.js';
-import component from '../../scripts/init.js';
+
 import { popupState } from '../../scripts/libs.js';
 
 export default class PopupTrigger extends ComponentBase {
@@ -131,9 +131,7 @@ export default class PopupTrigger extends ComponentBase {
   }
 
   async createPopup() {
-    await component.loadAndDefine('popup');
     const popup = document.createElement('raqn-popup');
-
     popup.dataset.url = this.popupSourceUrl;
     popup.dataset.active = true;
     // Set the popupTrigger property of the popup component to this trigger instance
