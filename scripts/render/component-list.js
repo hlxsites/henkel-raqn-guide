@@ -59,7 +59,7 @@ export const componentList = {
   header: {
     tag: 'raqn-header',
     script: '/blocks/header/header',
-    priority: 1,
+    priority: 0,
   },
   footer: {
     tag: 'raqn-footer',
@@ -69,7 +69,7 @@ export const componentList = {
   theming: {
     tag: 'raqn-theming',
     script: '/blocks/theming/theming',
-    priority: 0,
+    priority: 3,
   },
   accordion: {
     tag: 'raqn-accordion',

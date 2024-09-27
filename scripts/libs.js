@@ -27,7 +27,7 @@ export const globalConfig = {
 export const metaTags = {
   basepath: {
     metaName: 'basepath',
-    fallbackContent: '/',
+    fallbackContent: window.location.origin,
   },
   breadcrumbRoot: {
     metaName: 'breadcrumb-root',
@@ -359,6 +359,7 @@ export function mergeUniqueArrays(...arrays) {
 
 export function getBaseUrl() {
   const basepath = getMeta(metaTags.basepath.metaName);
+  console.log('basepath', basepath);
   const base = document.head.querySelector('base');
 
   if (!base) {

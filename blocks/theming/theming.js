@@ -178,6 +178,8 @@ export default class Theming extends ComponentBase {
 
     this.defineVariations();
     this.styles();
-    document.body.style.display = 'block';
+    setTimeout(() => {
+      document.body.style.display = 'block';
+    });
   }
 }

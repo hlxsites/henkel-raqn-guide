@@ -11,7 +11,7 @@ export default class Grid extends ComponentBase {
         // set props directly as css variables instead of data-attributes
         template: {
           columns: '1fr 1fr 1fr',
-          rows: '1fr 1fr',
+          rows: '1fr',
         },
         gap: '20px',
       },
@@ -26,6 +26,21 @@ export default class Grid extends ComponentBase {
     Object.keys(f).forEach((key) => {
       this.style.setProperty(`--grid-${key}`, f[key]);
     });
+  }
+
+  // for backwards compatibility
+  applyData(data) {
+    if (data.columns) {
+      // data.columns is deprecated, use grid-template-columns
+      if (data.template) {
+        if (!data.template.columns) {
+          data.template.columns = data.columns;
+        }
+      } else {
+        data.template = { columns: data.columns };
+      }
+    }
+    this.applyGrid(data);
   }
 
   async onAttributeReverseChanged({ oldValue, newValue }) {

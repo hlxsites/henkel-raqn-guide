@@ -182,16 +182,16 @@ export default class ComponentBase extends HTMLElement {
     if (!this.dataAttributesKeys.length) {
       this.setDataAttributesKeys();
     }
-    this.dataAttributesKeys.forEach(({ noData, noDataCamelCase }) => {
-      const value = this.dataset[noDataCamelCase];
+    // this.dataAttributesKeys.forEach(({ noData, noDataCamelCase }) => {
+    //   const value = this.dataset[noDataCamelCase];
 
-      if (typeof value === 'undefined') return {};
-      const initialValue = unFlat({ [noData]: value });
-      if (initialAttributesValues.all && initialAttributesValues.all.data) {
-        initialAttributesValues.all.data = deepMerge({}, initialAttributesValues.all.data, initialValue);
-      }
-      return initialAttributesValues;
-    });
+    //   if (typeof value === 'undefined') return {};
+    //   const initialValue = unFlat({ [noData]: value });
+    //   if (initialAttributesValues.all && initialAttributesValues.all.data) {
+    //     initialAttributesValues.all.data = deepMerge({}, initialAttributesValues.all.data, initialValue);
+    //   }
+    //   return initialAttributesValues;
+    // });
 
     this.attributesValues = deepMerge(
       {},
@@ -199,6 +199,7 @@ export default class ComponentBase extends HTMLElement {
       this.initOptions?.attributesValues || {},
       initialAttributesValues,
     );
+    console.log(this.attributesValues);
   }
 
   async connectComponent() {
@@ -285,6 +286,8 @@ export default class ComponentBase extends HTMLElement {
     // - attributes - as flatten values with hyphen separated keys.
     // for anything else set them flatten as they come from from external config
     const configs = unFlat(await externalConfig.getConfig(this.componentName, values.config));
+
+    console.log('external', configs);
 
     if (this.overrideExternalConfig) {
       // Used for preview functionality

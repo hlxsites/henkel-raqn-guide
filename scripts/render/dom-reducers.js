@@ -135,6 +135,9 @@ export const cleanEmptyNodes = (node) => {
   if (node.tag === 'p' && node.children.length === 1 && ['a', 'picture'].includes(node.children[0].tag)) {
     return node.children[0];
   }
+  if (node.tag === 'em' && node.children.length === 1 && node.children[0].tag === 'a') {
+    return node.children[0];
+  }
   if (
     node.tag === 'div' &&
     node.class.length === 0 &&
