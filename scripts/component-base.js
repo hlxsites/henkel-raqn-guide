@@ -179,19 +179,21 @@ export default class ComponentBase extends HTMLElement {
     inicial.unshift(); // remove the component name
     this.initialAttributesValues = classToFlat(inicial.splice(1));
     const initialAttributesValues = this.initialAttributesValues || { all: { data: {} } };
-    if (!this.dataAttributesKeys.length) {
+    if (this.dataAttributesKeys && !this.dataAttributesKeys.length) {
       this.setDataAttributesKeys();
+    } else {
+      this.dataAttributesKeys = this.dataAttributesKeys || [];
     }
-    // this.dataAttributesKeys.forEach(({ noData, noDataCamelCase }) => {
-    //   const value = this.dataset[noDataCamelCase];
+    this.dataAttributesKeys.forEach(({ noData, noDataCamelCase }) => {
+      const value = this.dataset[noDataCamelCase];
 
-    //   if (typeof value === 'undefined') return {};
-    //   const initialValue = unFlat({ [noData]: value });
-    //   if (initialAttributesValues.all && initialAttributesValues.all.data) {
-    //     initialAttributesValues.all.data = deepMerge({}, initialAttributesValues.all.data, initialValue);
-    //   }
-    //   return initialAttributesValues;
-    // });
+      if (typeof value === 'undefined') return {};
+      const initialValue = unFlat({ [noData]: value });
+      if (initialAttributesValues.all && initialAttributesValues.all.data) {
+        initialAttributesValues.all.data = deepMerge({}, initialAttributesValues.all.data, initialValue);
+      }
+      return initialAttributesValues;
+    });
 
     this.attributesValues = deepMerge(
       {},
@@ -199,7 +201,6 @@ export default class ComponentBase extends HTMLElement {
       this.initOptions?.attributesValues || {},
       initialAttributesValues,
     );
-    console.log(this.attributesValues);
   }
 
   async connectComponent() {
@@ -286,8 +287,6 @@ export default class ComponentBase extends HTMLElement {
     // - attributes - as flatten values with hyphen separated keys.
     // for anything else set them flatten as they come from from external config
     const configs = unFlat(await externalConfig.getConfig(this.componentName, values.config));
-
-    console.log('external', configs);
 
     if (this.overrideExternalConfig) {
       // Used for preview functionality
