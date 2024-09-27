@@ -112,10 +112,4 @@ export const injectedComponents = [
     children: [],
     attributes: [],
   },
-  {
-    tag: 'div',
-    class: ['popup-trigger'],
-    children: [],
-    attributes: [],
-  },
 ];
