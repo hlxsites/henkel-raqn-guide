@@ -14,7 +14,7 @@ export const componentList = {
   grid: {
     tag: 'raqn-grid',
     script: '/blocks/grid/grid',
-    priority: 2,
+    priority: 0,
   },
   picture: {
     tag: 'raqn-image',
@@ -59,6 +59,7 @@ export const componentList = {
   header: {
     tag: 'raqn-header',
     script: '/blocks/header/header',
+    dependencies: ['navigation', 'grid'],
     priority: 0,
   },
   footer: {

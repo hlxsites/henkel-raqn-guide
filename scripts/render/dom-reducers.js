@@ -93,18 +93,22 @@ export const loadModules = (nodes) => {
       }
       return 0;
     })
-    .map(async (component) => {
+    .map((component) => {
       const { script, tag } = loadedComponents[component];
       if (window.raqnComponents[tag]) return window.raqnComponents[tag].default;
-      const { js } = await loadModule(script);
-      const mod = await js;
-      if (mod.default.prototype instanceof HTMLElement) {
-        if (!window.customElements.get(tag)) {
-          window.customElements.define(tag, mod.default);
-          window.raqnComponents[tag] = mod.default;
+      return (async () => {
+        const { js, css } = loadModule(script);
+
+        const mod = await js;
+        const style = await css;
+        if (mod.default.prototype instanceof HTMLElement) {
+          if (!window.customElements.get(tag)) {
+            window.customElements.define(tag, mod.default);
+            window.raqnComponents[tag] = mod.default;
+          }
         }
-      }
-      return js;
+        return { tag, mod, style };
+      })();
     });
   return nodes;
 };
