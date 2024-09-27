@@ -9,9 +9,7 @@ document.body.innerHTML = '';
 document.body.append(...renderVirtualDom(window.raqnVirtualDom));
 
 // callback to loadModules
-console.log('Loading modules', window.inicialization);
-await Promise.all(window.inicialization).then((item) => {
+await Promise.all(window.inicialization).then(() => {
   const end = performance.now();
-  console.log('Loading modules', window.inicialization, item);
   console.log('All modules loaded initialized', end - start);
 });
