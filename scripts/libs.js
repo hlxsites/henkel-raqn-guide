@@ -359,7 +359,6 @@ export function mergeUniqueArrays(...arrays) {
 
 export function getBaseUrl() {
   const basepath = getMeta(metaTags.basepath.metaName);
-  console.log('basepath', basepath);
   const base = document.head.querySelector('base');
 
   if (!base) {
