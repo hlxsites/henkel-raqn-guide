@@ -35,7 +35,6 @@ export default class Navigation extends ComponentBase {
   };
 
   setDefaults() {
-    console.log('Navigation setDefaults');
     super.setDefaults();
     this.active = {};
     this.isActive = false;

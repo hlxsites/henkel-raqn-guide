@@ -3,14 +3,6 @@ import { deepMerge } from './libs.js';
 import { publish } from './pubsub.js';
 import { generateDom, manipulation, renderVirtualDom } from './render/dom.js';
 
-export const onlyNodeWithUUID = (uuid) => (node) => {
-  console.log('onlyNodeWithId', node, node.uuid, uuid);
-  if (node.uuid !== uuid && node.parentNode) {
-    node.parentNode.children = node.parentNode.children.splice(node.indexInParent, 1);
-  }
-  return node;
-};
-
 export default async function preview(component, classes, uuid) {
   document.body.innerHTML = '';
   const main = document.createElement('main');
@@ -18,7 +10,6 @@ export default async function preview(component, classes, uuid) {
   webComponent.overrideExternalConfig = true;
   webComponent.innerHTML = component.html;
   main.appendChild(webComponent);
-
   const virtualdom = generateDom(main.childNodes);
   virtualdom[0].attributesValues = deepMerge({}, webComponent.attributesValues, component.attributesValues);
 
