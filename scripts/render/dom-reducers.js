@@ -82,11 +82,13 @@ export const toWebComponent = (node) => {
   return node;
 };
 
-export const loadModules = (nodes) => {
-  window.inicialization = Object.keys(loadedComponents)
-    .sort((a, b) => loadedComponents[a].priority - loadedComponents[b].priority)
+// load modules in order of priority
+
+export const loadModules = (nodes, modules = loadedComponents) => {
+  window.inicialization = Object.keys(modules)
+    .sort((a, b) => modules[a].priority - modules[b].priority)
     .map((component) => {
-      const { script, tag, priority } = loadedComponents[component];
+      const { script, tag, priority } = modules[component];
       if (window.raqnComponents[tag]) return window.raqnComponents[tag].default;
       return new Promise((resolve) => {
         setTimeout(async () => {
