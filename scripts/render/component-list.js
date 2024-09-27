@@ -39,18 +39,18 @@ export const componentList = {
   navigation: {
     tag: 'raqn-navigation',
     script: '/blocks/navigation/navigation',
-    priority: 0,
+    priority: 1,
     dependencies: ['accordion', 'icon'],
   },
   'grid-item': {
     tag: 'raqn-grid-item',
     script: '/blocks/grid-item/grid-item',
-    priority: 0,
+    priority: -1,
   },
   icon: {
     tag: 'raqn-icon',
     script: '/blocks/icon/icon',
-    priority: 0,
+    priority: 1,
   },
   card: {
     tag: 'raqn-card',
@@ -60,13 +60,13 @@ export const componentList = {
   header: {
     tag: 'raqn-header',
     script: '/blocks/header/header',
-    dependencies: ['navigation', 'grid'],
-    priority: 0,
+    dependencies: ['navigation', 'grid', 'grid-item'],
+    priority: 1,
   },
   footer: {
     tag: 'raqn-footer',
     script: '/blocks/footer/footer',
-    priority: 1,
+    priority: 3,
   },
   theming: {
     tag: 'raqn-theming',
@@ -76,17 +76,17 @@ export const componentList = {
   accordion: {
     tag: 'raqn-accordion',
     script: '/blocks/accordion/accordion',
-    priority: 1,
+    priority: 2,
   },
   popup: {
     tag: 'raqn-popup',
     script: '/blocks/popup/popup',
-    priority: 1,
+    priority: 3,
   },
   'popup-trigger': {
     tag: 'raqn-popup-trigger',
     script: '/blocks/popup-trigger/popup-trigger',
-    priority: 0,
+    priority: 3,
   },
   a: {
     tag: 'raqn-button',

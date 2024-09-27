@@ -169,11 +169,10 @@ export default class Theming extends ComponentBase {
     const themeConfigs = getMetaGroup(metaTags.themeConfig.metaNamePrefix);
     const base = getBaseUrl();
     await Promise.allSettled(
-      themeConfigs.map(async ({ name, content }) =>
-        fetch(`${name !== 'fontface' ? base : ''}${content}.json`).then((response) =>
-          this.processFragment(response, name),
-        ),
-      ),
+      themeConfigs.map(async ({ name, content }) => {
+        const response = await fetch(`${name !== 'fontface' ? base : ''}${content}.json`);
+        return this.processFragment(response, name);
+      }),
     );
 
     this.defineVariations();

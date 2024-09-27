@@ -83,32 +83,31 @@ export const toWebComponent = (node) => {
 };
 
 export const loadModules = (nodes) => {
+  console.log(
+    'loadModules',
+    Object.keys(loadedComponents).sort((a, b) => loadedComponents[a].priority - loadedComponents[b].priority),
+  );
   window.inicialization = Object.keys(loadedComponents)
-    .sort((a, b) => {
-      if (loadedComponents[a].priority > loadedComponents[b].priority) {
-        return 1;
-      }
-      if (loadedComponents[a].priority < loadedComponents[b].priority) {
-        return -1;
-      }
-      return 0;
-    })
+    .sort((a, b) => loadedComponents[a].priority - loadedComponents[b].priority)
     .map((component) => {
-      const { script, tag } = loadedComponents[component];
+      const { script, tag, priority } = loadedComponents[component];
       if (window.raqnComponents[tag]) return window.raqnComponents[tag].default;
-      return (async () => {
-        const { js, css } = loadModule(script);
+      return new Promise((resolve) => {
+        setTimeout(async () => {
+          const { js, css } = loadModule(script);
 
-        const mod = await js;
-        const style = await css;
-        if (mod.default.prototype instanceof HTMLElement) {
-          if (!window.customElements.get(tag)) {
-            window.customElements.define(tag, mod.default);
-            window.raqnComponents[tag] = mod.default;
+          const mod = await js;
+          const style = await css;
+          if (mod.default.prototype instanceof HTMLElement) {
+            if (!window.customElements.get(tag)) {
+              window.customElements.define(tag, mod.default);
+              window.raqnComponents[tag] = mod.default;
+            }
           }
-        }
-        return { tag, mod, style };
-      })();
+          console.log('loaded', tag, 'delay', 10 + priority);
+          resolve({ tag, mod, style });
+        }, 10 + priority);
+      });
     });
   return nodes;
 };
