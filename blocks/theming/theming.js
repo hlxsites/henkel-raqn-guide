@@ -21,7 +21,6 @@ export default class Theming extends ComponentBase {
   variations = {};
 
   setDefaults() {
-    console.log('Theming setDefaults');
     super.setDefaults();
     this.scapeDiv = document.createElement('div');
     this.themeJson = {};
@@ -169,8 +168,6 @@ export default class Theming extends ComponentBase {
   async loadFragment() {
     const themeConfigs = getMetaGroup(metaTags.themeConfig.metaNamePrefix);
     const base = getBaseUrl();
-    console.log('loadFragment', base);
-
     await Promise.allSettled(
       themeConfigs.map(async ({ name, content }) =>
         fetch(`${name !== 'fontface' ? base : ''}${content}.json`).then((response) =>
