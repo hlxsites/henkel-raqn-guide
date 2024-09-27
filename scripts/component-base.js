@@ -1,6 +1,4 @@
-import component from './init.js';
 import {
-  globalConfig,
   getBreakPoints,
   listenBreakpointChange,
   camelCaseAttr,
@@ -12,14 +10,16 @@ import {
   flatAsValue,
   flat,
   mergeUniqueArrays,
-  getBlocksAndGrids,
 } from './libs.js';
 import { externalConfig } from './libs/external-config.js';
+import { generalManipulation, generateDom, renderVirtualDom } from './render/dom.js';
 
 export default class ComponentBase extends HTMLElement {
   // All supported data attributes must be added to observedAttributes
   // The order of observedAttributes is the order in which the values from config are added.
   static observedAttributes = [];
+
+  dataAttributesKeys = [];
 
   static loaderConfig = {
     targetsSelectorsPrefix: null,
@@ -76,7 +76,6 @@ export default class ComponentBase extends HTMLElement {
     this.innerGrids = [];
     this.initError = null;
     this.breakpoints = getBreakPoints();
-    this.dataAttributesKeys = this.setDataAttributesKeys();
 
     // use the this.extendConfig() method to extend the default config
     this.config = {
@@ -134,8 +133,8 @@ export default class ComponentBase extends HTMLElement {
     this.onBreakpointChange = this.onBreakpointChange.bind(this);
   }
 
-  async setDataAttributesKeys() {
-    const { observedAttributes } = await this.Handler;
+  setDataAttributesKeys() {
+    const { observedAttributes } = this.constructor;
     this.dataAttributesKeys = observedAttributes.map((dataAttr) => {
       const [, key] = dataAttr.split('data-');
 
@@ -176,14 +175,21 @@ export default class ComponentBase extends HTMLElement {
    * use the data attr values as default for attributesValues
    */
   setInitialAttributesValues() {
-    const initialAttributesValues = { all: { data: {} } };
-
+    const inicial = [...this.classList];
+    inicial.unshift(); // remove the component name
+    this.initialAttributesValues = classToFlat(inicial.splice(1));
+    const initialAttributesValues = this.initialAttributesValues || { all: { data: {} } };
+    if (!this.dataAttributesKeys.length) {
+      this.setDataAttributesKeys();
+    }
     this.dataAttributesKeys.forEach(({ noData, noDataCamelCase }) => {
       const value = this.dataset[noDataCamelCase];
 
       if (typeof value === 'undefined') return {};
       const initialValue = unFlat({ [noData]: value });
-      initialAttributesValues.all.data = deepMerge({}, initialAttributesValues.all.data, initialValue);
+      if (initialAttributesValues.all && initialAttributesValues.all.data) {
+        initialAttributesValues.all.data = deepMerge({}, initialAttributesValues.all.data, initialValue);
+      }
       return initialAttributesValues;
     });
 
@@ -217,10 +223,9 @@ export default class ComponentBase extends HTMLElement {
       if (!this.initialized) {
         await this.initOnConnected();
         this.setAttribute('id', this.uuid);
-        this.loadDependencies(); // do not wait for dependencies;
         await this.loadFragment(this.fragmentPath);
         await this.connected(); // manipulate/create the html
-        await this.initChildComponents();
+        this.dataAttributesKeys = await this.setDataAttributesKeys();
         this.addListeners(); // html is ready add listeners
         await this.ready(); // add extra functionality
         this.setAttribute('initialized', true);
@@ -352,7 +357,9 @@ export default class ComponentBase extends HTMLElement {
     // received as {col:{ direction:2 }, columns: 2}
     const values = flat(entries);
     // transformed into values as {col-direction: 2, columns: 2}
-
+    if (!this.dataAttributesKeys) {
+      this.setDataAttributesKeys();
+    }
     // Add only supported data attributes from observedAttributes;
     // Sometimes the order in which the attributes are set matters.
     // Control the order by using the order of the observedAttributes.
@@ -437,57 +444,6 @@ export default class ComponentBase extends HTMLElement {
     }
   }
 
-  async initChildComponents() {
-    await Promise.allSettled([this.initNestedComponents(), this.initInnerBlocks()]);
-    await this.initInnerGrids();
-  }
-
-  async initNestedComponents() {
-    if (!Object.keys(this.nestedComponentsConfig).length) return;
-    const nestedSettings = Object.values(this.nestedComponentsConfig).flatMap((setting) => {
-      if (!setting.active) return [];
-      return this.innerBlocks.length
-        ? deepMerge({}, setting, {
-            // Exclude nested components query from innerBlocks. Inner Components will query their own nested components.
-            loaderConfig: {
-              targetsSelectorsPrefix: ':scope > div >', // Limit only to default content, exclude blocks.
-            },
-          })
-        : setting;
-    });
-
-    this.childComponents.nestedComponents = await component.multiInit(nestedSettings);
-
-    const { allInitialized } = this.childComponents.nestedComponents;
-    const { hideOnChildrenError } = this.config;
-    this.hideWithError(!allInitialized && hideOnChildrenError, 'has-nested-error');
-  }
-
-  async initInnerBlocks() {
-    if (!this.innerBlocks.length) return;
-
-    this.childComponents.innerComponents = await component.multiInit(this.innerBlocks);
-
-    const { allInitialized } = this.childComponents.innerComponents;
-    const { hideOnChildrenError } = this.config;
-    this.hideWithError(!allInitialized && hideOnChildrenError, 'has-inner-error');
-  }
-
-  async initInnerGrids() {
-    if (!this.innerGrids.length) return;
-
-    this.childComponents.innerGrids = await component.multiSequentialInit(this.innerGrids);
-
-    const { allInitialized } = this.childComponents.innerGrids;
-    const { hideOnChildrenError } = this.config;
-    this.hideWithError(!allInitialized && hideOnChildrenError, 'has-inner-error');
-  }
-
-  async loadDependencies() {
-    if (!this.dependencies.length) return;
-    component.multiLoadAndDefine(this.dependencies);
-  }
-
   async loadFragment(path) {
     if (typeof path !== 'string') return;
     const response = await this.getFragment(path);
@@ -500,23 +456,15 @@ export default class ComponentBase extends HTMLElement {
 
   async processFragment(response) {
     if (response.ok) {
-      this.fragmentContent = response.text();
+      this.fragmentContent = await response.text();
       await this.addFragmentContent();
-      this.setInnerBlocksAndGrids();
     }
   }
 
   async addFragmentContent() {
-    this.innerHTML = await this.fragmentContent;
-  }
-
-  // Set only if content is loaded externally;
-  setInnerBlocksAndGrids() {
-    const { blocks, grids } = getBlocksAndGrids(
-      [...this.querySelectorAll(globalConfig.blockSelector)].map((elem) => component.getBlockData(elem)),
-    );
-    this.innerBlocks = blocks;
-    this.innerGrids = grids;
+    const element = document.createElement('div');
+    element.innerHTML = this.fragmentContent;
+    this.append(...renderVirtualDom(generalManipulation(generateDom(element.childNodes))));
   }
 
   queryElements() {

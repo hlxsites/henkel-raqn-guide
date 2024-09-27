@@ -8,7 +8,7 @@ export default class Card extends ComponentBase {
   attributesValues = {
     all: {
       data: {
-        columns: '4',
+        columns: '3',
         ratio: 'auto',
         eager: '0',
       },

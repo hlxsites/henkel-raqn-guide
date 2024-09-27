@@ -1,4 +1,4 @@
-import { getMeta, metaTags, readValue, deepMerge } from '../libs.js';
+import { getMeta, metaTags, readValue, deepMerge, getBaseUrl } from '../libs.js';
 
 window.raqnComponentsMasterConfig = window.raqnComponentsMasterConfig || null;
 
@@ -18,7 +18,8 @@ export const externalConfig = {
     window.raqnComponentsConfig ??= (async () => {
       const { metaName } = metaTags.themeConfigComponent;
       const metaConfigPath = getMeta(metaName);
-      const configPath = `${metaConfigPath}.json`;
+      const basepath = getBaseUrl();
+      const configPath = `${basepath}${metaConfigPath}.json`;
       let result = null;
       try {
         const response = await fetch(`${configPath}`);

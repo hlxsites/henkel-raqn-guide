@@ -8,6 +8,7 @@ import {
   metaTags,
   readValue,
   unFlat,
+  getBaseUrl,
 } from '../../scripts/libs.js';
 
 const k = Object.keys;
@@ -166,14 +167,17 @@ export default class Theming extends ComponentBase {
 
   async loadFragment() {
     const themeConfigs = getMetaGroup(metaTags.themeConfig.metaNamePrefix);
-
+    const base = getBaseUrl();
     await Promise.allSettled(
       themeConfigs.map(async ({ name, content }) =>
-        fetch(`${content}.json`).then((response) => this.processFragment(response, name)),
+        fetch(`${name !== 'fontface' ? base : ''}${content}.json`).then((response) =>
+          this.processFragment(response, name),
+        ),
       ),
     );
 
     this.defineVariations();
     this.styles();
+    document.body.style.display = 'block';
   }
 }

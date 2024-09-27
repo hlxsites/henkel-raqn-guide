@@ -69,6 +69,7 @@ body {
   padding: 0;
   margin: 0;
   width: 100%;
+  padding-top: var(--header-height, 110px);
 }
 
 body.no-scroll {

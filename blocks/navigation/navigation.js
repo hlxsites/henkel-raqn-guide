@@ -1,4 +1,3 @@
-import component from '../../scripts/init.js';
 import { blockBodyScroll } from '../../scripts/libs.js';
 import ComponentBase from '../../scripts/component-base.js';
 
@@ -72,7 +71,6 @@ export default class Navigation extends ComponentBase {
   async setupCompactedNav() {
     if (!this.navCompactedContentInit) {
       this.navCompactedContentInit = true;
-      await component.multiLoadAndDefine(['accordion', 'icon']);
       this.setupClasses(this.navCompactedContent, true);
       this.navCompactedContent.addEventListener('click', (e) => this.activate(e));
     }
