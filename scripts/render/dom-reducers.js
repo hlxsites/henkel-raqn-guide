@@ -83,10 +83,6 @@ export const toWebComponent = (node) => {
 };
 
 export const loadModules = (nodes) => {
-  console.log(
-    'loadModules',
-    Object.keys(loadedComponents).sort((a, b) => loadedComponents[a].priority - loadedComponents[b].priority),
-  );
   window.inicialization = Object.keys(loadedComponents)
     .sort((a, b) => loadedComponents[a].priority - loadedComponents[b].priority)
     .map((component) => {
@@ -104,7 +100,6 @@ export const loadModules = (nodes) => {
               window.raqnComponents[tag] = mod.default;
             }
           }
-          console.log('loaded', tag, 'delay', 10 + priority);
           resolve({ tag, mod, style });
         }, 10 + priority);
       });

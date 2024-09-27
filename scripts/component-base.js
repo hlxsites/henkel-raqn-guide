@@ -21,6 +21,72 @@ export default class ComponentBase extends HTMLElement {
 
   dataAttributesKeys = [];
 
+  uuid = `gen${crypto.randomUUID().split('-')[0]}`;
+
+  webComponentName = this.tagName.toLowerCase();
+
+  componentName = this.webComponentName.replace(/^raqn-/, '');
+
+  overrideExternalConfig = false;
+
+  wasInitBeforeConnected = false;
+
+  fragmentPath = null;
+
+  fragmentCache = 'default';
+
+  dependencies = [];
+
+  attributesValues = {};
+
+  initOptions = {};
+
+  externalOptions = {};
+
+  elements = {};
+
+  childComponents = {
+    // using the nested feature
+    nestedComponents: [],
+    // from inner html blocks
+    innerComponents: [],
+    // from inner html blocks
+    innerGrids: [],
+  };
+
+  // set only if content is loaded externally
+  innerBlocks = [];
+
+  // set only if content is loaded externally
+  innerGrids = [];
+
+  initError = null;
+
+  breakpoints = getBreakPoints();
+
+  // use the extendConfig() method to extend the default config
+  config = {
+    listenBreakpoints: false,
+    hideOnInitError: true,
+    hideOnChildrenError: false,
+    addToTargetMethod: 'replaceWith',
+    contentFromTargets: true,
+    targetsAsContainers: {
+      addToTargetMethod: 'replaceWith',
+      contentFromTargets: true,
+    },
+  };
+
+  // use the extendNestedConfig() method to extend the default config
+  nestedComponentsConfig = {
+    image: {
+      componentName: 'image',
+    },
+    button: {
+      componentName: 'button',
+    },
+  };
+
   static loaderConfig = {
     targetsSelectorsPrefix: null,
     targetsSelectors: null,
@@ -49,57 +115,7 @@ export default class ComponentBase extends HTMLElement {
     this.setBinds();
   }
 
-  setDefaults() {
-    this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
-    this.webComponentName = this.tagName.toLowerCase();
-    this.componentName = this.webComponentName.replace(/^raqn-/, '');
-    this.overrideExternalConfig = false;
-    this.wasInitBeforeConnected = false;
-    this.fragmentPath = null;
-    this.fragmentCache = 'default';
-    this.dependencies = [];
-    this.attributesValues = {};
-    this.initOptions = {};
-    this.externalOptions = {};
-    this.elements = {};
-    this.childComponents = {
-      // using the nested feature
-      nestedComponents: [],
-      // from inner html blocks
-      innerComponents: [],
-      // from inner html blocks
-      innerGrids: [],
-    };
-    // set only if content is loaded externally
-    this.innerBlocks = [];
-    // set only if content is loaded externally
-    this.innerGrids = [];
-    this.initError = null;
-    this.breakpoints = getBreakPoints();
-
-    // use the this.extendConfig() method to extend the default config
-    this.config = {
-      listenBreakpoints: false,
-      hideOnInitError: true,
-      hideOnChildrenError: false,
-      addToTargetMethod: 'replaceWith',
-      contentFromTargets: true,
-      targetsAsContainers: {
-        addToTargetMethod: 'replaceWith',
-        contentFromTargets: true,
-      },
-    };
-
-    // use the this.extendNestedConfig() method to extend the default config
-    this.nestedComponentsConfig = {
-      image: {
-        componentName: 'image',
-      },
-      button: {
-        componentName: 'button',
-      },
-    };
-  }
+  setDefaults() {}
 
   setInitializationPromise() {
     this.initialization = new Promise((resolve, reject) => {
