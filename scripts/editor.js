@@ -17,12 +17,11 @@ export const MessagesEvents = {
 };
 
 export function refresh(id) {
-  Object.keys(window.raqnEditor).forEach((name) => {
-    const { webComponentName } = window.raqnInstances[name][0];
+  Object.keys(window.raqnEditor).forEach((webComponentName) => {
     const instancesOrdered = Array.from(document.querySelectorAll(webComponentName));
-    window.raqnEditor[name].instances = instancesOrdered.map((item) =>
+    window.raqnEditor[webComponentName].instances = instancesOrdered.map((item) =>
       // eslint-disable-next-line no-use-before-define
-      getComponentValues(window.raqnEditor[name].dialog, item),
+      getComponentValues(window.raqnEditor[webComponentName].dialog, item),
     );
   });
   const bodyRect = window.document.body.getBoundingClientRect();
@@ -34,8 +33,8 @@ export function refresh(id) {
 }
 
 export function updateComponent(component) {
-  const { componentName, uuid } = component;
-  const instance = window.raqnInstances[componentName].find((element) => element.uuid === uuid);
+  const { webComponentName, uuid } = component;
+  const instance = window.raqnComponents[webComponentName].instances.find((element) => element.uuid === uuid);
   if (!instance) return;
 
   instance.attributesValues = deepMerge({}, instance.attributesValues, component.attributesValues);
@@ -90,7 +89,9 @@ export default function initEditor(listeners = true) {
         new Promise((resolve) => {
           setTimeout(async () => {
             try {
-              const component = await loadModule(`/blocks/${componentName}/${componentName}.editor`, false);
+              const fn = window.raqnComponents[componentName];
+              const name = fn.name.toLowerCase();
+              const component = await loadModule(`/blocks/${name}/${name}.editor`, false);
               const mod = await component.js;
               if (mod && mod.default) {
                 const dialog = await mod.default();

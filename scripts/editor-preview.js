@@ -1,27 +1,38 @@
-import ComponentLoader from './component-loader.js';
+// import { publish } from './pubsub.js';
 import { deepMerge } from './libs.js';
 import { publish } from './pubsub.js';
+import { generateDom, manipulation, renderVirtualDom } from './render/dom.js';
+
+export const onlyNodeWithUUID = (uuid) => (node) => {
+  console.log('onlyNodeWithId', node, node.uuid, uuid);
+  if (node.uuid !== uuid && node.parentNode) {
+    node.parentNode.children = node.parentNode.children.splice(node.indexInParent, 1);
+  }
+  return node;
+};
 
 export default async function preview(component, classes, uuid) {
-  const { componentName } = component;
-  const header = document.querySelector('header');
-  const footer = document.querySelector('footer');
-  const main = document.querySelector('main');
-  main.innerHTML = '';
-
-  if (header) {
-    header.parentNode.removeChild(header);
-  }
-  if (footer) {
-    footer.parentNode.removeChild(footer);
-  }
-  const loader = new ComponentLoader({ componentName });
-  await loader.init();
+  document.body.innerHTML = '';
+  const main = document.createElement('main');
   const webComponent = document.createElement(component.webComponentName);
   webComponent.overrideExternalConfig = true;
   webComponent.innerHTML = component.html;
-  webComponent.attributesValues = deepMerge({}, webComponent.attributesValues, component.attributesValues);
   main.appendChild(webComponent);
+
+  const virtualdom = generateDom(main.childNodes);
+  virtualdom[0].attributesValues = deepMerge({}, webComponent.attributesValues, component.attributesValues);
+
+  main.innerHTML = '';
+  document.body.append(main);
+  await main.append(...renderVirtualDom(manipulation(virtualdom)));
+
+  webComponent.style.display = 'inline-grid';
+  webComponent.style.width = 'auto';
+  webComponent.style.marginInlineStart = '0px';
+  // webComponent.runConfigsByViewport();
+  await document.body.style.setProperty('display', 'block');
+  await main.style.setProperty('display', 'block');
+  await window.getComputedStyle(document.body);
 
   window.addEventListener(
     'click',
@@ -31,15 +42,8 @@ export default async function preview(component, classes, uuid) {
     },
     true,
   );
-
-  webComponent.style.display = 'inline-grid';
-  webComponent.style.width = 'auto';
-  webComponent.style.marginInlineStart = '0px';
-  webComponent.runConfigsByViewport();
-  document.body.style.setProperty('display', 'block');
-  main.style.setProperty('display', 'block');
-  setTimeout(() => {
-    const bodyRect = webComponent.getBoundingClientRect();
+  setTimeout(async () => {
+    const bodyRect = await document.body.getBoundingClientRect();
     publish('raqn:editor:preview:render', { bodyRect, uuid }, { usePostMessage: true, targetOrigin: '*' });
-  }, 100);
+  }, 250);
 }

@@ -1,5 +1,8 @@
+import { classToFlat } from '../libs.js';
 import { cleanEmptyNodes, cleanEmptyTextNodes, loadModules, templating, toWebComponent } from './components.js';
 import { prepareGrid, recursive } from './rules.js';
+
+window.raqnInstances = window.raqnInstances || {};
 
 export const recursiveParent = (node) => {
   const current = `${node.tag}${node.class.length > 0 ? `.${[...node.class].join('.')}` : ''}`;
@@ -18,6 +21,10 @@ export const nodeProxy = (node) => {
       if (prop === 'path') {
         return recursiveParent(target);
       }
+      if (prop === 'uuid') {
+        return node.reference.uuid;
+      }
+
       if (prop === 'nextSibling') {
         if (target.parentNode) {
           return target.parentNode.children[target.indexInParent + 1];
@@ -59,11 +66,13 @@ export const generateDom = (virtualdom) => {
     const element = virtualdom[i];
     const { childNodes } = element;
     const child = childNodes.length > 0 ? generateDom(childNodes) : [];
+    const classList = element.classList && element.classList.length > 0 ? [...element.classList] : [];
     dom.push(
       nodeProxy({
         tag: element.tagName ? element.tagName.toLowerCase() : 'textNode',
         children: child,
-        class: element.classList && element.classList.length > 0 ? [...element.classList] : [],
+        class: classList,
+        attributesValues: classToFlat(classList),
         id: element.id,
         attributes: element.hasAttributes && element.hasAttributes() ? element.attributes : [],
         text: !element.tagName ? element.textContent : null,
@@ -83,6 +92,9 @@ export const renderVirtualDom = (virtualdom) => {
     const child = children ? renderVirtualDom(children) : null;
     if (element.tag !== 'textNode') {
       const el = document.createElement(element.tag);
+      if (element.tag.indexOf('raqn-') === 0) {
+        window.raqnInstances[element.tag] = el;
+      }
       if (element.class.length > 0) {
         el.classList.add(...element.class);
       }
@@ -96,6 +108,7 @@ export const renderVirtualDom = (virtualdom) => {
           el.setAttribute(name, value);
         }
       }
+      element.initialAttributesValues = classToFlat(element.class);
       if (element.text) {
         el.textContent = element.text;
       }
@@ -111,21 +124,24 @@ export const renderVirtualDom = (virtualdom) => {
   return dom;
 };
 
-export const manipulation = (virtualdom) =>
-  [
-    recursive(cleanEmptyTextNodes),
-    recursive(cleanEmptyNodes),
-    templating,
-    recursive(toWebComponent),
-    recursive(prepareGrid),
-    loadModules,
-  ].reduce((acc, m) => m(acc, 0), virtualdom);
+export const curryManipulation =
+  (items = []) =>
+  (virtualdom) =>
+    items.reduce((acc, m) => m(acc, 0), virtualdom);
 
-export const generalManipulation = (virtualdom) =>
-  [
-    recursive(cleanEmptyTextNodes),
-    recursive(cleanEmptyNodes),
-    recursive(toWebComponent),
-    recursive(prepareGrid),
-    loadModules,
-  ].reduce((acc, m) => m(acc, 0), virtualdom);
+export const manipulation = curryManipulation([
+  recursive(cleanEmptyTextNodes),
+  recursive(cleanEmptyNodes),
+  templating,
+  recursive(toWebComponent),
+  recursive(prepareGrid),
+  loadModules,
+]);
+
+export const generalManipulation = curryManipulation([
+  recursive(cleanEmptyTextNodes),
+  recursive(cleanEmptyNodes),
+  recursive(toWebComponent),
+  recursive(prepareGrid),
+  loadModules,
+]);

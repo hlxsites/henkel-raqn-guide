@@ -133,8 +133,8 @@ export default class ComponentBase extends HTMLElement {
     this.onBreakpointChange = this.onBreakpointChange.bind(this);
   }
 
-  async setDataAttributesKeys() {
-    const { observedAttributes } = await this.constructor;
+  setDataAttributesKeys() {
+    const { observedAttributes } = this.constructor;
     this.dataAttributesKeys = observedAttributes.map((dataAttr) => {
       const [, key] = dataAttr.split('data-');
 
@@ -175,14 +175,21 @@ export default class ComponentBase extends HTMLElement {
    * use the data attr values as default for attributesValues
    */
   setInitialAttributesValues() {
-    const initialAttributesValues = { all: { data: {} } };
-
+    const inicial = [...this.classList];
+    inicial.unshift(); // remove the component name
+    this.initialAttributesValues = classToFlat(inicial.splice(1));
+    const initialAttributesValues = this.initialAttributesValues || { all: { data: {} } };
+    if (!this.dataAttributesKeys.length) {
+      this.setDataAttributesKeys();
+    }
     this.dataAttributesKeys.forEach(({ noData, noDataCamelCase }) => {
       const value = this.dataset[noDataCamelCase];
 
       if (typeof value === 'undefined') return {};
       const initialValue = unFlat({ [noData]: value });
-      initialAttributesValues.all.data = deepMerge({}, initialAttributesValues.all.data, initialValue);
+      if (initialAttributesValues.all && initialAttributesValues.all.data) {
+        initialAttributesValues.all.data = deepMerge({}, initialAttributesValues.all.data, initialValue);
+      }
       return initialAttributesValues;
     });
 
@@ -351,7 +358,9 @@ export default class ComponentBase extends HTMLElement {
     // received as {col:{ direction:2 }, columns: 2}
     const values = flat(entries);
     // transformed into values as {col-direction: 2, columns: 2}
-
+    if (!this.dataAttributesKeys) {
+      this.setDataAttributesKeys();
+    }
     // Add only supported data attributes from observedAttributes;
     // Sometimes the order in which the attributes are set matters.
     // Control the order by using the order of the observedAttributes.

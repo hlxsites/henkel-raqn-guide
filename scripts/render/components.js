@@ -36,11 +36,17 @@ export const componentList = {
     tag: 'raqn-navigation',
     script: '/blocks/navigation/navigation',
     priority: 0,
+    dependencies: ['accordion', 'icon'],
   },
   'grid-item': {
     tag: 'raqn-grid-item',
     script: '/blocks/grid-item/grid-item',
     priority: 2,
+  },
+  icon: {
+    tag: 'raqn-icon',
+    script: '/blocks/icon/icon',
+    priority: 0,
   },
   card: {
     tag: 'raqn-card',
@@ -62,9 +68,13 @@ export const componentList = {
     script: '/blocks/theming/theming',
     priority: 0,
   },
-
+  accordion: {
+    tag: 'raqn-accordion',
+    script: '/blocks/accordion/accordion',
+    priority: 1,
+  },
   a: {
-    tag: 'a',
+    tag: 'raqn-button',
     priority: 0,
     script: '/blocks/button/button',
     transform: (node) => {
@@ -86,6 +96,8 @@ export const injectedComponents = [
   {
     tag: 'div',
     class: ['theming'],
+    children: [],
+    attributes: [],
   },
 ];
 
@@ -93,7 +105,8 @@ export const injectedComponents = [
 
 export const toWebComponent = (node) => {
   Object.keys(componentList).forEach((componentClass) => {
-    if ((node.tag === 'div' && node.class.includes(componentClass)) || node.tag === componentClass) {
+    if ((node.class && node.class.includes(componentClass)) || node.tag === componentClass) {
+      const { dependencies } = componentList[componentClass];
       if (componentList[componentClass].transform) {
         // eslint-disable-next-line no-param-reassign
         node = componentList[componentClass].transform(node);
@@ -103,6 +116,13 @@ export const toWebComponent = (node) => {
 
       if (!loadedComponents[componentClass]) {
         loadedComponents[componentClass] = componentList[componentClass];
+      }
+      if (dependencies) {
+        dependencies.forEach((dependency) => {
+          if (!loadedComponents[dependency]) {
+            loadedComponents[dependency] = componentList[dependency];
+          }
+        });
       }
     }
   });
@@ -121,15 +141,17 @@ export const loadModules = (nodes) => {
       return 0;
     })
     .map(async (component) => {
-      const { script, tag, priority } = loadedComponents[component];
+      const { script, tag } = loadedComponents[component];
       if (window.raqnComponents[tag]) return window.raqnComponents[tag].default;
-      const { js, css } = await loadModule(script);
+      const { js } = await loadModule(script);
       const mod = await js;
       if (mod.default.prototype instanceof HTMLElement) {
-        window.customElements.define(tag, mod.default);
-        window.raqnComponents[tag] = mod.default;
+        if (!window.customElements.get(tag)) {
+          window.customElements.define(tag, mod.default);
+          window.raqnComponents[tag] = mod.default;
+        }
       }
-      return { component, script, tag, priority, js, css, mod };
+      return js;
     });
   return nodes;
 };

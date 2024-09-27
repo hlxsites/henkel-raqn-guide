@@ -12,9 +12,8 @@ export const filterNodes = (nodes, tag, className) => {
   return filtered;
 };
 
-export const prepareGrid = (node, level) => {
-  if (level === 1 || level === 2) {
-    // console.log('Level', level, node);
+export const prepareGrid = (node) => {
+  if (node.children && node.children.length > 0) {
     const grids = filterNodes(node.children, 'raqn-grid');
     const gridItems = filterNodes(node.children, 'raqn-grid-item');
 
@@ -30,9 +29,7 @@ export const prepareGrid = (node, level) => {
           gridItem.children = children;
           grid.children.push(gridItem);
         }
-        // eslint-disable-next-line no-param-reassign
       });
-
       return grid;
     });
   }
