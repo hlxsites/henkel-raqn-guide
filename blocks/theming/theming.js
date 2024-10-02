@@ -13,11 +13,32 @@ import {
 const k = Object.keys;
 
 export default class Theming extends ComponentBase {
+  static loaderConfig = {
+    ...ComponentBase.loaderConfig,
+    // add the component to the head. Target should be set as `document`
+    targetsSelectors: ':scope > head',
+    targetsSelectorsLimit: 1,
+  };
+
   componentsConfig = {};
 
   elements = {};
 
   variations = {};
+
+  extendConfig() {
+    return [
+      ...super.extendConfig(),
+      {
+        contentFromTargets: false,
+        addToTargetMethod: 'append',
+        targetsAsContainers: {
+          addToTargetMethod: 'append',
+          contentFromTargets: false,
+        },
+      },
+    ];
+  }
 
   setDefaults() {
     super.setDefaults();

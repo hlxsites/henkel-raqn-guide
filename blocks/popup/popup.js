@@ -1,6 +1,5 @@
 import ComponentBase from '../../scripts/component-base.js';
 import {
-  globalConfig,
   stringToJsVal,
   popupState,
   focusTrap,
@@ -28,6 +27,7 @@ export default class Popup extends ComponentBase {
     return [
       ...super.extendConfig(),
       {
+        innerComponents: '.popup__content > div',
         contentFromTargets: false,
         targetsAsContainers: {
           contentFromTargets: false,
@@ -120,7 +120,7 @@ export default class Popup extends ComponentBase {
     });
   }
 
-  connected() {
+  ready() {
     this.activeOnConnect();
   }
 
@@ -137,11 +137,6 @@ export default class Popup extends ComponentBase {
 
   async addFragmentContent() {
     this.elements.popupContent.innerHTML = await this.fragmentContent;
-  }
-
-  setInnerBlocks() {
-    const innerBlocks = [...this.elements.popupContent.querySelectorAll(globalConfig.blockSelector)];
-    this.innerBlocks = innerBlocks;
   }
 
   onAttributeUrlChanged({ oldValue, newValue }) {

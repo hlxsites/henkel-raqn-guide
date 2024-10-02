@@ -4,9 +4,6 @@ import {
   metaTags,
   eagerImage,
   getMeta,
-  getMetaGroup,
-  mergeUniqueArrays,
-  getBlocksAndGrids,
 } from './libs.js';
 
 const component = {
@@ -90,127 +87,29 @@ const component = {
     const lcp = block.classList.contains('lcp');
     let componentName = tagName;
     if (!globalConfig.semanticBlocks.includes(tagName)) {
-      componentName = block.classList.item(0);
+      componentName = block.classList.item(0) || 'section';
     }
     return { targets: [block], componentName, lcp };
   },
 };
 
 export const onLoadComponents = {
-  // default content
-  staticStructureComponents: [
-    {
-      componentName: 'image',
-      targets: [document],
-      loaderConfig: {
-        targetsAsContainers: true,
-        targetsSelectorsPrefix: 'main > div >',
-      },
-    },
-    {
-      componentName: 'button',
-      targets: [document],
-      loaderConfig: {
-        targetsAsContainers: true,
-        targetsSelectorsPrefix: 'main > div >',
-      },
-    },
-  ],
-
   async init() {
-    this.setLcp();
-    this.setStructure();
-    this.queryAllBlocks();
-    this.setBlocksData();
-    this.setLcpBlocks();
-    this.setLazyBlocks();
-    this.initBlocks();
-  },
-
-  queryAllBlocks() {
-    this.blocks = [
-      document.body.querySelector(globalConfig.semanticBlocks[0]),
-      ...document.querySelectorAll(globalConfig.blockSelector),
-      ...document.body.querySelectorAll(globalConfig.semanticBlocks.slice(1).join(',')),
-    ];
-  },
-
-  setBlocksData() {
-    const structureData = this.structureComponents.map(({ componentName }) => ({
-      componentName,
-      targets: [document],
-      loaderConfig: {
-        targetsAsContainers: true,
-      },
-    }));
-    structureData.push(...this.staticStructureComponents);
-
-    const blocksData = this.blocks.map((block) => component.getBlockData(block));
-    this.blocksData = [...structureData, ...blocksData];
-  },
-
-  setLcp() {
-    const { metaName, fallbackContent } = metaTags.lcp;
-    const lcpMeta = getMeta(metaName, { getArray: true });
-    const defaultLcp = fallbackContent;
-    const lcp = lcpMeta?.length ? lcpMeta : defaultLcp;
-    // theming must be in LCP to prevent CLS
-    this.lcp = mergeUniqueArrays(lcp, ['theming']).map((componentName) => ({
-      componentName: componentName.trim(),
-    }));
-  },
-
-  setStructure() {
-    const structureComponents = getMetaGroup(metaTags.structure.metaNamePrefix, { getFallback: false });
-    this.structureComponents = structureComponents.flatMap(({ name, content }) => {
-      if (content !== true) return [];
-      return {
-        componentName: name.trim(),
-      };
-    });
     const template = getMeta(metaTags.template.metaName);
-    if(template) {
-      this.structureComponents = [...this.structureComponents, {
-        componentName: template,
-      }];
-    }
-  },
+    const templateConfig = getMeta(metaTags.templateConfig.metaName);
 
-  setLcpBlocks() {
-    this.lcpBlocks = this.blocksData.filter((data) => !!this.findLcp(data));
-  },
-
-  setLazyBlocks() {
-    const allLazy = this.blocksData.filter((data) => !this.findLcp(data));
-    const { grids, blocks } = getBlocksAndGrids(allLazy);
-
-    this.lazyBlocks = blocks;
-    this.grids = grids;
-  },
-
-  findLcp(data) {
-    return (
-      this.lcp.find(({ componentName }) => componentName === data.componentName) || data.lcp /* ||
-      [...document.querySelectorAll('main > div > [class]:nth-child(-n+1)')].find((el) => el === data?.targets?.[0]) */
-    );
-  },
-
-  async initBlocks() {
-    // Keep the page hidden until specific components are initialized to prevent CLS
-    component.multiInit(this.lcpBlocks).then(() => {
-      window.postMessage({ message: 'raqn:components:loaded' });
-      document.body.style.setProperty('display', 'block');
+    component.init({
+      componentName: template,
+      path: '/templates',
+      externalConfigName: templateConfig,
+      targets: [document.querySelector('body > main')],
     });
-
-    await component.multiInit(this.lazyBlocks);
-    // grids must be initialized sequentially starting from the deepest level.
-    // all the blocks that will be contained by the grids must be already initialized before they are added to the grids.
-    component.multiSequentialInit(this.grids);
   },
 };
 
 export const globalInit = {
   async init() {
+    this.isPreview();
     this.setLang();
     this.initEagerImages();
     onLoadComponents.init();
@@ -227,6 +126,13 @@ export const globalInit = {
       const length = parseInt(eagerImages, 10);
       eagerImage(document.body, length);
     }
+  },
+
+  isPreview() {
+    const { hostname } = window.location;
+    const previewHosts = ['localhost', '.aem.page'];
+
+    window.raqnIsPreview = previewHosts.some((host) => hostname.endsWith(host));
   },
 };
 

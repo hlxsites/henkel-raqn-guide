@@ -1,0 +1,3 @@
+:where(raqn-template, raqn-header, raqn-footer) > raqn-section > *:not(.full-width) {
+  margin-inline: var(--container-width);
+}

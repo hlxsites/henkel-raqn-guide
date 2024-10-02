@@ -3,6 +3,16 @@ import ComponentBase from '../../scripts/component-base.js';
 export default class Accordion extends ComponentBase {
   dependencies = ['icon'];
 
+  extendConfig() {
+    return [
+      ...super.extendConfig(),
+      {
+        innerComponents: null,
+        nestedComponentsPrefix: ':scope > ',
+      },
+    ];
+  }
+
   extendNestedConfig() {
     return [
       ...super.extendNestedConfig(),

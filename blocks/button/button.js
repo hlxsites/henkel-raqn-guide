@@ -28,7 +28,7 @@ export default class Button extends ComponentBase {
     ];
   }
 
-  connected() {
+  addEDSHtml() {
     this.initAsBlock();
     this.queryElements();
     this.wrapText();

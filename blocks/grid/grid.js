@@ -1,6 +1,5 @@
 import ComponentBase from '../../scripts/component-base.js';
 import { stringToJsVal } from '../../scripts/libs.js';
-import component from '../../scripts/init.js';
 
 export default class Grid extends ComponentBase {
   static observedAttributes = [
@@ -29,12 +28,17 @@ export default class Grid extends ComponentBase {
     },
   };
 
-  setDefaults() {
-    super.setDefaults();
+  extendConfig() {
+    return [
+      ...super.extendConfig(),
+      {
+        innerComponents: ':scope > .grid-item',
+      },
+    ];
   }
 
   get gridItems() {
-    return [...this.children];
+    return [...this.children].filter((el) => el.tagName.toLowerCase() === 'raqn-grid-item');
   }
 
   onAttributeHeightChanged({ oldValue, newValue }) {
@@ -190,87 +194,20 @@ export default class Grid extends ComponentBase {
     }
   }
 
-  async connected() {
-    await this.collectGridItemsFromBlocks();
-  }
-
-  ready() {
-    this.cleanGridItems();
-  }
-
-  cleanGridItems() {
-    // Get all the grid items and remove any non grid item element.
-    return [...this.children].filter((child) => child.matches('raqn-grid-item') || child.remove());
-  }
-
-  async collectGridItemsFromBlocks() {
+  async addEDSHtml() {
     if (!this.isInitAsBlock) return;
 
-    await this.recursiveItems(this.nextElementSibling);
-  }
+    const elems = [...this.parentElement.children];
 
-  async recursiveItems(elem, children = []) {
-    if (!elem) return;
-    if (this.isForbiddenGridItem(elem)) return;
-    if (this.isForbiddenBlockGrid(elem)) return;
-    if (this.isForbiddenRaqnGrid(elem)) return;
+    const gridIndex = elems.indexOf(this);
 
-    if (this.isThisGridItem(elem)) {
-      await this.createGridItem([...children], [...elem.classList]);
-      await this.recursiveItems(elem.nextElementSibling, []);
-      elem.remove();
-      return;
-    }
+    let children = elems.slice(gridIndex + 1);
 
-    children.push(elem);
+    const lastItem = [...children].reverse().find((el) => el.matches('.grid-item'));
+    const lastItemIndex = children.indexOf(lastItem);
 
-    await this.recursiveItems(elem.nextElementSibling, children);
-  }
+    children = children.slice(0, lastItemIndex + 1);
 
-  getLevel(elem = this) {
-    return Number(elem.dataset.level);
-  }
-
-  getLevelFromClass(elem) {
-    const levelClass = [...elem.classList].find((cls) => cls.startsWith('data-level-')) || 'data-level-1';
-    return Number(levelClass.slice('data-level-'.length));
-  }
-
-  isGridItem(elem) {
-    return elem.tagName === 'DIV' && elem.classList.contains('grid-item');
-  }
-
-  isThisGridItem(elem) {
-    return this.isGridItem(elem) && this.getLevelFromClass(elem) === this.getLevel();
-  }
-
-  isForbiddenGridItem(elem) {
-    return this.isGridItem(elem) && this.getLevelFromClass(elem) > this.getLevel();
-  }
-
-  isBlockGrid(elem) {
-    return elem.tagName === 'DIV' && elem.classList.contains('grid');
-  }
-
-  isRaqnGrid(elem) {
-    return elem.tagName === 'RAQN-GRID';
-  }
-
-  isForbiddenRaqnGrid(elem) {
-    return this.isRaqnGrid(elem) && this.getLevel() >= this.getLevel(elem);
-  }
-
-  isForbiddenBlockGrid(elem) {
-    return this.isBlockGrid(elem) && this.getLevelFromClass(elem) <= this.getLevel();
-  }
-
-  async createGridItem(children, configByClasses) {
-    await component.loadAndDefine('grid-item');
-    const tempGridItem = document.createElement('raqn-grid-item');
-    tempGridItem.init({ configByClasses });
-    tempGridItem.gridParent = this;
-    tempGridItem.append(...children);
-    this.gridItems.push(tempGridItem);
-    this.append(tempGridItem);
+    this.append(...children);
   }
 }

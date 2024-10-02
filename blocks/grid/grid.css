@@ -1,7 +1,7 @@
 raqn-grid {
   /* Set to initial to prevent inheritance for nested grids */
   --grid-height: initial;
-  --grid-width: 100%;
+  --grid-width: initial;
   --grid-justify-items: initial;
   --grid-align-items: initial;
   --grid-justify-content: initial;

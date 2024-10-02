@@ -188,7 +188,7 @@ img {
 /* Set default block style to all raqn web components 
    Use :where() to give lower specificity in order to not overwrite any display option set on the web component tag 
 */
-:where([raqnWebComponent]) {
+:where([raqnwebcomponent]) {
   display: block;
 }
 
@@ -251,6 +251,18 @@ button {
 .hide {
   display: none;
   pointer-events: none;
+}
+
+.error-message-box {
+  background: red;
+  padding-block: 20px;
+  padding-inline: 20px;
+  border: 5px solid #000;
+  margin-block: 20px;
+
+  & * {
+    color: white;
+  }
 }
 
 #franklin-svg-sprite {

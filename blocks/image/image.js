@@ -23,7 +23,7 @@ export default class Image extends ComponentBase {
     ];
   }
 
-  connected() {
+  addHtml() {
     this.createLinkedImage();
   }
 
@@ -31,8 +31,9 @@ export default class Image extends ComponentBase {
     if (!this.children) return;
     const em = this.firstElementChild;
     const anchor = em.firstElementChild;
-    const pictureParent = this.parentElement.previousElementSibling;
-    const picture = pictureParent.firstElementChild;
+    const pictureParent = this.parentElement?.previousElementSibling;
+    const picture = pictureParent?.firstElementChild;
+    if (!picture) return;
     anchor.setAttribute('aria-label', anchor.textContent);
     anchor.innerHTML = '';
     anchor.append(picture);

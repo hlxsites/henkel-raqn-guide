@@ -1,7 +1,5 @@
 import { loadModule, deepMerge, mergeUniqueArrays, getBreakPoints } from './libs.js';
 
-window.raqnInstances = window.raqnInstances || {};
-
 export default class ComponentLoader {
   constructor({
     componentName,
@@ -14,12 +12,12 @@ export default class ComponentLoader {
     props,
     nestedComponentsConfig,
     active,
+    path,
   }) {
-    window.raqnComponents ??= {};
+    window.raqnComponentsHandlers ??= {};
     if (!componentName) {
       throw new Error('`componentName` is required');
     }
-    this.instances = window.raqnInstances || {};
     this.componentName = componentName;
     this.targets = targets.map((target) => ({ target }));
     this.loaderConfig = loaderConfig;
@@ -29,7 +27,8 @@ export default class ComponentLoader {
     this.breakpoints = getBreakPoints();
     this.componentConfig = componentConfig;
     this.nestedComponentsConfig = nestedComponentsConfig;
-    this.pathWithoutExtension = `/blocks/${this.componentName}/${this.componentName}`;
+    this.path = path || '/blocks';
+    this.pathWithoutExtension = `${this.path}/${this.componentName}/${this.componentName}`;
     this.props = props ?? {};
     this.isWebComponent = null;
     this.isClass = null;
@@ -38,11 +37,11 @@ export default class ComponentLoader {
   }
 
   get Handler() {
-    return window.raqnComponents[this.componentName];
+    return window.raqnComponentsHandlers[this.componentName];
   }
 
   set Handler(handler) {
-    window.raqnComponents[this.componentName] = handler;
+    window.raqnComponentsHandlers[this.componentName] = handler;
   }
 
   setHandlerType(handler = this.Handler) {
@@ -90,9 +89,6 @@ export default class ComponentLoader {
     let elem = null;
     try {
       elem = await this.createElementAndConfigure(data);
-      elem.webComponentName = this.webComponentName;
-      this.instances[elem.componentName] = this.instances[elem.componentName] || [];
-      this.instances[elem.componentName].push(elem);
     } catch (error) {
       error.elem ??= elem;
       elem?.classList.add('hide-with-error');

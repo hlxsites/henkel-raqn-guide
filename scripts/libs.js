@@ -2,9 +2,9 @@ export const globalConfig = {
   semanticBlocks: ['header', 'footer'],
   blockSelector: `
   [class]:not(
+    [raqnwebcomponent],
     style,
-    [class^="config-" i],
-    [class^="grid-item" i]
+    [class^="config-" i]
   )`,
   breakpoints: {
     xs: 0,
@@ -50,7 +50,12 @@ export const metaTags = {
   },
   template: {
     metaName: 'template',
+    fallbackContent: 'template',
     // contentType: 'string template name',
+  },
+  templateConfig: {
+    metaName: 'template-config',
+    // contentType: 'string template config name',
   },
   lcp: {
     metaName: 'lcp',
@@ -319,6 +324,80 @@ export function deepMerge(origin, ...toMerge) {
   return deepMerge(origin, ...toMerge);
 }
 
+/**
+ * Helps handle the merging of non object prop values like string or arrays
+ * by providing a key path and a method which defines how to handle the merge.
+ *  @example
+ * keyPathMethods: {
+ *  '**.*': (a, b) => {}, // matches any key at any level. As an example by using a,b type checks can define general merging handling or all arrays properties.
+ *  '**.class': (a, b) => {} // matches class key at any level
+ *  '**.class|classes': (a, b) => {} // matches class or classes keys at any level
+ *  '**.all|xs.class': (a, b) => {} // matches all.class or xs.class key paths at any level of nesting
+ *  'all.class': (a, b) => {} // matches the exact key path nesting
+ *  'all.class': (a, b) => {} // matches the exact key path nesting
+ *  'all|xs.*.settings|config.*.class': (a, b) => { // matches class key at 5th level of nesting where '*' can be any
+ *                                      } // key and first level is all and 3rd level si settings
+ *  '*.*.*.class': (a, b) => {} // matches class key at 4th level of nesting where '*' can be any key
+ *  '*.*.*.class': (a, b) => {} // matches class key at 4th level of nesting where '*' can be any key
+ * }
+ */
+export function deepMergeMethod(keyPathMethods, origin, ...toMerge) {
+  if (!toMerge.length) return origin;
+  const merge = toMerge.shift();
+  const pathsArrays =
+    keyPathMethods?.pathsArrays ||
+    Object.entries(keyPathMethods).flatMap(([key, method]) => {
+      if (key === 'currentPath') return [];
+      return [[key.split('.').map((k) => k.split('|')), method]];
+    });
+  const { currentPath = [] } = keyPathMethods;
+
+  if (isOnlyObject(origin) && isOnlyObject(merge)) {
+    Object.keys(merge).forEach((key) => {
+      const localPath = [...currentPath, key];
+
+      if (isOnlyObject(merge[key])) {
+        const noKeyInOrigin = !origin[key];
+        // overwrite origin non object values with objects
+        const overwriteOriginWithObject = !isOnlyObject(origin[key]) && isOnlyObject(merge[key]);
+        if (noKeyInOrigin || overwriteOriginWithObject) {
+          Object.assign(origin, { [key]: {} });
+        }
+        deepMergeMethod({ pathsArrays, currentPath: localPath }, origin[key], merge[key]);
+      } else {
+        const extendByBath =
+          !!pathsArrays.length &&
+          pathsArrays.some(([keyPathPattern, method]) => {
+            const keyPathCheck = [...keyPathPattern];
+            const localPathCheck = [...localPath];
+
+            if (keyPathCheck.at(0).at(0) === '**') {
+              keyPathCheck.shift();
+              if (localPathCheck.length > keyPathCheck.length) {
+                localPathCheck.splice(0, localPathCheck.length - keyPathCheck.length);
+              }
+            }
+
+            if (localPathCheck.length !== keyPathCheck.length) return false;
+
+            const isPathMatch = localPathCheck.every((k, i) =>
+              keyPathCheck[i].some((check) => k === check || check === '*'),
+            );
+            if (!isPathMatch) return false;
+            Object.assign(origin, { [key]: method(origin[key], merge[key]) });
+            return true;
+          });
+
+        if (!extendByBath) {
+          Object.assign(origin, { [key]: merge[key] });
+        }
+      }
+    });
+  }
+
+  return deepMergeMethod({ pathsArrays, currentPath }, origin, ...toMerge);
+}
+
 export function loadModule(urlWithoutExtension, loadCSS = true) {
   try {
     const js = import(`${urlWithoutExtension}.js`);
@@ -327,9 +406,15 @@ export function loadModule(urlWithoutExtension, loadCSS = true) {
       const cssHref = `${urlWithoutExtension}.css`;
       if (!document.querySelector(`head > link[href="${cssHref}"]`)) {
         const link = document.createElement('link');
-        link.rel = 'stylesheet';
         link.href = cssHref;
-        link.onload = resolve;
+        // make the css loading not be render blocking
+        link.rel = 'preload';
+        link.as = 'style';
+        link.onload = () => {
+          link.onload = null;
+          link.rel = 'stylesheet';
+          resolve();
+        };
         link.onerror = reject;
         document.head.append(link);
       } else {
