@@ -69,6 +69,7 @@ body {
   padding: 0;
   margin: 0;
   width: 100%;
+  padding-top: var(--header-height, 110px);
 }
 
 body.no-scroll {
@@ -81,9 +82,20 @@ body.no-scroll {
   bottom: 0;
 }
 
+/* avoid font most swaps  */
+body,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--p-font-family, system-ui);
+}
+
 body > * {
   color: var(--text, #000);
-  font-family: var(--p-font-family, roboto);
+  font-family: var(--p-font-family, system-ui);
   font-size: var(--p-font-size, 1rem);
   font-weight: var(--p-font-weight, normal);
   font-style: var(--p-font-style, normal);
@@ -118,7 +130,7 @@ h4 {
 }
 
 h1 {
-  font-family: var(--h1-font-family, roboto);
+  font-family: var(--h1-font-family, system-ui);
   font-size: var(--h1-font-size, 1rem);
   font-weight: var(--h1-font-weight, normal);
   font-style: var(--h1-font-style, normal);
@@ -126,7 +138,7 @@ h1 {
 }
 
 h2 {
-  font-family: var(--h2-font-family, roboto);
+  font-family: var(--h2-font-family, system-ui);
   font-size: var(--h2-font-size, 1rem);
   font-weight: var(--h2-font-weight, normal);
   font-style: var(--h2-font-style, normal);
@@ -134,7 +146,7 @@ h2 {
 }
 
 h3 {
-  font-family: var(--h3-font-family, roboto);
+  font-family: var(--h3-font-family, system-ui);
   font-size: var(--h3-font-size, 1rem);
   font-weight: var(--h3-font-weight, normal);
   font-style: var(--h3-font-style, normal);
@@ -142,7 +154,7 @@ h3 {
 }
 
 h5 {
-  font-family: var(--h5-font-family, roboto);
+  font-family: var(--h5-font-family, system-ui);
   font-size: var(--h5-font-size, 1rem);
   font-weight: var(--h5-font-weight, normal);
   font-style: var(--h5-font-style, normal);
@@ -150,7 +162,7 @@ h5 {
 }
 
 h4 {
-  font-family: var(--h4-font-family, roboto);
+  font-family: var(--h4-font-family, system-ui);
   font-size: var(--h4-font-size, 1rem);
   font-weight: var(--h4-font-weight, normal);
   font-style: var(--h4-font-style, normal);
@@ -158,7 +170,7 @@ h4 {
 }
 
 h6 {
-  font-family: var(--h6-font-family, roboto);
+  font-family: var(--h6-font-family, system-ui);
   font-size: var(--h6-font-size, 1rem);
   font-weight: var(--h6-font-weight, normal);
   font-style: var(--h6-font-style, normal);
@@ -166,7 +178,7 @@ h6 {
 }
 
 label {
-  font-family: var(--label-font-family, roboto);
+  font-family: var(--label-font-family, system-ui);
   font-size: var(--label-font-size, 1rem);
   font-weight: var(--label-font-weight, normal);
   font-style: var(--label-font-style, normal);
@@ -220,7 +232,7 @@ a {
   align-items: center;
   color: var(--highlight, inherit);
   text-decoration: none;
-  font-family: var(--a-font-family, roboto);
+  font-family: var(--a-font-family, system-ui);
   font-size: var(--a-font-size, 1rem);
   font-weight: var(--a-font-weight, normal);
   font-style: var(--a-font-style, normal);
@@ -238,7 +250,7 @@ button {
   display: inline-flex;
   align-items: center;
   text-decoration: none;
-  font-family: var(--button-font-family, roboto);
+  font-family: var(--button-font-family, system-ui);
   font-size: var(--button-font-size, 1rem);
   font-weight: var(--button-font-weight, normal);
   font-style: var(--button-font-style, normal);

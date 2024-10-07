@@ -9,7 +9,6 @@ raqn-card {
 }
 
 raqn-card > div {
-  display: flex;
   gap: var(--gap, 20px);
   position: relative;
   background: var(--inner-background, transparent);

@@ -1,22 +1,24 @@
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
-    <script>
-      /* Preload header */
-      const headerMeta = document.querySelector('meta[name="header"]');
-      const url = headerMeta?.content.trim();
-      if (url?.toLowerCase() !== 'false') {
-        const link = document.createElement('link');
-        link.setAttribute('rel', 'preload');
-        link.setAttribute('as', 'fetch');
-        link.setAttribute('crossorigin', 'anonymous');
-        link.href = url ? `${url}.plain.html` : '/header.plain.html';
-        document.head.appendChild(link);
-      }
-    </script>
-    <style>body { display: none; }</style>
-    <link rel="stylesheet" href="/styles/styles.css" />
-    <script src="/scripts/component-base.js" type="module"></script>
-    <script src="/scripts/component-loader.js" type="module"></script>
-    <script src="/scripts/libs.js" type="module"></script>
-    <script src="/scripts/init.js" type="module"></script>
-    <template class="theming"></template>
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta http-equiv="X-UA-Compatible" content="IE=edge" />
+<script>
+  /* Preload header */
+  const headerMeta = document.querySelector('meta[name="header"]');
+  const url = headerMeta?.content.trim();
+  if (url?.toLowerCase() !== 'false') {
+    const link = document.createElement('link');
+    link.setAttribute('rel', 'preload');
+    link.setAttribute('as', 'fetch');
+    link.setAttribute('crossorigin', 'anonymous');
+    link.href = url ? `${url}.plain.html` : '/header.plain.html';
+    document.head.appendChild(link);
+  }
+</script>
+<style>
+  body {
+    display: none;
+  }
+</style>
+<link rel="stylesheet" href="/styles/styles.css" />
+<script src="/scripts/component-base.js" type="module"></script>
+<script src="/scripts/libs.js" type="module"></script>
+<script src="/scripts/index.js" type="module"></script>
