@@ -191,9 +191,9 @@ export default class ComponentBase extends HTMLElement {
    * use the data attr values as default for attributesValues
    */
   setInitialAttributesValues() {
-    const inicial = [...this.classList];
-    inicial.unshift(); // remove the component name
-    this.initialAttributesValues = classToFlat(inicial.splice(1));
+    const initial = [...this.classList];
+    initial.unshift(); // remove the component name
+    this.initialAttributesValues = classToFlat(initial.splice(1));
     const initialAttributesValues = this.initialAttributesValues || { all: { data: {} } };
     if (this.dataAttributesKeys && !this.dataAttributesKeys.length) {
       this.setDataAttributesKeys();

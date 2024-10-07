@@ -26,23 +26,17 @@ export default function config() {
         },
       },
       data: {
-        level: {
-          type: 'text',
-          label: 'Level',
-          helpText: 'The level of the grid.',
-          value: '1',
-        },
         height: {
           type: 'text',
           label: 'Height',
           helpText: 'The height of the grid.',
-          value: '100%',
+          value: 'inicial',
         },
         width: {
           type: 'text',
           label: 'Width',
           helpText: 'The width of the grid.',
-          value: '100%',
+          value: 'auto',
         },
         reverse: {
           type: 'select',
