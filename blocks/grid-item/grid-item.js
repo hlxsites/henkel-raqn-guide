@@ -1,4 +1,5 @@
 import ComponentBase from '../../scripts/component-base.js';
+import { globalConfig } from '../../scripts/libs.js';
 
 export default class Grid extends ComponentBase {
   static observedAttributes = [
@@ -12,7 +13,7 @@ export default class Grid extends ComponentBase {
     'data-align',
   ];
 
-  nestedComponentsConfig = {};
+  // nestedComponentsConfig = {};
 
   attributesValues = {
     all: {
@@ -22,8 +23,18 @@ export default class Grid extends ComponentBase {
     },
   };
 
+  extendConfig() {
+    return [
+      ...super.extendConfig(),
+      {
+        innerComponents: globalConfig.blockSelector,
+      },
+    ];
+  }
+
   setDefaults() {
     super.setDefaults();
+
     this.gridParent = null;
   }
 
@@ -48,7 +59,7 @@ export default class Grid extends ComponentBase {
     }
   }
 
-  connected() {
+  ready() {
     this.gridParent ??= this.parentElement;
   }
 
@@ -86,5 +97,29 @@ export default class Grid extends ComponentBase {
     } else {
       this.style.removeProperty(prop);
     }
+  }
+
+  addEDSHtml() {
+    if (!this.isInitAsBlock) return;
+
+    this.recursiveItems(this.previousElementSibling);
+  }
+
+  recursiveItems(elem) {
+    if (!elem) return;
+    if (this.isGridItem(elem)) return;
+    if (this.isRaqnGrid(elem)) return;
+
+    this.prepend(elem);
+
+    this.recursiveItems(this.previousElementSibling);
+  }
+
+  isGridItem(elem) {
+    return elem.tagName === 'DIV' && elem.classList.contains('grid-item');
+  }
+
+  isRaqnGrid(elem) {
+    return elem.tagName === 'RAQN-GRID-ITEM';
   }
 }

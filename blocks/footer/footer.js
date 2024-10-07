@@ -6,6 +6,8 @@ const metaFooter = getMeta(metaTags.footer.metaName);
 export default class Footer extends ComponentBase {
   static loaderConfig = {
     ...ComponentBase.loaderConfig,
+    targetsSelectors: ':scope > footer',
+    targetsSelectorsLimit: 1,
     loaderStopInit() {
       return metaFooter === false;
     },
@@ -17,18 +19,18 @@ export default class Footer extends ComponentBase {
     return [
       ...super.extendConfig(),
       {
+        contentFromTargets: false,
         addToTargetMethod: 'append',
+        targetsAsContainers: {
+          addToTargetMethod: 'append',
+          contentFromTargets: false,
+        },
       },
     ];
   }
 
   ready() {
-    const child = this.children[0];
-    if (!child) return;
-    child.replaceWith(...child.children);
     this.nav = this.querySelector('ul');
     this.nav?.setAttribute('role', 'navigation');
-    this.classList.add('full-width');
-    this.classList.add('horizontal');
   }
 }

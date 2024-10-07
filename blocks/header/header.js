@@ -6,6 +6,8 @@ const metaHeader = getMeta(metaTags.header.metaName);
 export default class Header extends ComponentBase {
   static loaderConfig = {
     ...ComponentBase.loaderConfig,
+    targetsSelectors: ':scope > header',
+    targetsSelectorsLimit: 1,
     loaderStopInit() {
       return metaHeader === false;
     },
@@ -13,9 +15,7 @@ export default class Header extends ComponentBase {
 
   attributesValues = {
     all: {
-      class: {
-        color: 'primary',
-      },
+      class: 'color-primary',
     },
   };
 
@@ -27,12 +27,17 @@ export default class Header extends ComponentBase {
     return [
       ...super.extendConfig(),
       {
+        contentFromTargets: false,
         addToTargetMethod: 'append',
+        targetsAsContainers: {
+          addToTargetMethod: 'append',
+          contentFromTargets: false,
+        },
       },
     ];
   }
 
-  connected() {
+  ready() {
     eagerImage(this, 1);
   }
 }

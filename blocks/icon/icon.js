@@ -6,6 +6,14 @@ const metaIcons = getMeta(metaTags.icons.metaName);
 export default class Icon extends ComponentBase {
   static observedAttributes = ['data-active', 'data-icon'];
 
+  attributesValues = {
+    all: {
+      attribute: {
+        'aria-hidden': 'true',
+      },
+    },
+  };
+
   #initialIcon = null;
 
   #activeIcon = null;
@@ -50,10 +58,6 @@ export default class Icon extends ComponentBase {
   iconUrl(iconName) {
     const path = `${metaIcons}`;
     return `${path}/${iconName}.svg`;
-  }
-
-  async connected() {
-    this.setAttribute('aria-hidden', 'true');
   }
 
   // ${viewport}-icon-${value} or icon-${value}

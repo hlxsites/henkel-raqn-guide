@@ -376,7 +376,7 @@ export default class SidekickToolsPalette extends ComponentBase {
       });
   }
 
-  connected() {
+  addHtml() {
     this.initPalette();
   }
 }

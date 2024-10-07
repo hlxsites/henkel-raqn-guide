@@ -1,12 +1,8 @@
-footer {
-  background: var(--background-color);
-  width: var(--max-width);
-  margin: 0 auto;
-}
-
 raqn-footer {
   background: var(--background-color);
   border-top: 1px solid var(--text);
+  padding: 20px 0;
+
 }
 
 raqn-footer ul {
@@ -22,8 +18,8 @@ raqn-footer ul li a {
 
 @media screen and (min-width: 1024px) {
   raqn-footer {
-    display: grid;
-    grid-template-columns: auto 20vw;
+    /* display: grid;
+    grid-template-columns: auto 20vw; */
   }
 
   raqn-footer ul li a {
@@ -40,10 +36,10 @@ raqn-footer ul li a {
     margin: 2em 0;
   }
 
-  raqn-footer > *:last-child {
+  /* raqn-footer > *:last-child {
     justify-self: end;
     align-self: center;
-  }
+  } */
 }
 
 raqn-footer ul li:last-child a {

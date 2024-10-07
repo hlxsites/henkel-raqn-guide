@@ -1,20 +1,21 @@
 import component from './init.js';
 import {
-  globalConfig,
   getBreakPoints,
   listenBreakpointChange,
   camelCaseAttr,
   capitalizeCaseAttr,
   deepMerge,
+  deepMergeMethod,
   classToFlat,
   unFlat,
   isObject,
   flatAsValue,
   flat,
   mergeUniqueArrays,
-  getBlocksAndGrids,
 } from './libs.js';
 import { externalConfig } from './libs/external-config.js';
+
+window.raqnInstances ??= {};
 
 export default class ComponentBase extends HTMLElement {
   // All supported data attributes must be added to observedAttributes
@@ -33,7 +34,7 @@ export default class ComponentBase extends HTMLElement {
   };
 
   get Handler() {
-    return window.raqnComponents[this.componentName];
+    return window.raqnComponentsHandlers[this.componentName];
   }
 
   get isInitAsBlock() {
@@ -43,6 +44,7 @@ export default class ComponentBase extends HTMLElement {
   constructor() {
     super();
     this.setDefaults();
+    this.setInstance();
     this.setInitializationPromise();
     this.extendConfigRunner({ config: 'config', method: 'extendConfig' });
     this.extendConfigRunner({ config: 'nestedComponentsConfig', method: 'extendNestedConfig' });
@@ -53,7 +55,9 @@ export default class ComponentBase extends HTMLElement {
     this.uuid = `gen${crypto.randomUUID().split('-')[0]}`;
     this.webComponentName = this.tagName.toLowerCase();
     this.componentName = this.webComponentName.replace(/^raqn-/, '');
+    this.externalConfig = null;
     this.overrideExternalConfig = false;
+    this.category = null;
     this.wasInitBeforeConnected = false;
     this.fragmentPath = null;
     this.fragmentCache = 'default';
@@ -70,9 +74,8 @@ export default class ComponentBase extends HTMLElement {
       // from inner html blocks
       innerGrids: [],
     };
-    // set only if content is loaded externally
+    this.initializeInnerBlocks = true;
     this.innerBlocks = [];
-    // set only if content is loaded externally
     this.innerGrids = [];
     this.initError = null;
     this.breakpoints = getBreakPoints();
@@ -80,7 +83,8 @@ export default class ComponentBase extends HTMLElement {
 
     // use the this.extendConfig() method to extend the default config
     this.config = {
-      listenBreakpoints: false,
+      innerComponents: undefined,
+      nestedComponentsPrefix: ':scope > ',
       hideOnInitError: true,
       hideOnChildrenError: false,
       addToTargetMethod: 'replaceWith',
@@ -100,6 +104,20 @@ export default class ComponentBase extends HTMLElement {
         componentName: 'button',
       },
     };
+
+    this.attrMerge = {
+      '**.class': (a, b) => {
+        const haveLength = [a, b].every((c) => c?.length);
+        
+        if (b && typeof a === 'string' && typeof b !== 'string') {
+          // eslint-disable-next-line no-console
+          console.error('Merge for css classes in attributeValues failed. Values are not strings');
+          return a;
+        }
+
+        return haveLength ? `${a} ${b}` : b;
+      },
+    };
   }
 
   setInitializationPromise() {
@@ -112,6 +130,11 @@ export default class ComponentBase extends HTMLElement {
     // Promise.withResolvers don't fullfill last 2 versions of Safari
     // eg this breaks everything in Safari < 17.4, we need to support.
     // const { promise, resolve, reject } = Promise.withResolvers();
+  }
+
+  setInstance() {
+    window.raqnInstances[this.componentName] ??= [];
+    window.raqnInstances[this.componentName].push(this);
   }
 
   // Using the `method` which returns an array of objects it's easier to extend
@@ -153,6 +176,7 @@ export default class ComponentBase extends HTMLElement {
       await this.Handler;
       this.wasInitBeforeConnected = true;
       this.initOptions = initOptions || {};
+      this.config = deepMerge(this.config, this.initOptions.componentConfig);
       this.setInitialAttributesValues();
       await this.buildExternalConfig();
       this.runConfigsByViewport();
@@ -176,13 +200,16 @@ export default class ComponentBase extends HTMLElement {
    * use the data attr values as default for attributesValues
    */
   setInitialAttributesValues() {
-    const initialAttributesValues = { all: { data: {} } };
+    const initialAttributesValues = {};
+
+    this.externalConfigName = this.getAttribute('config-name') || this.initOptions.externalConfigName;
 
     this.dataAttributesKeys.forEach(({ noData, noDataCamelCase }) => {
       const value = this.dataset[noDataCamelCase];
 
       if (typeof value === 'undefined') return {};
       const initialValue = unFlat({ [noData]: value });
+      initialAttributesValues.all ??= { data: {} };
       initialAttributesValues.all.data = deepMerge({}, initialAttributesValues.all.data, initialValue);
       return initialAttributesValues;
     });
@@ -209,7 +236,7 @@ export default class ComponentBase extends HTMLElement {
   // Build-in method called after the element is added to the DOM.
   async connectedCallback() {
     // Common identifier for raqn web components
-    this.setAttribute('raqnWebComponent', '');
+    this.setAttribute('raqnwebcomponent', '');
     this.setAttribute('isloading', '');
     try {
       this.initialized = this.getAttribute('initialized');
@@ -219,8 +246,14 @@ export default class ComponentBase extends HTMLElement {
         this.setAttribute('id', this.uuid);
         this.loadDependencies(); // do not wait for dependencies;
         await this.loadFragment(this.fragmentPath);
-        await this.connected(); // manipulate/create the html
+        // Add, create and manipulate only html containing EDS blocks/markup
+        // ! any element with a class will considered a block and transformed to a webComponent
+        await this.addEDSHtml();
+        this.setInnerBlocks();
         await this.initChildComponents();
+        // Add, create and manipulate html after inner webComponents were initialized.
+        // Here normal html or webComponent can be created and added to the component.
+        await this.addHtml();
         this.addListeners(); // html is ready add listeners
         await this.ready(); // add extra functionality
         this.setAttribute('initialized', true);
@@ -254,22 +287,51 @@ export default class ComponentBase extends HTMLElement {
   }
 
   async buildExternalConfig() {
-    let configByClasses = mergeUniqueArrays(this.initOptions.configByClasses, this.classList);
+    let configByClasses = mergeUniqueArrays(
+      this.initOptions.configByClasses?.filter((c, index) => c.includes('-') && index !== 0),
+      [...this.classList].map((c) => `all-class-${c}`),
+    );
+
     // normalize the configByClasses to serializable format
-    const { byName } = getBreakPoints();
+    const { byName } = this.breakpoints;
     configByClasses = configByClasses
       // remove the first class which is the component name and keep only compound classes
-      .filter((c, index) => c.includes('-') && index !== 0)
+      // .filter((c, index) => c.includes('-') && index !== 0)
       // make sure break points are included in the config
       .map((c) => {
-        const exceptions = ['all', 'config'];
+        const breakpoints = ['all', 'config', ...Object.keys(byName)];
         const firstClass = c.split('-')[0];
-        const isBreakpoint = Object.keys(byName).includes(firstClass) || exceptions.includes(firstClass);
+        const isBreakpoint = breakpoints.includes(firstClass);
         return isBreakpoint ? c : `all-${c}`;
       });
 
+    const classesAndAttr = configByClasses.reduce(
+      (acc, c) => {
+        const breakpoints = ['all', ...Object.keys(byName)];
+        const classBreakpoint = breakpoints.find((b) => c.startsWith(`${b}-class-`));
+
+        if (c.startsWith('config-')) {
+          // allows to have external config names with hyphens.
+          acc.externalConfigName = c.slice('config-'.length);
+        }
+
+        if (classBreakpoint) {
+          acc.classes[classBreakpoint] ??= {};
+          const currentClasses = acc.classes[classBreakpoint].class;
+          const cls = c.slice(`${classBreakpoint}-class-`.length);
+          acc.classes[classBreakpoint].class = currentClasses?.length ? `${currentClasses} ${cls}` : cls;
+        } else {
+          acc.attrs.push(c);
+        }
+        return acc;
+      },
+      { classes: {}, attrs: [], externalConfigName: null },
+    );
+
     // serialize the configByClasses into a flat object
-    let values = classToFlat(configByClasses);
+    let values = deepMerge({}, classesAndAttr.classes, classToFlat(classesAndAttr.attrs));
+
+    this.externalConfigName ??= classesAndAttr.externalConfigName;
 
     // get the external config
     // TODO With the unFlatten approach of setting this.attributesValues there is an increased amount of processing
@@ -279,7 +341,7 @@ export default class ComponentBase extends HTMLElement {
     // - data - as flatten values with camel case keys
     // - attributes - as flatten values with hyphen separated keys.
     // for anything else set them flatten as they come from from external config
-    const configs = unFlat(await externalConfig.getConfig(this.componentName, values.config));
+    const configs = unFlat(await externalConfig.getConfig(this.componentName, this.externalConfigName, this.category));
 
     if (this.overrideExternalConfig) {
       // Used for preview functionality
@@ -287,8 +349,6 @@ export default class ComponentBase extends HTMLElement {
     } else {
       values = deepMerge({}, configs, values);
     }
-
-    delete values.config;
 
     // add to attributesValues
     this.attributesValues = deepMerge({}, this.attributesValues, values);
@@ -334,9 +394,13 @@ export default class ComponentBase extends HTMLElement {
     }
   }
 
+  get currentAttributesValues() {
+    const { name } = this.breakpoints.active;
+    return deepMergeMethod(this.attrMerge, {}, this.attributesValues.all, this.attributesValues[name]);
+  }
+
   runConfigsByViewport() {
-    const { name } = getBreakPoints().active;
-    const current = deepMerge({}, this.attributesValues.all, this.attributesValues[name]);
+    const current = this.currentAttributesValues;
     this.removeAttribute('class');
     Object.keys(current).forEach((key) => {
       const action = `apply${key.charAt(0).toUpperCase() + key.slice(1)}`;
@@ -375,7 +439,7 @@ export default class ComponentBase extends HTMLElement {
       this.classList.add(...flatAsValue(className).split(' '));
     } else if (className) {
       // strings are added as is
-      this.setAttribute('class', className);
+      this.classList.add(...className.split(' '));
     }
   }
 
@@ -391,18 +455,10 @@ export default class ComponentBase extends HTMLElement {
     });
   }
 
-  // ${viewport}-nest-${value}
-
-  applyNest(config) {
-    const names = Object.keys(config);
-    names.map((key) => {
-      const instance = document.createElement(`raqn-${key}`);
-      instance.initOptions.configByClasses = [config[key]];
-
-      this.cachedChildren = Array.from(this.initOptions.target.children);
-      this.cachedChildren.forEach((child) => instance.append(child));
-      this.append(instance);
-    });
+  applySetting(config) {
+    // delete the setting to run only once on init
+    delete this.attributesValues.all.setting;
+    deepMerge(this.config, config);
   }
 
   /**
@@ -426,9 +482,9 @@ export default class ComponentBase extends HTMLElement {
 
   getBreakpointAttrVal(attr) {
     const { name: activeBrName } = this.breakpoints.active;
-    const attribute = this.attributesValues?.[attr];
-    if (!attribute) return undefined;
-    return attribute?.[activeBrName] ?? attribute?.all;
+    const attributeAll = this.attributesValues?.all?.[attr];
+    const attributeBreakpoint = this.attributesValues?.[activeBrName]?.[attr];
+    return attributeBreakpoint ?? attributeAll;
   }
 
   addListeners() {
@@ -439,7 +495,7 @@ export default class ComponentBase extends HTMLElement {
 
   async initChildComponents() {
     await Promise.allSettled([this.initNestedComponents(), this.initInnerBlocks()]);
-    await this.initInnerGrids();
+    // await this.initInnerGrids();
   }
 
   async initNestedComponents() {
@@ -450,7 +506,7 @@ export default class ComponentBase extends HTMLElement {
         ? deepMerge({}, setting, {
             // Exclude nested components query from innerBlocks. Inner Components will query their own nested components.
             loaderConfig: {
-              targetsSelectorsPrefix: ':scope > div >', // Limit only to default content, exclude blocks.
+              targetsSelectorsPrefix: this.config.nestedComponentsPrefix, // Limit only to default content, exclude blocks.
             },
           })
         : setting;
@@ -502,7 +558,9 @@ export default class ComponentBase extends HTMLElement {
     if (response.ok) {
       this.fragmentContent = response.text();
       await this.addFragmentContent();
-      this.setInnerBlocksAndGrids();
+      // When html is loaded externally it will contain sections and blocks
+      // Initialize inner components
+      this.config.innerComponents ??= ':scope > div';
     }
   }
 
@@ -510,13 +568,15 @@ export default class ComponentBase extends HTMLElement {
     this.innerHTML = await this.fragmentContent;
   }
 
-  // Set only if content is loaded externally;
-  setInnerBlocksAndGrids() {
-    const { blocks, grids } = getBlocksAndGrids(
-      [...this.querySelectorAll(globalConfig.blockSelector)].map((elem) => component.getBlockData(elem)),
+  setInnerBlocks() {
+    if (!this.config.innerComponents) return;
+    // const { blocks, grids } =
+    //   ;
+
+    this.innerBlocks = [...this.querySelectorAll(this.config.innerComponents)].map((elem) =>
+      component.getBlockData(elem),
     );
-    this.innerBlocks = blocks;
-    this.innerGrids = grids;
+    // this.innerGrids = grids;
   }
 
   queryElements() {
@@ -543,11 +603,17 @@ export default class ComponentBase extends HTMLElement {
 
   initSubscriptions() {}
 
+  removeSubscriptions() {}
+
   onInit() {}
 
-  connected() {}
+  addEDSHtml() {}
+
+  addHtml() {}
 
   ready() {}
 
-  disconnectedCallback() {}
+  disconnectedCallback() {
+    this.removeSubscriptions();
+  }
 }

@@ -8,6 +8,12 @@ export default class Breadcrumbs extends ComponentBase {
     targetsSelectorsLimit: 1,
   };
 
+  attributesValues = {
+    all: {
+      class: 'full-width',
+    },
+  };
+
   nestedComponentsConfig = {};
 
   extendConfig() {
@@ -24,9 +30,7 @@ export default class Breadcrumbs extends ComponentBase {
     ];
   }
 
-  connected() {
-    this.classList.add('full-width');
-    this.classList.add('breadcrumbs');
+  addHtml() {
     const { origin, pathname } = window.location;
     let breadcrumbRoot = getMeta(metaTags.breadcrumbRoot.metaName);
     breadcrumbRoot = breadcrumbRoot?.startsWith('/') ? breadcrumbRoot : `/${breadcrumbRoot}`;

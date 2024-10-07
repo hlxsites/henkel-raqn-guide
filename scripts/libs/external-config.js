@@ -4,10 +4,12 @@ window.raqnComponentsMasterConfig = window.raqnComponentsMasterConfig || null;
 
 // eslint-disable-next-line import/prefer-default-export
 export const externalConfig = {
-  async getConfig(componentName, configName = 'default') {
+  async getConfig(componentName, configName, category = '') {
+    const defaultConfig = configName ?? 'default';
+    const componentNameCategory = `${category ? `${category}-` : ''}${componentName}`;
     window.raqnComponentsMasterConfig ??= await this.loadConfig();
-    const componentConfig = window.raqnComponentsMasterConfig?.[componentName];
-    const parsedConfig = componentConfig?.[configName];
+    const componentConfig = window.raqnComponentsMasterConfig?.[componentNameCategory];
+    const parsedConfig = componentConfig?.[defaultConfig];
 
     // return copy of object to prevent mutation of raqnComponentsMasterConfig;
     if (parsedConfig) return deepMerge({}, parsedConfig);
