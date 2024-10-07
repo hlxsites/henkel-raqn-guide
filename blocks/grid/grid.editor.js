@@ -30,7 +30,7 @@ export default function config() {
           type: 'text',
           label: 'Height',
           helpText: 'The height of the grid.',
-          value: 'inicial',
+          value: 'initial',
         },
         width: {
           type: 'text',

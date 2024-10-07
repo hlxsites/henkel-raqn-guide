@@ -45,7 +45,7 @@ export const componentList = {
   'grid-item': {
     tag: 'raqn-grid-item',
     script: '/blocks/grid-item/grid-item',
-    priority: -1,
+    priority: 0,
   },
   icon: {
     tag: 'raqn-icon',

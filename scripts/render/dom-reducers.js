@@ -4,7 +4,7 @@ import { loadModule } from '../libs.js';
 import { componentList, injectedComponents } from './component-list.js';
 
 window.loadedComponents = window.loadedComponents || {};
-window.inicialization = window.inicialization || [];
+window.initialization = window.initialization || [];
 window.raqnComponents = window.raqnComponents || {};
 const { loadedComponents } = window;
 
@@ -15,7 +15,7 @@ export const filterNodes = (nodes, tag, className) => {
     const node = nodes[i];
 
     if (node.tag === tag && (className ? node.class.includes(className) : true)) {
-      node.inicialIndex = i;
+      node.initialIndex = i;
       filtered.push(node);
     }
   }
@@ -28,13 +28,13 @@ export const prepareGrid = (node) => {
     const gridItems = filterNodes(node.children, 'raqn-grid-item');
 
     grids.map((grid, i) => {
-      const inicial = node.children.indexOf(grid);
+      const initial = node.children.indexOf(grid);
       const nextGridIndex = grids[i + 1] ? node.children.indexOf(grids[i + 1]) : node.children.length;
       gridItems.map((item) => {
         const itemIndex = node.children.indexOf(item);
         // get elements between grid and item and insert into grid
-        if (itemIndex > inicial && itemIndex < nextGridIndex) {
-          const children = node.children.splice(inicial + 1, itemIndex - inicial);
+        if (itemIndex > initial && itemIndex < nextGridIndex) {
+          const children = node.children.splice(initial + 1, itemIndex - initial);
           const gridItem = children.pop(); // remove grid item from children
           gridItem.children = children;
           grid.children.push(gridItem);
@@ -86,7 +86,7 @@ export const toWebComponent = (node) => {
 
 export const loadModules = (nodes, extra = {}) => {
   const modules = { ...loadedComponents, ...extra };
-  window.inicialization = Object.keys(modules)
+  window.initialization = Object.keys(modules)
     .sort((a, b) => modules[a].priority - modules[b].priority)
     .map((component) => {
       const { script, tag, priority } = modules[component];
@@ -104,7 +104,7 @@ export const loadModules = (nodes, extra = {}) => {
             }
           }
           resolve({ tag, mod, style });
-        }, 10 + priority);
+        }, priority || 0);
       });
     });
   return nodes;
