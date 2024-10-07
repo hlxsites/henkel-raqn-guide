@@ -25,7 +25,7 @@ export const componentList = {
       const nextSibling = { ...node.nextSibling };
       if (nextSibling && nextSibling.tag === 'a') {
         const { aria } = nextSibling.children[0].text;
-        node.attributes.push({ name: 'aria-label', value: aria });
+        node.attributes['aria-label'] = aria;
         nextSibling.children = [node];
         node.parentNode.children.splice(nextSibling.indexInParent, 1, {
           tag: 'textNode',

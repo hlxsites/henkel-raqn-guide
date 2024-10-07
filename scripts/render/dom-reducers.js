@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/prefer-default-export
 
-import { loadModule } from '../libs.js';
+import { getMeta, loadModule } from '../libs.js';
 import { componentList, injectedComponents } from './component-list.js';
 
 window.loadedComponents = window.loadedComponents || {};
@@ -20,6 +20,23 @@ export const filterNodes = (nodes, tag, className) => {
     }
   }
   return filtered;
+};
+
+export const eagerImage = (node) => {
+  if (!window.raqnEagerImages) {
+    const eager = getMeta('eager-images');
+    window.raqnEagerImages = parseInt(eager, 10) || 0;
+  }
+  if (node.tag === 'picture' && window.raqnEagerImages > 0) {
+    const img = node.children.find((child) => child.tag === 'img');
+    if (img) {
+      const { width, height } = img.attributes;
+      img.attributes.style = `aspect-ratio: ${width} / ${height};`;
+      img.attributes.loading = 'eager';
+      window.raqnEagerImages -= 1;
+    }
+  }
+  return node;
 };
 
 export const prepareGrid = (node) => {

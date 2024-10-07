@@ -39,16 +39,22 @@ export default class Theming extends ComponentBase {
     this.fontFace = names
       .map((key) => {
         // files
+
         const types = Object.keys(data[key].options);
         return types
-          .map(
-            (type) => `@font-face {
+          .map((type) => {
+            document.head.insertAdjacentHTML(
+              'beforeend',
+              `<link rel="preload" href="${window.location.origin}/fonts/${data[key].options[type]}" as="font" type="font/woff2" crossorigin>`,
+            );
+            return `@font-face {
+            font-display: fallback;
             font-family: '${key}';
             src: url('${window.location.origin}/fonts/${data[key].options[type]}');
             ${type === 'italic' ? 'font-style' : 'font-weight'}: ${type};
             }
-            `,
-          )
+            `;
+          })
           .join('');
       })
       .join('');

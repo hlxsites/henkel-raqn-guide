@@ -7,6 +7,7 @@ import {
   inject,
   loadModules,
   toWebComponent,
+  eagerImage,
 } from './dom-reducers.js';
 
 // define instances for web components
@@ -26,7 +27,7 @@ export const nodeProxy = (node) => {
   const p = new Proxy(node, {
     get(target, prop) {
       if (prop === 'hasAttributes') {
-        return () => target.attributes.length > 0;
+        return () => Object.keys(target.attributes).length > 0;
       }
       if (prop === 'path') {
         return recursiveParent(target);
@@ -78,6 +79,15 @@ export const generateDom = (virtualdom) => {
     const { childNodes } = element;
     const child = childNodes.length > 0 ? generateDom(childNodes) : [];
     const classList = element.classList && element.classList.length > 0 ? [...element.classList] : [];
+
+    const attributes = {};
+    if (element.hasAttributes && element.hasAttributes()) {
+      // eslint-disable-next-line no-plusplus
+      for (let j = 0; j < element.attributes.length; j++) {
+        const { name, value } = element.attributes[j];
+        attributes[name] = value;
+      }
+    }
     dom.push(
       nodeProxy({
         tag: element.tagName ? element.tagName.toLowerCase() : 'textNode',
@@ -85,7 +95,7 @@ export const generateDom = (virtualdom) => {
         class: classList,
         attributesValues: classToFlat(classList),
         id: element.id,
-        attributes: element.hasAttributes && element.hasAttributes() ? element.attributes : [],
+        attributes,
         text: !element.tagName ? element.textContent : null,
         reference: element,
       }),
@@ -114,10 +124,10 @@ export const renderVirtualDom = (virtualdom) => {
       }
       if (element.attributes) {
         // eslint-disable-next-line no-plusplus
-        for (let j = 0; j < element.attributes.length; j++) {
-          const { name, value } = element.attributes[j];
+        Object.keys(element.attributes).forEach((name) => {
+          const value = element.attributes[name];
           el.setAttribute(name, value);
-        }
+        });
       }
       element.initialAttributesValues = classToFlat(element.class);
       if (element.text) {
@@ -145,9 +155,11 @@ export const curryManipulation =
 export const manipulation = curryManipulation([
   recursive(cleanEmptyTextNodes),
   recursive(cleanEmptyNodes),
+  recursive(eagerImage),
   inject,
   recursive(toWebComponent),
   recursive(prepareGrid),
+
   loadModules,
 ]);
 // preset manipulation for framents and external HTML
