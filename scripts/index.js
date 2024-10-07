@@ -9,4 +9,5 @@ document.body.append(...renderVirtualDom(window.raqnVirtualDom));
 // EG callback to loadModules
 await Promise.all(window.inicialization).then(() => {
   // some after main modules loaded
+  console.log('All modules loaded');
 });

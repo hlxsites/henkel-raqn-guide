@@ -83,8 +83,9 @@ export const toWebComponent = (node) => {
 };
 
 // load modules in order of priority
-export const loadModules = (nodes, modules = loadedComponents) => {
-  // load all modules and return a promise for queuing
+
+export const loadModules = (nodes, extra = {}) => {
+  const modules = { ...loadedComponents, ...extra };
   window.inicialization = Object.keys(modules)
     .sort((a, b) => modules[a].priority - modules[b].priority)
     .map((component) => {
