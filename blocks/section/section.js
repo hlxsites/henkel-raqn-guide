@@ -18,6 +18,16 @@ export default class Section extends ComponentBase {
     ];
   }
 
+  buildExternalConfig() {
+    // get values from section metadata block;
+    const meta = this.querySelector(':scope > .section-metadata');
+    if (meta) {
+      meta.remove();
+      this.initOptions.configByClasses = [...meta.classList];
+    }
+    super.buildExternalConfig();
+  }
+
   setInnerBlocks() {
     if (!this.config.innerComponents) return;
 
@@ -37,7 +47,8 @@ export default class Section extends ComponentBase {
     const grids = this.querySelectorAll('.grid');
     if (grids.length > 1) {
       if (window.raqnIsPreview) {
-        this.innerHTML = '<h3>The content of this section is hidden because it contains more than 1 grid which is not supported. Please fix. </h3>';
+        this.innerHTML =
+          '<h3>The content of this section is hidden because it contains more than 1 grid which is not supported. Please fix. </h3>';
         this.attributesValues.all ??= {};
         this.attributesValues.all.class ??= '';
 

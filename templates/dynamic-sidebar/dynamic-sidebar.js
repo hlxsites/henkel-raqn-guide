@@ -1,12 +1,23 @@
 import Grid from '../../blocks/grid/grid.js';
 import ComponentBase from '../../scripts/component-base.js';
 import component from '../../scripts/init.js';
-import { globalConfig, metaTags, getMetaGroup } from '../../scripts/libs.js';
+import { globalConfig, metaTags, getMetaGroup, stringToArray, camelCaseAttr } from '../../scripts/libs.js';
 
-export default class Template extends ComponentBase {
+export default class DynamicSidebar extends ComponentBase {
   static observedAttributes = [...Grid.observedAttributes];
 
+  #templateColumns = ['template-sidebar-one', 'template-main', 'template-sidebar-two'];
+
   attributesValues = {
+    all: {
+      templateColumns: 'template-sidebar-one, template-main, template-sidebar-two',
+    },
+    l: {
+      templateColumns: 'template-sidebar-one, template-main, template-sidebar-two',
+    },
+    m: {
+      templateColumns: 'template-main, template-sidebar-one, template-sidebar-two',
+    },
     grid: {
       all: {
         class: 'full-width',
@@ -24,6 +35,9 @@ export default class Template extends ComponentBase {
         columns: '1fr',
       },
     },
+    templateTwo: {},
+    templateMain: {},
+    templateOne: {},
   };
 
   static loaderConfig = {
@@ -37,11 +51,16 @@ export default class Template extends ComponentBase {
     return [
       ...super.extendConfig(),
       {
-        innerComponents: `.template-sidebar ${globalConfig.blockSelector}, .template-main > div`,
+        innerComponents: `
+          .template-sidebar-one ${globalConfig.blockSelector}, 
+          .template-main > div, 
+          .template-sidebar-two ${globalConfig.blockSelector}`,
         addToTargetMethod: 'append',
         targetsAsContainers: {
           addToTargetMethod: 'append',
         },
+        structureComponents: '',
+        structureAddToTargetMethod: 'append',
         structure: {
           breadcrumbs: {
             targetsSelectors: 'main',
@@ -99,41 +118,95 @@ export default class Template extends ComponentBase {
 
   async createTemplateGrid() {
     await component.multiLoadAndDefine(['grid', 'grid-item']);
-    const content = [...this.childNodes];
-    this.tplGrid = document.createElement('raqn-grid');
-    this.tplSidebar = document.createElement('raqn-grid-item');
-    this.tplMain = document.createElement('raqn-grid-item');
-    this.tplSidebar.classList.add('template-sidebar');
-    this.tplMain.classList.add('template-main');
+    const content = [...this.children];
+    const contentByItem = content.reduce(
+      (acc, item) => {
+        const meta = item.querySelector(':scope > .section-metadata');
+        if (!meta) {
+          acc.templateMain.push(item);
+          return acc;
+        };
 
-    this.tplGrid.attributesValues = this.attributesValues.grid;
-    this.tplGrid.config.innerComponents = null;
-    // this.tplGrid.dataset.columns = '300px 1fr';
-    this.tplMain.config.innerComponents = null;
-    this.tplSidebar.config.innerComponents = null;
+        const allowedCols = this.#templateColumns.find(
+          (tc) => meta.classList.contains(tc) && (meta.classList.remove(tc) || true),
+        );
+
+        if (allowedCols) {
+          acc[camelCaseAttr(allowedCols)].push(item);
+        } else {
+          acc.templateMain.push(item);
+        }
+        return acc;
+      },
+      { templateSidebarOne: [], templateSidebarTwo: [], templateMain: [] },
+    );
 
     this.innerHTML = '';
+    this.tplGrid = document.createElement('raqn-grid');
+    this.tplGrid.attributesValues = this.attributesValues.grid;
+    this.tplGrid.config.innerComponents = null;
+
+    const itemsTpl = stringToArray(this.currentAttributesValues.templateColumns).filter((col) =>
+      this.#templateColumns.includes(col),
+    );
+    const itemElemsItems = itemsTpl.map((item) => this.createGridItems(item));
+
     this.append(this.tplGrid);
+    await this.tplGrid.initialization;
 
-    this.tplGrid.append(this.tplSidebar, this.tplMain);
+    this.tplGrid.append(...itemElemsItems);
 
-    await this.tplSidebar.initialization;
-    await this.tplMain.initialization;
+    // To prevent errors initialization needs to be ready before appending content to new elements.
+    await Promise.allSettled(Object.keys(contentByItem).map((c) => this[c]?.initialization));
+    Object.keys(contentByItem).forEach((c) => this[c] && this[c].append(...contentByItem[c]));
+  }
 
-    this.tplMain.append(...content);
+  createGridItems(item) {
+    const camelCaseItem = camelCaseAttr(item);
+    this[camelCaseItem] = document.createElement('raqn-grid-item');
+    this[camelCaseItem].classList.add(item);
+    this[camelCaseItem].attributesValues = this.attributesValues[camelCaseItem];
+    this[camelCaseItem].config.innerComponents = null;
+
+    return this[camelCaseItem];
+  }
+
+  applyTemplateColumns(val) {
+    if (!this.initialized) return;
+    const itemsTpl = stringToArray(val).filter((col) => this.#templateColumns.includes(col));
+    const itemElemsItems = itemsTpl.map((itemTpl) =>
+      [...this.tplGrid.children].find((item) => item.matches(`.${itemTpl}`)),
+    );
+    this.tplGrid.append(...itemElemsItems);
   }
 
   async initStructure() {
-    const structureComponents = getMetaGroup(metaTags.structure.metaNamePrefix, { getFallback: false });
+    let structureComponents = getMetaGroup(metaTags.structure.metaNamePrefix, { getFallback: false });
+    const localStructure = stringToArray(this.config.structureComponents).flatMap((c) => {
+      const name = c.trim();
+      const structure = structureComponents.find((sc) => sc.name === name);
+      if (structure) return structure;
+      return { name, content: true };
+    });
+    structureComponents = structureComponents.filter((c) => !localStructure.some((lc) => c.name === lc.name));
+    structureComponents = [...localStructure, ...structureComponents];
+
     this.structureComponents = structureComponents.flatMap(({ name, content }) => {
       if (content !== true) return [];
-      const { targetsSelectors } = this.config.structure[name] || {};
+      const { structureAddToTargetMethod } = this.config;
+      const { targetsSelectors, addToTargetMethod } = this.config.structure[name] || {};
+
       return {
         componentName: name.trim(),
         targets: [document],
         loaderConfig: {
           ...(targetsSelectors && { targetsSelectors }),
           targetsAsContainers: true,
+        },
+        componentConfig: {
+          targetsAsContainers: {
+            addToTargetMethod: addToTargetMethod || structureAddToTargetMethod,
+          },
         },
       };
     });

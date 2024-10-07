@@ -1,6 +1,6 @@
 import ComponentBase from '../../scripts/component-base.js';
 import component from '../../scripts/init.js';
-import { metaTags, getMetaGroup } from '../../scripts/libs.js';
+import { metaTags, getMetaGroup, stringToArray } from '../../scripts/libs.js';
 
 export default class Template extends ComponentBase {
   static loaderConfig = {
@@ -20,6 +20,8 @@ export default class Template extends ComponentBase {
         targetsAsContainers: {
           addToTargetMethod: 'append',
         },
+        structureComponents: '',
+        structureAddToTargetMethod: 'prepend',
         structure: {
           breadcrumbs: {
             targetsSelectors: 'main',
@@ -65,16 +67,32 @@ export default class Template extends ComponentBase {
   }
 
   async initStructure() {
-    const structureComponents = getMetaGroup(metaTags.structure.metaNamePrefix, { getFallback: false });
+    let structureComponents = getMetaGroup(metaTags.structure.metaNamePrefix, { getFallback: false });
+    const localStructure = stringToArray(this.config.structureComponents).flatMap((c) => {
+      const name = c.trim();
+      const structure = structureComponents.find((sc) => sc.name === name);
+      if (structure) return structure;
+      return { name, content: true };
+    });
+    structureComponents = structureComponents.filter((c) => !localStructure.some((lc) => c.name === lc.name));
+    structureComponents = [...localStructure, ...structureComponents];
+
     this.structureComponents = structureComponents.flatMap(({ name, content }) => {
       if (content !== true) return [];
-      const { targetsSelectors } = this.config.structure[name] || {};
+      const { structureAddToTargetMethod } = this.config;
+      const { targetsSelectors, addToTargetMethod } = this.config.structure[name] || {};
+
       return {
         componentName: name.trim(),
         targets: [document],
         loaderConfig: {
           ...(targetsSelectors && { targetsSelectors }),
           targetsAsContainers: true,
+        },
+        componentConfig: {
+          targetsAsContainers: {
+            addToTargetMethod: addToTargetMethod || structureAddToTargetMethod,
+          },
         },
       };
     });

@@ -2,6 +2,7 @@ export const globalConfig = {
   semanticBlocks: ['header', 'footer'],
   blockSelector: `
   [class]:not(
+    .section-metadata,
     [raqnwebcomponent],
     style,
     [class^="config-" i]
@@ -583,19 +584,22 @@ export function flatAsClasses(data, sep = '-') {
  *
  * @param {Object} obj - Object to unflatten
  * */
-
-export function unFlat(f, sep = '-') {
+export function unFlat(f, settings = {}) {
+  const { separatorAliases = [['+', '-']], keySeparator = '-' } = settings;
   const un = {};
   // for each key create objects
   Object.keys(f).forEach((key) => {
-    const properties = key.split(sep);
+    const properties = key.split(keySeparator);
     const value = f[key];
+
     properties.reduce((unflating, prop, i) => {
-      if (!unflating[prop]) {
-        const step = i < properties.length - 1 ? { [prop]: {} } : { [prop]: value };
+      const newProp = separatorAliases.reduce((acc, p) => acc.replaceAll(...p), prop);
+      if (!unflating[newProp]) {
+        const step = i < properties.length - 1 ? { [newProp]: {} } : { [newProp]: value };
         Object.assign(unflating, step);
       }
-      return unflating[prop];
+
+      return unflating[newProp];
     }, un);
   });
   return un;

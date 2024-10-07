@@ -110,6 +110,7 @@ export default class ComponentBase extends HTMLElement {
         const haveLength = [a, b].every((c) => c?.length);
         
         if (b && typeof a === 'string' && typeof b !== 'string') {
+          // eslint-disable-next-line no-console
           console.error('Merge for css classes in attributeValues failed. Values are not strings');
           return a;
         }
@@ -175,6 +176,7 @@ export default class ComponentBase extends HTMLElement {
       await this.Handler;
       this.wasInitBeforeConnected = true;
       this.initOptions = initOptions || {};
+      this.config = deepMerge(this.config, this.initOptions.componentConfig);
       this.setInitialAttributesValues();
       await this.buildExternalConfig();
       this.runConfigsByViewport();
@@ -392,10 +394,13 @@ export default class ComponentBase extends HTMLElement {
     }
   }
 
-  runConfigsByViewport() {
+  get currentAttributesValues() {
     const { name } = this.breakpoints.active;
-    const current = deepMergeMethod(this.attrMerge, {}, this.attributesValues.all, this.attributesValues[name]);
+    return deepMergeMethod(this.attrMerge, {}, this.attributesValues.all, this.attributesValues[name]);
+  }
 
+  runConfigsByViewport() {
+    const current = this.currentAttributesValues;
     this.removeAttribute('class');
     Object.keys(current).forEach((key) => {
       const action = `apply${key.charAt(0).toUpperCase() + key.slice(1)}`;
