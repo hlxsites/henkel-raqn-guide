@@ -1,6 +1,6 @@
 import ComponentBase from '../../scripts/component-base.js';
 
-export default class Grid extends ComponentBase {
+export default class GridItem extends ComponentBase {
   static observedAttributes = [
     'data-level',
     'data-order',

@@ -1,6 +1,7 @@
 import ComponentBase from '../../scripts/component-base.js';
 
 import { popupState } from '../../scripts/libs.js';
+import { generalManipulation, generateDom, renderVirtualDom } from '../../scripts/render/dom.js';
 
 export default class PopupTrigger extends ComponentBase {
   static observedAttributes = ['data-active', 'data-url'];
@@ -24,7 +25,7 @@ export default class PopupTrigger extends ComponentBase {
       ...super.extendConfig(),
       {
         elements: {
-          popupBtn: 'button',
+          popupBtn: 'raqn-button',
         },
         closePopupIdentifier: '#popup-close',
       },
@@ -42,6 +43,9 @@ export default class PopupTrigger extends ComponentBase {
     this.createButton();
     this.popupBtn.append(...this.childNodes);
     this.append(this.popupBtn);
+    const dom = generalManipulation(generateDom(this.childNodes));
+    this.innerHTML = '';
+    this.append(...renderVirtualDom(dom));
     this.processTargetAnchor();
   }
 
@@ -68,7 +72,7 @@ export default class PopupTrigger extends ComponentBase {
   }
 
   createButton() {
-    this.popupBtn = document.createElement('button');
+    this.popupBtn = document.createElement('raqn-button');
     this.popupBtn.setAttribute('aria-expanded', 'false');
     this.popupBtn.setAttribute('aria-haspopup', 'true');
     this.popupBtn.setAttribute('type', 'button');

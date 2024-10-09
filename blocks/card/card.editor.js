@@ -1,7 +1,7 @@
 export default function config() {
   return {
     attributes: {
-      data: {
+      grid: {
         ratio: {
           type: 'select',
           options: [

@@ -83,16 +83,23 @@ export const componentList = {
     script: '/blocks/popup/popup',
     priority: 3,
   },
-  'popup-trigger': {
-    tag: 'raqn-popup-trigger',
-    script: '/blocks/popup-trigger/popup-trigger',
-    priority: 3,
-  },
   a: {
     tag: 'raqn-button',
     priority: 0,
     script: '/blocks/button/button',
     transform: (node) => {
+      if (node.attributes.href && node.attributes.href.includes('#popup-trigger')) {
+        node.tag = 'popup-trigger';
+        [node.attributes['data-url']] = node.attributes.href.split('#popup-trigger');
+        delete node.attributes.href;
+        const button = {
+          tag: 'raqn-button',
+          children: [node],
+          class: ['button-popup-trigger'],
+        };
+        return button;
+      }
+
       if (
         !node.nextSibling &&
         node.parentNode.tag === 'div' &&
@@ -104,6 +111,11 @@ export const componentList = {
       }
       return node;
     },
+  },
+  'popup-trigger': {
+    tag: 'raqn-popup-trigger',
+    script: '/blocks/popup-trigger/popup-trigger',
+    priority: 3,
   },
 };
 

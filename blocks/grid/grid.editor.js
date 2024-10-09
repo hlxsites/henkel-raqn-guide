@@ -24,8 +24,6 @@ export default function config() {
           helpText: 'The gap between the grid items.',
           value: '20px',
         },
-      },
-      data: {
         height: {
           type: 'text',
           label: 'Height',
@@ -56,36 +54,6 @@ export default function config() {
           ],
           label: 'Reverse',
           helpText: 'Reverse the order of the grid items.',
-        },
-        columns: {
-          type: 'text',
-          label: 'Columns',
-          helpText: 'Number of columns in the grid.',
-          value: 'auto',
-        },
-        rows: {
-          type: 'text',
-          label: 'Rows',
-          helpText: 'Number of rows in the grid.',
-          value: 'auto',
-        },
-        'auto-columns': {
-          type: 'text',
-          label: 'Auto Columns',
-          helpText: 'The width of the columns.',
-          value: 'auto',
-        },
-        'auto-rows': {
-          type: 'text',
-          label: 'Auto Rows',
-          helpText: 'The height of the rows.',
-          value: 'auto',
-        },
-        areas: {
-          type: 'text',
-          label: 'Areas',
-          helpText: 'The grid areas.',
-          value: '',
         },
         'justify-items': {
           type: 'select',

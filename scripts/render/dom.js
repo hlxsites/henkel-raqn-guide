@@ -71,13 +71,13 @@ export const nodeProxy = (node) => {
 };
 
 // extract the virtual dom from the real dom
-export const generateDom = (virtualdom) => {
+export const generateDom = (virtualdom, reference = true) => {
   const dom = [];
   // eslint-disable-next-line no-plusplus
   for (let i = 0; i < virtualdom.length; i++) {
     const element = virtualdom[i];
     const { childNodes } = element;
-    const child = childNodes.length > 0 ? generateDom(childNodes) : [];
+    const child = childNodes.length > 0 ? generateDom(childNodes, reference) : [];
     const classList = element.classList && element.classList.length > 0 ? [...element.classList] : [];
 
     const attributes = {};
@@ -97,7 +97,7 @@ export const generateDom = (virtualdom) => {
         id: element.id,
         attributes,
         text: !element.tagName ? element.textContent : null,
-        reference: element,
+        reference: reference ? element : null, // no referent for stringfying the dom
       }),
     );
   }
@@ -114,7 +114,10 @@ export const renderVirtualDom = (virtualdom) => {
     if (element.tag !== 'textNode') {
       const el = document.createElement(element.tag);
       if (element.tag.indexOf('raqn-') === 0) {
-        window.raqnInstances[element.tag] = el;
+        if (!window.raqnInstances[element.tag]) {
+          window.raqnInstances[element.tag] = [];
+        }
+        window.raqnInstances[element.tag].push(el);
       }
       if (element.class.length > 0) {
         el.classList.add(...element.class);

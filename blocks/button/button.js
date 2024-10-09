@@ -49,6 +49,7 @@ export default class Button extends ComponentBase {
     const { anchor, ariaText } = this.elements;
     const wrap = document.createElement('span');
     if (ariaText) return;
+    if (!anchor.childNodes) return;
     const label = [...anchor.childNodes].find(({ nodeName }) => nodeName === '#text');
     if (!label) return;
     wrap.textContent = label.textContent;
