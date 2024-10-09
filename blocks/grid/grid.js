@@ -8,7 +8,12 @@ export default class Grid extends ComponentBase {
   attributesValues = {
     all: {
       grid: {
-        gap: '20px',
+        gap: '80px',
+        template: {
+          columns: 'repeat(auto-fill, 200px)',
+          rows: 'auto',
+        },
+        heigth: 'initial',
       },
     },
   };
