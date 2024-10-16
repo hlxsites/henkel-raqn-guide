@@ -105,6 +105,12 @@ export const componentList = {
       return node;
     },
   },
+  'swaggerui': {
+    tag: 'raqn-swaggerui',
+    script: '/blocks/swaggerui/swaggerui',
+    priority: 0,
+  },
+
 };
 
 export const injectedComponents = [
