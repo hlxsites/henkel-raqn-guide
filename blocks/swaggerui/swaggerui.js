@@ -72,7 +72,7 @@ export default class SwaggerUI extends ComponentBase {
     });
     await Promise.all([
       loadJS('/blocks/swaggerui/libs/swagger-ui-bundle.js'), 
-      loadJS('/blocks/swaggerui/libs/swagger-ui-standalone-preset.js')
+      loadJS('/blocks/swaggerui/libs/swagger-ui-standalone-preset.js'),
     ]);
     
     await this.loadAPIs();
