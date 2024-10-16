@@ -1,9 +1,11 @@
 import ComponentBase from '../../scripts/component-base.js';
 
+const prefixPath = '/api-definitions';
+
 export default class SwaggerUI extends ComponentBase {
 
   async loadEnvironments() {
-    const response = await fetch('/apis/environments.json');
+    const response = await fetch(`${prefixPath}/environments.json`);
     return response.json();
   }
 
@@ -21,7 +23,7 @@ export default class SwaggerUI extends ComponentBase {
     });
 
     environmentsElement.addEventListener('change', async () => {
-      const response = await fetch(`/apis/${environmentsElement.value}/index.json`);
+      const response = await fetch(`${prefixPath}/${environmentsElement.value}/index.json`);
       const apis = await response.json();
       definitionsElement.innerHTML = '';
       wrapperElement.innerHTML = '';
@@ -35,7 +37,7 @@ export default class SwaggerUI extends ComponentBase {
         const file = definitionsElement.value;
         wrapperElement.innerHTML = '';
         window.SwaggerUIBundle({
-          url: `/apis/${environmentsElement.value}/${file}`,
+          url: `${prefixPath}/${environmentsElement.value}/${file}`,
           domNode: wrapperElement,
           presets: [window.SwaggerUIBundle.presets.apis, window.SwaggerUIStandalonePreset],
           layout: 'StandaloneLayout',
