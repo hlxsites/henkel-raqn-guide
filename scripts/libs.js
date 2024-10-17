@@ -22,6 +22,11 @@ export const globalConfig = {
   classes: {
     noScroll: 'no-scroll',
   },
+  previewHosts: {
+    localhost: 'localhost',
+    review: 'aem.page',
+  },
+  isPreview: undefined,
 };
 
 export const metaTags = {
@@ -54,7 +59,8 @@ export const metaTags = {
   },
   template: {
     metaName: 'template',
-    // contentType: 'string template name',
+    fallbackContent: '/templates/',
+    // contentType: 'string template name and path defaults to fallbackContent - or the full path including template name',
   },
   lcp: {
     metaName: 'lcp',
@@ -99,6 +105,21 @@ export const metaTags = {
     fallbackContent: 'color-default font-default',
     // contentType: 'string theme name',
   },
+};
+
+export const isPreview = () => {
+  if (typeof globalConfig.isPreview !== 'undefined') return globalConfig.isPreview;
+
+  const { hostname, searchParams } = new URL(window.location);
+  const isDisabled = searchParams.has('raqnPreviewOff');
+  if (isDisabled) {
+    globalConfig.isPreview = !isDisabled;
+    return globalConfig.isPreview;
+  }
+  const { previewHosts } = globalConfig;
+
+  globalConfig.isPreview = Object.values(previewHosts).some((host) => hostname.endsWith(host));
+  return globalConfig.isPreview;
 };
 
 export const camelCaseAttr = (val) => val.replace(/-([a-z])/g, (k) => k[1].toUpperCase());
@@ -323,33 +344,56 @@ export function deepMerge(origin, ...toMerge) {
   return deepMerge(origin, ...toMerge);
 }
 
-export function loadModule(urlWithoutExtension, loadCSS = true) {
+export function loadModule(urlWithoutExtension, { loadCSS = true, loadJS = true }) {
+  const modules = { js: Promise.resolve(), css: Promise.resolve() };
+  if (!urlWithoutExtension) return modules;
   try {
-    const js = import(`${urlWithoutExtension}.js`);
-    if (!loadCSS) return { js, css: Promise.resolve() };
-    const css = new Promise((resolve, reject) => {
-      const cssHref = `${urlWithoutExtension}.css`;
-      if (!document.querySelector(`head > link[href="${cssHref}"]`)) {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = cssHref;
-        link.onload = resolve;
-        link.onerror = reject;
-        document.head.append(link);
-      } else {
-        resolve();
-      }
-    }).catch((error) =>
-      // eslint-disable-next-line no-console
-      console.log('Could not load module style', urlWithoutExtension, error),
-    );
+    if (loadJS) {
+      modules.js = import(`${urlWithoutExtension}.js`);
+    }
 
-    return { css, js };
+    if (loadCSS) {
+      modules.css = new Promise((resolve, reject) => {
+        const cssHref = `${urlWithoutExtension}.css`;
+        const style = document.querySelector(`head > link[href="${cssHref}"]`);
+        if (!style) {
+          const link = document.createElement('link');
+          link.rel = 'stylesheet';
+          link.href = cssHref;
+          link.onload = () => resolve(link);
+          link.onerror = reject;
+          document.head.append(link);
+        } else {
+          resolve(style);
+        }
+      }).catch((error) =>
+        // eslint-disable-next-line no-console
+        console.log('Could not load module style', urlWithoutExtension, error),
+      );
+    }
+
+    return modules;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.log('Could not load module', urlWithoutExtension, error);
   }
-  return { css: Promise.resolve(), js: Promise.resolve() };
+  return modules;
+}
+
+export async function loadAndDefine(componentConfig) {
+  const { tag, module: { path, loadJS, loadCSS } = {} } = componentConfig;
+  const { js, css } = loadModule(path, { loadJS, loadCSS });
+
+  const module = await js;
+  const style = await css;
+
+  if (module?.default.prototype instanceof HTMLElement) {
+    if (!window.customElements.get(tag)) {
+      window.customElements.define(tag, module.default);
+      window.raqnComponents[tag] = module.default;
+    }
+  }
+  return { tag, module, style };
 }
 
 export function mergeUniqueArrays(...arrays) {
@@ -544,3 +588,30 @@ export function blockBodyScroll(boolean) {
   const { noScroll } = globalConfig.classes;
   document.body.classList.toggle(noScroll, boolean);
 }
+
+// export const forPreview = async (manipulation) => {
+//   if (!isPreview()) return null;
+//   const reducers = await import('./dom-reducers.preview.js');
+//   return reducers[manipulation];
+// };
+
+// export const onDemandPreviewModule = async ({name, path}) => {
+//   if (!isPreview()) return null;
+//   let localPath = path || import.meta.url.
+//   if (!path) 
+
+//   const reducers = await import('./dom-reducers.preview.js');
+//   return;
+// };
+
+export const forPreview = async (manipulation, path) => {
+  if (!isPreview()) return null;
+  let newPath = path;
+  if (path.url) {
+    const localPath = path.url.split('.js');
+    localPath.splice(1, 1, '.preview.js');
+    newPath = localPath.join('');
+  }
+  const reducers = await import(newPath);
+  return reducers[manipulation];
+};

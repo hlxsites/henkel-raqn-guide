@@ -69,7 +69,8 @@ body {
   padding: 0;
   margin: 0;
   width: 100%;
-  padding-top: var(--header-height, 110px);
+
+  /* padding-top: var(--header-height, 110px); */
 }
 
 body.no-scroll {
@@ -200,7 +201,7 @@ img {
 /* Set default block style to all raqn web components 
    Use :where() to give lower specificity in order to not overwrite any display option set on the web component tag 
 */
-:where([raqnWebComponent]) {
+:where([raqnwebcomponent]) {  
   display: block;
 }
 
@@ -208,6 +209,12 @@ img {
 main > div > *:not(.full-width) {
   margin-inline: var(--container-width);
 }
+
+:where(main, raqn-header, raqn-footer) > raqn-section > *:not(.full-width) {
+  margin-inline: var(--container-width);
+  width: initial;
+}
+
 
 /* Change the above behavior by setting the full-with class on the block. This will make the background take the full width of the page */
 .full-width {
@@ -264,6 +271,26 @@ button {
 .hide {
   display: none;
   pointer-events: none;
+}
+
+.error-message-box {
+  background: red;
+  padding-block: 20px;
+  padding-inline: 20px;
+  border: 5px solid #000;
+  margin-block: 20px;
+
+  & * {
+    color: white;
+  }
+}
+
+.template-placeholder {
+  min-height: 100px;
+  border: 3px solid #000;
+  background: #f1f6fb;
+  align-content: center;
+  text-align: center;
 }
 
 #franklin-svg-sprite {

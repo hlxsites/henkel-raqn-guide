@@ -1,7 +1,8 @@
 // import { publish } from './pubsub.js';
 import { deepMerge } from './libs.js';
 import { publish } from './pubsub.js';
-import { generateDom, manipulation, renderVirtualDom } from './render/dom.js';
+import { generateVirtualDom, renderVirtualDom } from './render/dom.js';
+import { pageManipulation } from './render/dom-manipulations.js';
 
 export default async function preview(component, classes, uuid) {
   document.body.innerHTML = '';
@@ -10,12 +11,12 @@ export default async function preview(component, classes, uuid) {
   webComponent.overrideExternalConfig = true;
   webComponent.innerHTML = component.html;
   main.appendChild(webComponent);
-  const virtualdom = generateDom(main.childNodes);
-  virtualdom[0].attributesValues = deepMerge({}, webComponent.attributesValues, component.attributesValues);
+  const virtualDom = generateVirtualDom(main.childNodes);
+  virtualDom[0].attributesValues = deepMerge({}, webComponent.attributesValues, component.attributesValues);
 
   main.innerHTML = '';
   document.body.append(main);
-  await main.append(...renderVirtualDom(manipulation(virtualdom)));
+  await main.append(...renderVirtualDom(pageManipulation(virtualDom)));
 
   webComponent.style.display = 'inline-grid';
   webComponent.style.width = 'auto';

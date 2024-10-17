@@ -7,11 +7,7 @@ export default class Button extends ComponentBase {
     selectorTest: (el) => el.childNodes.length === 1,
   };
 
-  nestedComponentsConfig = {
-    popupTrigger: {
-      componentName: 'popup-trigger',
-    },
-  };
+  nestedComponentsConfig = {};
 
   extendConfig() {
     return [

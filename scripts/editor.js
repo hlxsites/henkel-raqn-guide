@@ -1,6 +1,6 @@
 import { deepMerge, flat, getBaseUrl, loadModule } from './libs.js';
 import { publish } from './pubsub.js';
-import { generateDom } from './render/dom.js';
+import { generateVirtualDom } from './render/dom.js';
 
 window.raqnEditor = window.raqnEditor || {};
 let watcher = false;
@@ -77,7 +77,7 @@ export function getComponentValues(dialog, element) {
   }, {});
   const cleanData = Object.fromEntries(Object.entries(element));
   const { attributesValues, webComponentName, componentName, uuid } = cleanData;
-  const children = generateDom(element.children, false);
+  const children = generateVirtualDom(element.children, false);
   const editor = { ...dialog, attributes };
   return { attributesValues, webComponentName, componentName, uuid, domRect, dialog, editor, html, children };
 }
@@ -91,7 +91,7 @@ export default function initEditor(listeners = true) {
             try {
               const fn = window.raqnComponents[componentName];
               const name = fn.name.toLowerCase();
-              const component = await loadModule(`/blocks/${name}/${name}.editor`, false);
+              const component = await loadModule(`/blocks/${name}/${name}.editor`, { loadCSS: false });
               const mod = await component.js;
               if (mod && mod.default) {
                 const dialog = await mod.default();

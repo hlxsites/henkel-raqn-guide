@@ -12,7 +12,8 @@ import {
   mergeUniqueArrays,
 } from './libs.js';
 import { externalConfig } from './libs/external-config.js';
-import { generalManipulation, generateDom, renderVirtualDom } from './render/dom.js';
+import { generateVirtualDom, renderVirtualDom } from './render/dom.js';
+import { generalManipulation } from './render/dom-manipulations.js';
 
 export default class ComponentBase extends HTMLElement {
   // All supported data attributes must be added to observedAttributes
@@ -233,7 +234,7 @@ export default class ComponentBase extends HTMLElement {
   // Build-in method called after the element is added to the DOM.
   async connectedCallback() {
     // Common identifier for raqn web components
-    this.setAttribute('raqnWebComponent', '');
+    this.setAttribute('raqnwebcomponent', '');
     this.setAttribute('isloading', '');
     try {
       this.initialized = this.getAttribute('initialized');
@@ -482,7 +483,10 @@ export default class ComponentBase extends HTMLElement {
   async addFragmentContent() {
     const element = document.createElement('div');
     element.innerHTML = this.fragmentContent;
-    this.append(...renderVirtualDom(generalManipulation(generateDom(element.childNodes))));
+    const virtualDom = generateVirtualDom(element.childNodes);
+    const transformDom = generalManipulation(virtualDom);
+    const realDom = renderVirtualDom(transformDom);
+    this.append(...realDom);
   }
 
   queryElements() {
