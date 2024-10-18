@@ -5,7 +5,7 @@ const prefixPath = '/api-definitions';
 export default class SwaggerUI extends ComponentBase {
 
   switchAPI(hash) {
-    const currentEnvironment = hash.length > 0 ? window.location.hash.substring(1).replace(/--.+$/, '') : false;
+    const currentEnvironment = hash.length > 0 ? hash.substring(1).replace(/--.+$/, '') : false;
     this.querySelectorAll('.swagger-ui-selection > ul > li').forEach((item) => {
       if(item.dataset.environment === currentEnvironment) {
         item.classList.remove('closed');
@@ -38,7 +38,11 @@ export default class SwaggerUI extends ComponentBase {
     }
   }
 
-  async loadAPIs() {
+  async loadAPIs(apiFilter) {
+    const selectionElement = this.querySelector('.swagger-ui-selection');
+    if(apiFilter.length > 0) {
+      selectionElement.classList.add('hidden');
+    }
     const response = await fetch(`${prefixPath}/environments.json`);
     const environments = await response.json();
     const environmentElements = await Promise.all(environments.map(async (environment) => {
@@ -80,18 +84,29 @@ export default class SwaggerUI extends ComponentBase {
       });
       return item;
     }));
-    const environmentsElement = this.querySelector('.swagger-ui-selection > ul');
+    const environmentsElement = selectionElement.querySelector(':scope > ul');
     environmentElements.forEach((option) => environmentsElement.appendChild(option));
 
-    this.switchAPI(window.location.hash);
+    const hashes = apiFilter.length > 0 ? apiFilter : [window.location.hash];
+    hashes.forEach((hash) => {
+      const wrapper = document.createElement('div');
+      wrapper.classList.add('swagger-ui-wrapper');
+      this.insertBefore(wrapper, selectionElement.nextSibling);
+      this.switchAPI(hash);
+    });
+    
+    this.switchAPI(apiFilter.length > 0 ? apiFilter[0] : window.location.hash);
   }
 
   async ready() {
+    const apiFilter = [...this.querySelectorAll('a')]
+      .map((a) => new URL(a.href).hash)
+      .filter((hash) => hash.length > 0 && hash.indexOf('--') > 0);
+
     this.innerHTML = `
       <div class="swagger-ui-selection">
         <ul></ul>
-      </div>
-      <div class="swagger-ui-wrapper"></div>`;
+      </div>`;
     
     const loadCSS = async (href) => new Promise((resolve, reject) => {
       const link = document.createElement('link');
@@ -114,7 +129,7 @@ export default class SwaggerUI extends ComponentBase {
       loadJS('/blocks/swaggerui/libs/swagger-ui-standalone-preset.js'),
     ]);
     
-    await this.loadAPIs();
+    await this.loadAPIs(apiFilter);
   }
 
 }

@@ -2,6 +2,10 @@ raqn-swaggerui .topbar {
   display: none;
 }
 
+raqn-swaggerui .swagger-ui-selection.hidden{
+  display: none;
+}
+
 raqn-swaggerui .swagger-ui-selection ul input {
   transition: opacity 0.5s ease;
   margin: auto 10px;
