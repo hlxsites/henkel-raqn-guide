@@ -84,14 +84,21 @@ export default {
     let templateContent;
     const tasks = [
       async () => {
-        let tpl = getMeta(metaTags.template.metaName, { getFallback: true });
-        if (!tpl) return null;
+        let tpl = getMeta(metaTags.template.metaName, { getFallback: false });
+        if (!tpl) {
+          templateContent = null;
+          return null;
+        };
         if (!tpl.includes('/')) {
           tpl = metaTags.template.fallbackContent.concat(tpl);
         }
 
         const path = tpl.concat('.plain.html');
-        if (typeof path !== 'string') return null;
+        if (typeof path !== 'string') {
+          templateContent = null;
+          return null;
+        };
+
         const response = await fetch(
           `${path}`,
           window.location.pathname.endsWith(path) ? { cache: this.fragmentCache } : {},
@@ -100,11 +107,15 @@ export default {
         return templateContent;
       },
       () => {
+        if (!templateContent) return;
         const element = document.createElement('div');
         element.innerHTML = templateContent;
         window.raqnTplVirtualDom = generateVirtualDom(element.childNodes);
       },
-      () => templateManipulation(window.raqnTplVirtualDom),
+      () => {
+        if (!templateContent) return null;
+        return templateManipulation(window.raqnTplVirtualDom);
+      },
     ];
 
     while (tasks.length > 0) {
