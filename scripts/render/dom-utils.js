@@ -1,3 +1,5 @@
+import { yieldToMain } from '../libs.js';
+
 export const recursive =
   (fn) =>
   (virtualDom, stopLevel, currentLevel = 1) => {
@@ -49,10 +51,27 @@ export const queryNode = (nodes, fn) => {
 // receives a array of action to reduce the virtual dom
 export const curryManipulation =
   (manipulations = []) =>
+    async (virtualDom) => {
+      const m = manipulations.filter((fn) => typeof fn === 'function');
+      while (m.length > 0) {
+        // Shift the first task off the tasks array:
+        const mutation = m.shift();
+    
+        // Run the task:
+        mutation(virtualDom);
+    
+        // Yield to the main thread:
+        // eslint-disable-next-line no-await-in-loop
+        await yieldToMain();
+      }
+    };
+export const curryManipulation2 =
+  (manipulations = []) =>
   (virtualDom) =>
     manipulations
       .filter((fn) => typeof fn === 'function')
       .reduce((acc, manipulation) => manipulation(acc, 0) || acc, virtualDom);
+// yieldToMain
 
 export const tplPlaceholderCheck = (node) =>
   node.tag === 'p' && node.hasOnlyChild('textNode') && node.firstChild.text.match(/\$\{tpl-content-[a-zA-Z1-9-]+\}/g);

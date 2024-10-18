@@ -358,9 +358,15 @@ export function loadModule(urlWithoutExtension, { loadCSS = true, loadJS = true 
         const style = document.querySelector(`head > link[href="${cssHref}"]`);
         if (!style) {
           const link = document.createElement('link');
-          link.rel = 'stylesheet';
           link.href = cssHref;
-          link.onload = () => resolve(link);
+          // make the css loading not be render blocking
+          link.rel = 'preload';
+          link.as = 'style';
+          link.onload = () => {
+            link.onload = null;
+            link.rel = 'stylesheet';
+            resolve(link);
+          };
           link.onerror = reject;
           document.head.append(link);
         } else {
@@ -598,7 +604,7 @@ export function blockBodyScroll(boolean) {
 // export const onDemandPreviewModule = async ({name, path}) => {
 //   if (!isPreview()) return null;
 //   let localPath = path || import.meta.url.
-//   if (!path) 
+//   if (!path)
 
 //   const reducers = await import('./dom-reducers.preview.js');
 //   return;
@@ -615,3 +621,9 @@ export const forPreview = async (manipulation, path) => {
   const reducers = await import(newPath);
   return reducers[manipulation];
 };
+
+export function yieldToMain() {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 0);
+  });
+}

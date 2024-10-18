@@ -181,5 +181,5 @@ export const replaceTemplatePlaceholders = (tplVirtualDom) => {
     }
   });
   const [main] = pageVirtualDom.queryAll((n) => n.tag === 'main', { queryLevel: 1 });
-  main.prepend(...tplVirtualDom.children);
+  main.prepend(...tplVirtualDom.children, { createChildren: false });
 };

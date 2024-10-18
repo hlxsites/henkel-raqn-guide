@@ -119,16 +119,22 @@ export function nodeProxy(rawNode) {
       // mehod
       if (prop === 'append') {
         return (...nodes) => {
+          const { createChildren = false } =
+            (nodes.length > 1 && Object.hasOwn(nodes.at(-1), 'createChildren') && nodes.pop()) || {};
+
           // eslint-disable-next-line no-use-before-define
-          const newNodes = createNodes({ nodes, siblings: target.children, parentNode: proxyNode });
+          const newNodes = createNodes({ nodes, siblings: target.children, parentNode: proxyNode, createChildren });
           target.children.push(...newNodes);
         };
       }
 
       if (prop === 'prepend') {
         return (...nodes) => {
+          const { createChildren = false } =
+            (nodes.length > 1 && Object.hasOwn(nodes.at(-1), 'createChildren') && nodes.pop()) || {};
+
           // eslint-disable-next-line no-use-before-define
-          const newNodes = createNodes({ nodes, siblings: target.children, parentNode: proxyNode });
+          const newNodes = createNodes({ nodes, siblings: target.children, parentNode: proxyNode, createChildren });
           target.children.unshift(...newNodes);
         };
       }
@@ -185,7 +191,7 @@ export function nodeProxy(rawNode) {
   return proxyNode;
 }
 
-function createNodes({ nodes, siblings = [], parentNode = null }) {
+function createNodes({ nodes, siblings = [], parentNode = null, createChildren = true } = {}) {
   return nodes.map((n) => {
     if (n.isProxy) {
       n.remove();
@@ -201,7 +207,7 @@ function createNodes({ nodes, siblings = [], parentNode = null }) {
     node.siblings = siblings;
     node.parentNode = parentNode;
 
-    if (node.children.length) {
+    if (node.children.length && createChildren) {
       const children = [];
       const newNodes = [...node.children];
       node.removeChildren();

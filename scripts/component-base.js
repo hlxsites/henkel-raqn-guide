@@ -10,6 +10,7 @@ import {
   flatAsValue,
   flat,
   mergeUniqueArrays,
+  yieldToMain,
 } from './libs.js';
 import { externalConfig } from './libs/external-config.js';
 import { generateVirtualDom, renderVirtualDom } from './render/dom.js';
@@ -481,12 +482,30 @@ export default class ComponentBase extends HTMLElement {
   }
 
   async addFragmentContent() {
-    const element = document.createElement('div');
-    element.innerHTML = this.fragmentContent;
-    const virtualDom = generateVirtualDom(element.childNodes);
-    const transformDom = generalManipulation(virtualDom);
-    const realDom = renderVirtualDom(transformDom);
-    this.append(...realDom);
+    let virtualDom;
+
+    const list = [
+      () => {
+        const element = document.createElement('div');
+        element.innerHTML = this.fragmentContent;
+        virtualDom = generateVirtualDom(element.childNodes);
+      },
+      () => generalManipulation(virtualDom),
+      () => this.append(...renderVirtualDom(virtualDom)),
+    ];
+
+    while (list.length > 0) {
+      // Shift the first task off the tasks array:
+      const task = list.shift();
+
+      // Run the task:
+      // eslint-disable-next-line no-await-in-loop
+      await task();
+
+      // Yield to the main thread:
+      // eslint-disable-next-line no-await-in-loop
+      await yieldToMain();
+    }
   }
 
   queryElements() {
