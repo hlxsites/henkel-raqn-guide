@@ -38,11 +38,7 @@ export default class SwaggerUI extends ComponentBase {
     }
   }
 
-  async loadAPIs(apiFilter) {
-    const selectionElement = this.querySelector('.swagger-ui-selection');
-    if(apiFilter.length > 0) {
-      selectionElement.classList.add('hidden');
-    }
+  async generateAPISelection(selectionElement) {
     const response = await fetch(`${prefixPath}/environments.json`);
     const environments = await response.json();
     const environmentElements = await Promise.all(environments.map(async (environment) => {
@@ -86,6 +82,13 @@ export default class SwaggerUI extends ComponentBase {
     }));
     const environmentsElement = selectionElement.querySelector(':scope > ul');
     environmentElements.forEach((option) => environmentsElement.appendChild(option));
+  }
+
+  async loadAPIs(apiFilter) {
+    const selectionElement = this.querySelector('.swagger-ui-selection');
+    if(apiFilter.length === 0) {
+      await this.generateAPISelection(selectionElement);
+    }
 
     const hashes = apiFilter.length > 0 ? apiFilter : [window.location.hash];
     hashes.forEach((hash) => {
