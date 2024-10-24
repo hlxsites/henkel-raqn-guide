@@ -1,0 +1,22 @@
+raqn-swaggerui .topbar {
+  display: none;
+}
+
+raqn-swaggerui .swagger-ui-selection ul input {
+  transition: opacity 0.5s ease;
+  margin: auto 10px;
+}
+
+raqn-swaggerui .swagger-ui-selection ul li.closed input {
+  opacity: 0;
+}
+
+raqn-swaggerui .swagger-ui-selection ul ul {
+  max-height: 300px;
+  overflow-y: scroll;
+  transition: max-height 0.5s ease-out, opacity 0.5s ease-out;
+}
+
+raqn-swaggerui .swagger-ui-selection ul li.closed ul {
+  height: 0;
+}

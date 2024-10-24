@@ -248,6 +248,23 @@ export const componentList = {
       priority: 4,
     },
   },
+  swaggerui: {
+    tag: 'raqn-swaggerui',
+    method: 'replace',
+    module: {
+      path: '/blocks/swaggerui/swaggerui',
+      priority: 2,
+    },
+  },
+  mermaid: {
+    tag: 'raqn-mermaid',
+    method: 'replace',
+    module: {
+      path: '/blocks/mermaid/mermaid',
+      loadCSS: false,
+      priority: 2,
+    },
+  },
 };
 
 export const injectedComponents = [
