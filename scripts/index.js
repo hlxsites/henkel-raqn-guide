@@ -35,7 +35,7 @@ export default {
   },
 
   onPageRender() {
-    Promise.allSettled(window.initialization).then(() => {});
+    Promise.allSettled(window.raqnOnComponentsLoaded).then(() => {});
   },
 
   async loadAndProcessTemplate() {
@@ -55,12 +55,15 @@ export default {
     if (typeof tpl !== 'string' || !tpl.length) return stop;
 
     if (!tpl.includes('/')) {
-      tpl = metaTags.template.fallbackContent.concat(tpl.trim());
+      tpl = `${metaTags.template.fallbackContent}${tpl.trim()}`;
     }
 
     if (!isTemplatePage(tpl)) {
       // eslint-disable-next-line no-console
-      console.error('The configured template for this page is not in a "/page-templates/" folder:', `"${tpl}"`);
+      console.error(
+        `The configured template for this page is not in a "${metaTags.template.fallbackContent}" folder:`,
+        `"${tpl}"`,
+      );
       return stop;
     }
 

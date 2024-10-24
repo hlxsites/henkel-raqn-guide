@@ -13,19 +13,22 @@
     document.head.appendChild(link);
   }
 
-   /* Preload template */
-   const templateMeta = document.querySelector('meta[name="template"]');
+  /* Preload template */
+  const templateMeta = document.querySelector('meta[name="template"]');
   const tplUrl = templateMeta?.content.trim();
   if (typeof tplUrl !== 'undefined') {
+    const tplFolder = `/page-templates/`;
     if (!tplUrl.includes('/')) {
-      tplUrl = '/templates/'.concat(tplUrl);
+      tplUrl = `${tplFolder}${tplUrl}`;
     }
-    const link = document.createElement('link');
-    link.setAttribute('rel', 'preload');
-    link.setAttribute('as', 'fetch');
-    link.setAttribute('crossorigin', 'anonymous');
-    link.href = `${tplUrl}.plain.html`;
-    document.head.appendChild(link);
+    if (tplUrl.includes(tplFolder)) {
+      const link = document.createElement('link');
+      link.setAttribute('rel', 'preload');
+      link.setAttribute('as', 'fetch');
+      link.setAttribute('crossorigin', 'anonymous');
+      link.href = `${tplUrl}.plain.html`;
+      document.head.appendChild(link);
+    }
   }
 </script>
 <style>

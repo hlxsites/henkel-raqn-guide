@@ -41,8 +41,6 @@ export default class PopupTrigger extends ComponentBase {
   onInit() {
     this.setAction();
     this.queryElements();
-    // console.error('🚀 ~ this.elements:', this.elements);
-    // console.error('🚀 ~ this.children:', this.children);
   }
 
   setAction() {
