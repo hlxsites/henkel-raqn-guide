@@ -122,6 +122,8 @@ export const isPreview = () => {
   return globalConfig.isPreview;
 };
 
+export const isTemplatePage = (url) => (url || window.location.pathname).includes(metaTags.template.fallbackContent);
+
 export const camelCaseAttr = (val) => val.replace(/-([a-z])/g, (k) => k[1].toUpperCase());
 export const capitalizeCaseAttr = (val) => camelCaseAttr(val.replace(/^[a-z]/g, (k) => k.toUpperCase()));
 
@@ -646,7 +648,6 @@ export async function runTasks(params, ...taskList) {
 
   while (taskList.length > 0) {
     i += 1;
-    // Shift the first task off the tasks array:
     const task = taskList.shift();
 
     // Run the task:
@@ -656,20 +657,15 @@ export async function runTasks(params, ...taskList) {
       // eslint-disable-next-line no-console
       console.warn("The task doesn't have a name. Please use a named function to create the task.");
     }
-    if (isOnlyObject(result) && result.stopTaskRun) {
-      delete result.stopTaskRun;
-      if (result.value) {
-        result = result.value;
-      }
+    if (result?.stopTaskRun) {
+      result = result.value;
       taskList.splice(0, taskList.length);
     }
     prevResults[task.name || i] = result;
 
-    // Yield to the main thread:
+    // Yield to the main thread
     // eslint-disable-next-line no-await-in-loop
     await yieldToMain();
   }
   return prevResults;
 }
-
-export const isTemplatePage = (url) => (url || window.location.pathname).includes(metaTags.template.fallbackContent);
