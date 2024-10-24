@@ -1,11 +1,72 @@
 /* eslint-disable import/prefer-default-export */
 
-import { tplPlaceholderCheck } from './dom-utils.js';
+import { tplPlaceholderCheck, queryTemplatePlaceholders } from './dom-utils.js';
+import { isTemplatePage } from '../libs.js';
 
 export const highlightTemplatePlaceholders = (tplVirtualDom) => {
-  tplVirtualDom.queryAll((n) => {
-    if (!tplPlaceholderCheck(n)) return false;
-    n.class.push('template-placeholder');
+  tplVirtualDom.queryAll((node) => {
+    if (!tplPlaceholderCheck('p', node)) return false;
+    node.class.push('template-placeholder');
     return true;
   });
+};
+
+export const noContentPlaceholder = (node) => {
+  node.class.push('template-placeholder');
+  node.append(
+    {
+      tag: 'span',
+      class: ['error-message-box'],
+      children: [
+        {
+          tag: 'textNode',
+          text: "This template placeholder doesn't have content in this page",
+        },
+      ],
+    },
+    { processChildren: true },
+  );
+};
+
+export const duplicatedPlaceholder = (placeholdersNodes, placeholders, markAll = false) => {
+  const duplicatedPlaceholders = [];
+
+  // filter duplicated placeholder excluding the first one.
+  let duplicatesNodes = placeholders.flatMap((placeholder, i) => {
+    if (placeholders.indexOf(placeholder) === i) return [];
+    duplicatedPlaceholders.push(...placeholders.splice(i, 1));
+    return placeholdersNodes.splice(i, 1);
+  });
+
+  // Also include the first duplicated placeholder
+  if (markAll) {
+    duplicatesNodes = duplicatesNodes.flatMap((dn, i) => {
+      const index = placeholders.indexOf(duplicatedPlaceholders[i]);
+      placeholders.splice(index, 1);
+      return [...placeholdersNodes.splice(index, 1), dn];
+    });
+  }
+
+  duplicatesNodes.forEach((node) => {
+    node.class.push('template-placeholder');
+    node.append(
+      {
+        tag: 'span',
+        class: ['error-message-box'],
+        children: [
+          {
+            tag: 'textNode',
+            text: 'This template placeholder is duplicated in the template',
+          },
+        ],
+      },
+      { processChildren: true },
+    );
+  });
+};
+
+export const tplPageDuplicatedPlaceholder = (tplVirtualDom) => {
+  if (!isTemplatePage()) return;
+  const { placeholdersNodes, placeholders } = queryTemplatePlaceholders(tplVirtualDom);
+  duplicatedPlaceholder(placeholdersNodes, placeholders, true);
 };

@@ -1,20 +1,38 @@
-import { forPreview } from '../libs.js';
+import { previewModule } from '../libs.js';
 
-const forPreviewList = await forPreview('componentList', import.meta);
+const forPreviewList = await previewModule(import.meta, 'componentList');
 
-/* 
-list of components that will are available to be set in the dom
-
- [class or tag]: { => class or tag that will be replaced by the tag
-    tag: string, => tag that will replace the class or tag
-    script: string, => path to the script that will be loaded
-    priority: number, => priority to load the script
-    transform: function, => function that will transform the node
-                            if function returns a node it uses the method to process the new node,
-                            otherwise if nothing is returned all the transformation must be done manually 
-    dependencies: [string], => list of dependencies that will be loaded before the script
-}
-*/
+/**
+ * @typedef blockName                    - The EDS bock name which will match a css class or the html tag of an element
+ *                                         to identify it a component.
+ *                                         For more complex cases componentConfig.filterNode method can be used.
+ * @type {string}
+ */
+/**
+ * @typedef configMethod                 - the EDS bock name which will match a css class or the html tag of an element
+ * @type {function}
+ * @param {object} node                  - virtualDom node nodeProxy
+ */
+/**
+ * @typedef componentConfig
+ * @type {object}
+ * @prop {string} tag                    - webComponent tag.
+ * @prop {string} method                 - The virtualDom mode mutation method found in /scripts/render/dom/dom.js/nodeProxy
+ *                                         e.g." 'append', 'replaceWith' etc.
+ *                                         Or the special value 'replace' which does a simple tag value change.
+ * @prop {string} method                 - The virtualDom mutation method found in /scripts/render/dom/dom.js/nodeProxy. e.g." 'append', 'replaceWith'
+ * @prop {object} module                 - webComponent module loading configuration.
+ * @prop {string} module.path            - Root relative path to the module folder.
+ * @prop {boolean} [module.loadJS=true]  - Set if the component has js module to load.
+ * @prop {boolean} [module.loadCSS=true] - Set if the component has css module to load.
+ * @prop {number} [module.priority]      - The order in which the modules will be loaded.
+ * @prop {configMethod} [filterNode]     - Filter method to identify if the node is a match for the component
+ *                                         if match si more complex and can not be achieve by matching against 'blockName'
+ * @prop {configMethod} [transform]      - Method to modify the node in place or return a new node
+ */
+/**
+ * @type {Object.<blockName, componentConfig>}
+ */
 export const componentList = {
   theming: {
     tag: 'raqn-theming',
@@ -57,17 +75,17 @@ export const componentList = {
     },
     transform(node) {
       node.tag = this.tag;
-      
+
       // Set options from section metadata to section.
       const metaBlock = 'section-metadata';
-      const [sectionMetaData] = node.queryAll((n) => n.class.includes(metaBlock));
+      const [sectionMetaData] = node.queryAll((n) => n.hasClass(metaBlock));
       if (sectionMetaData) {
         node.class = [...sectionMetaData.class.filter((c) => c !== metaBlock)];
         sectionMetaData.remove();
       }
 
       // Handle sections with multiple grids
-      const sectionGrids = node.queryAll((n) => n.class.includes('grid'), { queryLevel: 1 });
+      const sectionGrids = node.queryAll((n) => n.hasClass('grid'), { queryLevel: 1 });
       if (sectionGrids.length > 1) {
         if (forPreviewList) {
           forPreviewList.section.transform(node);
@@ -105,7 +123,7 @@ export const componentList = {
 
       // Generate linked images based on html structure convention
       const { nextSibling, firstChild: picture } = node;
-      if (nextSibling.tag === 'p' && nextSibling.firstChild?.tag === 'em') {
+      if (nextSibling?.tag === 'p' && nextSibling.firstChild?.tag === 'em') {
         const anchor = nextSibling?.firstChild?.firstChild;
 
         if (anchor?.tag === 'a') {
@@ -162,23 +180,26 @@ export const componentList = {
       const { href } = node.attributes;
       const hash = href.substring(href.indexOf('#'));
 
-      return {
-        tag: 'raqn-popup-trigger',
-        attributes: {
-          'data-action': hash,
-        },
-        children: [
-          {
-            tag: 'button',
-            attributes: {
-              'aria-expanded': 'false',
-              'aria-haspopup': 'true',
-              type: 'button',
-            },
-            children: [...node.children],
+      return [
+        {
+          tag: 'raqn-popup-trigger',
+          attributes: {
+            'data-action': hash,
           },
-        ],
-      };
+          children: [
+            {
+              tag: 'button',
+              attributes: {
+                'aria-expanded': 'false',
+                'aria-haspopup': 'true',
+                type: 'button',
+              },
+              children: [...node.children],
+            },
+          ],
+        },
+        { processChildren: true },
+      ];
     },
     module: {
       path: '/blocks/popup-trigger/popup-trigger',

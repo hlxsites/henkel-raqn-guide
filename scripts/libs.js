@@ -59,7 +59,7 @@ export const metaTags = {
   },
   template: {
     metaName: 'template',
-    fallbackContent: '/templates/',
+    fallbackContent: '/page-templates/',
     // contentType: 'string template name and path defaults to fallbackContent - or the full path including template name',
   },
   lcp: {
@@ -595,22 +595,18 @@ export function blockBodyScroll(boolean) {
   document.body.classList.toggle(noScroll, boolean);
 }
 
-// export const forPreview = async (manipulation) => {
-//   if (!isPreview()) return null;
-//   const reducers = await import('./dom-reducers.preview.js');
-//   return reducers[manipulation];
-// };
-
-// export const onDemandPreviewModule = async ({name, path}) => {
-//   if (!isPreview()) return null;
-//   let localPath = path || import.meta.url.
-//   if (!path)
-
-//   const reducers = await import('./dom-reducers.preview.js');
-//   return;
-// };
-
-export const forPreview = async (manipulation, path) => {
+/**
+ * Load a file used only for preview.
+ * Adds an easy way to load inside a file the preview version of the same file with a .preview.js suffix,
+ * using the `import.meta` as value for `path` param.
+ *
+ * @param {string|import.meta} path - The path including file name from where to load the preview file
+ *                   If the file is in the same path as the current one where this method is called
+ *                   then `import.meta` can be used as value
+ * @param {string} name - the name of an export from the module.
+ * @returns {module|*} - the module or a specific export from the module.
+ */
+export const previewModule = async (path, name) => {
   if (!isPreview()) return null;
   let newPath = path;
   if (path.url) {
@@ -618,8 +614,8 @@ export const forPreview = async (manipulation, path) => {
     localPath.splice(1, 1, '.preview.js');
     newPath = localPath.join('');
   }
-  const reducers = await import(newPath);
-  return reducers[manipulation];
+  const module = await import(newPath);
+  return name ? module[name] : module;
 };
 
 export function yieldToMain() {
@@ -627,3 +623,53 @@ export function yieldToMain() {
     setTimeout(resolve, 0);
   });
 }
+
+/**
+ * Functions running complex computation have a potential to generate a task with high block time.
+ *
+ * To mitigate this issue the functionality should be splitted into multiple functions which
+ * should be called using the runTasks() method.
+ *
+ * Functions called with runTasks() can further more use same technique
+ * inside of them to break down the functionality into smaller tasks and call them using runTasks();
+ *
+ * Use call() or apply() methods to call the runTasks() method in order to set the thisArg for the tasks in the list.
+ *
+ * @param  {*} params - initial parameter accessible in all tasks calls under the `params` key.
+ * @param  {...any} taskList - and succession of function to be called as tasks. The tasks can be async.
+ * @returns {object} - contains all the results from all tasks calls where the key is the task function name including the initial params key.
+ */
+export async function runTasks(params, ...taskList) {
+  const prevResults = {};
+  let i = 0;
+  prevResults.params = params;
+
+  while (taskList.length > 0) {
+    i += 1;
+    // Shift the first task off the tasks array:
+    const task = taskList.shift();
+
+    // Run the task:
+    // eslint-disable-next-line no-await-in-loop
+    let result = await task.call(this, prevResults, i);
+    if (!task.name.length) {
+      // eslint-disable-next-line no-console
+      console.warn("The task doesn't have a name. Please use a named function to create the task.");
+    }
+    if (isOnlyObject(result) && result.stopTaskRun) {
+      delete result.stopTaskRun;
+      if (result.value) {
+        result = result.value;
+      }
+      taskList.splice(0, taskList.length);
+    }
+    prevResults[task.name || i] = result;
+
+    // Yield to the main thread:
+    // eslint-disable-next-line no-await-in-loop
+    await yieldToMain();
+  }
+  return prevResults;
+}
+
+export const isTemplatePage = (url) => (url || window.location.pathname).includes(metaTags.template.fallbackContent);

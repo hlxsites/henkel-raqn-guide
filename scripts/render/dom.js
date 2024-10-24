@@ -13,6 +13,9 @@ export const recursiveParent = (node) => {
   return current;
 };
 
+const getSettings = (nodes) =>
+  (nodes.length > 1 && Object.hasOwn(nodes.at(-1), 'processChildren') && nodes.pop()) || {};
+
 // proxy object to enhance virtual dom node object.
 export function nodeProxy(rawNode) {
   const proxyNode = new Proxy(rawNode, {
@@ -51,8 +54,24 @@ export function nodeProxy(rawNode) {
         return target.children.at(-1);
       }
 
+      // mehod
       if (prop === 'hasOnlyChild') {
         return (tagName) => target.children.length === 1 && target.children[0].tag === tagName;
+      }
+
+      // mehod
+      if (prop === 'hasClass') {
+        return (...classes) => classes.every((cls) => target.class.includes(cls));
+      }
+
+      // mehod
+      if (prop === 'removeClass') {
+        return (cls) => target.class.splice(target.class.indexOf(cls), 1);
+      }
+
+      // mehod
+      if (prop === 'hasAttributes') {
+        return (...attributes) => attributes.every((attr) => Object.keys(target.attributes).includes(attr));
       }
 
       // mehod
@@ -81,7 +100,7 @@ export function nodeProxy(rawNode) {
         return (...nodes) => {
           const { siblings } = target;
           // eslint-disable-next-line no-use-before-define
-          const newNodes = createNodes({ nodes, siblings, parentNode: target.parentNode });
+          const newNodes = createNodes({ nodes, siblings, parentNode: target.parentNode, ...getSettings(nodes) });
           target.parentNode = null;
           target.siblings = [];
           siblings.splice(siblings.indexOf(proxyNode), 1, ...newNodes);
@@ -101,7 +120,7 @@ export function nodeProxy(rawNode) {
         return (...nodes) => {
           const { siblings } = target;
           // eslint-disable-next-line no-use-before-define
-          const newNodes = createNodes({ nodes, siblings, parentNode: target.parentNode });
+          const newNodes = createNodes({ nodes, siblings, parentNode: target.parentNode, ...getSettings(nodes) });
           siblings.splice(siblings.indexOf(proxyNode) + 1, 0, ...newNodes);
         };
       }
@@ -111,7 +130,7 @@ export function nodeProxy(rawNode) {
         return (...nodes) => {
           const { siblings } = target;
           // eslint-disable-next-line no-use-before-define
-          const newNodes = createNodes({ nodes, siblings, parentNode: target.parentNode });
+          const newNodes = createNodes({ nodes, siblings, parentNode: target.parentNode, ...getSettings(nodes) });
           siblings.splice(siblings.indexOf(proxyNode), 0, ...newNodes);
         };
       }
@@ -119,22 +138,26 @@ export function nodeProxy(rawNode) {
       // mehod
       if (prop === 'append') {
         return (...nodes) => {
-          const { createChildren = false } =
-            (nodes.length > 1 && Object.hasOwn(nodes.at(-1), 'createChildren') && nodes.pop()) || {};
-
           // eslint-disable-next-line no-use-before-define
-          const newNodes = createNodes({ nodes, siblings: target.children, parentNode: proxyNode, createChildren });
+          const newNodes = createNodes({
+            nodes,
+            siblings: target.children,
+            parentNode: proxyNode,
+            ...getSettings(nodes),
+          });
           target.children.push(...newNodes);
         };
       }
 
       if (prop === 'prepend') {
         return (...nodes) => {
-          const { createChildren = false } =
-            (nodes.length > 1 && Object.hasOwn(nodes.at(-1), 'createChildren') && nodes.pop()) || {};
-
           // eslint-disable-next-line no-use-before-define
-          const newNodes = createNodes({ nodes, siblings: target.children, parentNode: proxyNode, createChildren });
+          const newNodes = createNodes({
+            nodes,
+            siblings: target.children,
+            parentNode: proxyNode,
+            ...getSettings(nodes),
+          });
           target.children.unshift(...newNodes);
         };
       }
@@ -145,7 +168,7 @@ export function nodeProxy(rawNode) {
           const { children } = target;
           proxyNode.removeChildren();
           // eslint-disable-next-line no-use-before-define
-          const newNodes = createNodes({ nodes, siblings: children, parentNode: proxyNode });
+          const newNodes = createNodes({ nodes, siblings: children, parentNode: proxyNode, ...getSettings(nodes) });
           children.push(...newNodes);
         };
       }
@@ -161,37 +184,13 @@ export function nodeProxy(rawNode) {
 
       return target[prop];
     },
-
-    set(target, prop, value) {
-      // if (prop === 'children') {
-      //   target.children = value;
-      //   target.children.forEach((child, i) => {
-      //     child.indexInParent = i;
-      //     child.parentNode = p;
-      //     console.log('chidren is read only property');
-      //   });
-      //   return value;
-      // }
-
-      // if (['children'].includes(prop)) {
-      //   // set value only once, then mutate the object
-      //   if (!target[prop] && Array.isArray(value)) {
-      //     target[prop] = value;
-      //   }
-      // }
-
-      // if (prop === 'parentNode') {
-      //   target.parentNode = value;
-      // }
-
-      target[prop] = value;
-      return true;
-    },
   });
   return proxyNode;
 }
 
-function createNodes({ nodes, siblings = [], parentNode = null, createChildren = true } = {}) {
+// This method ensure new nodes added to the virtual dom are using the proxy.
+// Any plain object node will be wrapped in the proxy and parent/children dependencies will be handled.
+function createNodes({ nodes, siblings = [], parentNode = null, processChildren = false } = {}) {
   return nodes.map((n) => {
     if (n.isProxy) {
       n.remove();
@@ -207,18 +206,18 @@ function createNodes({ nodes, siblings = [], parentNode = null, createChildren =
     node.siblings = siblings;
     node.parentNode = parentNode;
 
-    if (node.children.length && createChildren) {
+    if (node.children.length && processChildren) {
       const children = [];
       const newNodes = [...node.children];
-      node.removeChildren();
-
+      const newChildren = [];
       children.push(
         ...createNodes({
           nodes: newNodes,
           parentNode: node,
-          siblings: node.children,
+          siblings: newChildren,
         }),
       );
+      node.children = newChildren;
       node.append(...children);
     }
 
@@ -236,6 +235,7 @@ export const generateVirtualDom = (realDomNodes, { reference = true, parentNode 
         parentNode: null,
         siblings: [],
         children: [],
+        attributes: {},
       })
     : {
         children: [],
@@ -298,13 +298,14 @@ export const renderVirtualDom = (virtualdom) => {
         el.id = virtualNode.id;
       }
       if (virtualNode.attributes) {
-        // eslint-disable-next-line no-plusplus
         Object.keys(virtualNode.attributes).forEach((name) => {
           const value = virtualNode.attributes[name];
           el.setAttribute(name, value);
         });
       }
+      
       virtualNode.initialAttributesValues = classToFlat(virtualNode.class);
+
       if (virtualNode.text) {
         el.textContent = virtualNode.text;
       }
@@ -312,9 +313,12 @@ export const renderVirtualDom = (virtualdom) => {
       if (child) {
         el.append(...child);
       }
+      virtualNode.reference = el;
       dom.push(el);
     } else {
-      dom.push(document.createTextNode(virtualNode.text));
+      const textNode = document.createTextNode(virtualNode.text);
+      virtualNode.reference = textNode;
+      dom.push(textNode);
     }
   }
   return dom;

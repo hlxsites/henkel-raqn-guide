@@ -1,31 +1,34 @@
 import {
   prepareGrid,
   cleanEmptyNodes,
-  cleanEmptyTextNodes,
   inject,
   loadModules,
   toWebComponent,
   eagerImage,
   replaceTemplatePlaceholders,
+  buildTplPlaceholder,
   forPreviewManipulation,
 } from './dom-reducers.js';
 import { curryManipulation, recursive } from './dom-utils.js';
+import { isPreview } from '../libs.js';
+
+const { tplPageDuplicatedPlaceholder, highlightTemplatePlaceholders } = await forPreviewManipulation();
 
 // preset manipulation for main page
 export const pageManipulation = curryManipulation([
-  recursive(cleanEmptyTextNodes),
   recursive(cleanEmptyNodes),
   recursive(eagerImage),
+  isPreview() && recursive(buildTplPlaceholder),
   inject,
   toWebComponent,
   recursive(prepareGrid),
   loadModules,
-  await forPreviewManipulation('highlightTemplatePlaceholders'),
+  tplPageDuplicatedPlaceholder,
+  highlightTemplatePlaceholders,
 ]);
 
 // preset manipulation for fragments and external HTML
 export const generalManipulation = curryManipulation([
-  recursive(cleanEmptyTextNodes),
   recursive(cleanEmptyNodes),
   toWebComponent,
   recursive(prepareGrid),
@@ -33,8 +36,8 @@ export const generalManipulation = curryManipulation([
 ]);
 
 export const templateManipulation = curryManipulation([
-  recursive(cleanEmptyTextNodes),
   recursive(cleanEmptyNodes),
+  recursive(buildTplPlaceholder),
   toWebComponent,
   recursive(prepareGrid),
   loadModules,

@@ -273,26 +273,6 @@ button {
   pointer-events: none;
 }
 
-.error-message-box {
-  background: red;
-  padding-block: 20px;
-  padding-inline: 20px;
-  border: 5px solid #000;
-  margin-block: 20px;
-
-  & * {
-    color: white;
-  }
-}
-
-.template-placeholder {
-  min-height: 100px;
-  border: 3px solid #000;
-  background: #f1f6fb;
-  align-content: center;
-  text-align: center;
-}
-
 #franklin-svg-sprite {
   display: none;
 }

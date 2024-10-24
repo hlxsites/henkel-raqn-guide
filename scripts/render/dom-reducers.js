@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/prefer-default-export
-import { deepMerge, getMeta, loadAndDefine, forPreview } from '../libs.js';
-import { recursive, tplPlaceholderCheck, getTplPlaceholder } from './dom-utils.js';
+import { deepMerge, getMeta, loadAndDefine, previewModule } from '../libs.js';
+import { recursive, tplPlaceholderCheck, queryTemplatePlaceholders } from './dom-utils.js';
 import { componentList, injectedComponents } from '../component-list/component-list.js';
 
 window.loadedComponents = window.loadedComponents || {};
@@ -8,21 +8,8 @@ window.initialization = window.initialization || [];
 window.raqnComponents = window.raqnComponents || {};
 const { loadedComponents } = window;
 
-export const forPreviewManipulation = (manipulation) => forPreview(manipulation, import.meta);
-
-export const filterNodes = (nodes, tag, className) => {
-  const filtered = [];
-  // eslint-disable-next-line no-plusplus
-  for (let i = 0; i < nodes.length; i++) {
-    const node = nodes[i];
-
-    if (node.tag === tag && (className ? node.class.includes(className) : true)) {
-      // node.initialIndex = i;
-      filtered.push(node);
-    }
-  }
-  return filtered;
-};
+export const forPreviewManipulation = async (manipulation) => (await previewModule(import.meta, manipulation)) || {};
+export const { noContentPlaceholder, duplicatedPlaceholder } = await forPreviewManipulation();
 
 export const eagerImage = (node) => {
   if (!window.raqnEagerImages) {
@@ -102,11 +89,11 @@ export const toWebComponent = (virtualDom) => {
     const nodes = virtualDom.queryAll(filter, { queryLevel: config.queryLevel });
 
     nodes.forEach((node) => {
-      const defaultNode = { tag: config.tag };
+      const defaultNode = [{ tag: config.tag }];
       const hasTransform = typeof config.transform === 'function';
       const transformNode = config.transform?.(node);
       if ((!hasTransform || (hasTransform && transformNode)) && config.method) {
-        node[config.method](transformNode || defaultNode);
+        node[config.method](...(transformNode || defaultNode));
       }
       addToLoadComponents(blockSelector, config);
     });
@@ -146,29 +133,45 @@ export const cleanEmptyTextNodes = (node) => {
 };
 
 // clear empty nodes that are not necessary to avoid rendering
-export const cleanEmptyNodes = (node) => {
+export const cleanBrNodes = (node) => {
   if (node.tag === 'br') {
     node.remove();
   }
 };
 
+export const cleanEmptyNodes = (node) => {
+  cleanEmptyTextNodes(node);
+  cleanBrNodes(node);
+};
+
+// in some cases when the placeholder is the only content in a block row the text is not placed in a <p>
+// wrap the placeholder in a <p> to normalize placeholder identification.
+export const buildTplPlaceholder = (node) => {
+  if (!tplPlaceholderCheck('div', node)) return;
+
+  node.append(
+    {
+      tag: 'p',
+      children: [node.firstChild],
+    },
+    { processChildren: true },
+  );
+};
+
 export const replaceTemplatePlaceholders = (tplVirtualDom) => {
   const pageVirtualDom = window.raqnVirtualDom;
-  const placeholders = [];
-  const placeholdersNodes = tplVirtualDom.queryAll((n) => {
-    if (!tplPlaceholderCheck(n)) return false;
-    const placeholder = getTplPlaceholder(n);
-    placeholders.push(placeholder);
-    return true;
-  });
+
+  const { placeholders, placeholdersNodes } = queryTemplatePlaceholders(tplVirtualDom);
+
+  duplicatedPlaceholder?.(placeholdersNodes, placeholders);
 
   placeholdersNodes.forEach((node, i) => {
     const placeholder = placeholders[i];
     const placeholderContent = pageVirtualDom.queryAll(
       (n) => {
         if (n.tag !== 'raqn-section') return false;
-        if (n.class.includes(placeholder)) return true;
-        // if main content special placeholder is defined any section without a placeholder will be added to the main content.
+        if (n.hasClass(placeholder)) return true;
+        // if main content special placeholder is defined in the template any section without a placeholder will be added to the main content.
         if (placeholder === 'tpl-content-auto-main' && n.class.every((ph) => !placeholders.includes(ph))) return true;
 
         return false;
@@ -176,10 +179,11 @@ export const replaceTemplatePlaceholders = (tplVirtualDom) => {
       { queryLevel: 4 },
     );
 
-    if (placeholderContent.length) {
-      node.replaceWith(...placeholderContent);
-    }
+    if (placeholderContent.length) node.replaceWith(...placeholderContent);
+    else if (noContentPlaceholder) {
+      noContentPlaceholder(node);
+    } else node.remove();
   });
   const [main] = pageVirtualDom.queryAll((n) => n.tag === 'main', { queryLevel: 1 });
-  main.prepend(...tplVirtualDom.children, { createChildren: false });
+  main.prepend(...tplVirtualDom.children);
 };
