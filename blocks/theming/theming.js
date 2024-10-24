@@ -10,6 +10,7 @@ import {
   unFlat,
   getBaseUrl,
 } from '../../scripts/libs.js';
+import { externalConfig } from '../../scripts/libs/external-config.js';
 
 const k = Object.keys;
 
@@ -98,11 +99,13 @@ export default class Theming extends ComponentBase {
 
   async processFragment(response, type = 'color') {
     if (response.ok) {
-      const responseData = await response.json();
+      const isComponent = type === 'component';
+
+      const responseData = await (isComponent ? response : response.json());
       this.themeJson[type] = responseData;
       if (type === 'fontface') {
         this.fontFaceTemplate(responseData);
-      } else if (type === 'component') {
+      } else if (isComponent) {
         Object.keys(responseData).forEach((key) => {
           if (key.indexOf(':') === 0 || responseData[key].data.length === 0) return;
           this.componentsConfig[key] = this.componentsConfig[key] || {};
@@ -176,7 +179,10 @@ export default class Theming extends ComponentBase {
     const base = getBaseUrl();
     await Promise.allSettled(
       themeConfigs.map(async ({ name, content }) => {
-        const response = await fetch(`${name !== 'fontface' ? base : ''}${content}.json`);
+        const response =
+          name === 'component'
+            ? externalConfig.loadConfig(true) // use the loader to prevent duplicated calls
+            : await fetch(`${name !== 'fontface' ? base : ''}${content}.json`);
         return this.processFragment(response, name);
       }),
     );

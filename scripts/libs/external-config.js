@@ -14,7 +14,7 @@ export const externalConfig = {
     return {};
   },
 
-  async loadConfig() {
+  async loadConfig(rawConfig) {
     window.raqnComponentsConfig ??= (async () => {
       const { metaName } = metaTags.themeConfigComponent;
       const metaConfigPath = getMeta(metaName);
@@ -35,7 +35,7 @@ export const externalConfig = {
 
     window.raqnComponentsConfig = await window.raqnComponentsConfig;
 
-    return this.simplifiedConfig();
+    return rawConfig ? window.raqnComponentsConfig : this.simplifiedConfig();
   },
 
   simplifiedConfig() {

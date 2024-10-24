@@ -28,7 +28,7 @@ raqn-card > div img {
 }
 
 /* Make entire item clickable */
-raqn-card div > div:first-child > p > em:only-child > a:only-child {
+raqn-card div > div:first-child > em:first-child > a:only-child {
   position: absolute;
   inset-block-end: 0;
   inset-inline-end: 0;
@@ -39,10 +39,6 @@ raqn-card div > div:first-child > p > em:only-child > a:only-child {
   z-index: 1;
 }
 
-raqn-card div > div:first-child > p:has(> em:only-child > a:only-child) {
-  margin: 0;
-}
-
 raqn-card div > div {
   display: flex;
   flex-direction: column;
@@ -51,12 +47,12 @@ raqn-card div > div {
   inset-inline-end: 0;
 }
 
-raqn-card div > div p:last-child:has(> raqn-button, raqn-icon) {
+raqn-card div > div > :where(raqn-button, raqn-icon):last-child {
   flex-grow: 1;
   display: flex;
   align-items: flex-end;
 }
 
-raqn-card div > div p:last-child:has(> raqn-icon) {
+raqn-card div > div > raqn-icon:last-child {
   justify-content: flex-end;
 }

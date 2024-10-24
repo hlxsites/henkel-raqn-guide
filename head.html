@@ -3,14 +3,32 @@
 <script>
   /* Preload header */
   const headerMeta = document.querySelector('meta[name="header"]');
-  const url = headerMeta?.content.trim();
-  if (url?.toLowerCase() !== 'false') {
+  const headerUrl = headerMeta?.content.trim();
+  if (headerUrl?.toLowerCase() !== 'false') {
     const link = document.createElement('link');
     link.setAttribute('rel', 'preload');
     link.setAttribute('as', 'fetch');
     link.setAttribute('crossorigin', 'anonymous');
-    link.href = url ? `${url}.plain.html` : '/header.plain.html';
+    link.href = headerUrl ? `${headerUrl}.plain.html` : '/header.plain.html';
     document.head.appendChild(link);
+  }
+
+  /* Preload template */
+  const templateMeta = document.querySelector('meta[name="template"]');
+  const tplUrl = templateMeta?.content.trim();
+  if (typeof tplUrl !== 'undefined') {
+    const tplFolder = `/page-templates/`;
+    if (!tplUrl.includes('/')) {
+      tplUrl = `${tplFolder}${tplUrl}`;
+    }
+    if (tplUrl.includes(tplFolder)) {
+      const link = document.createElement('link');
+      link.setAttribute('rel', 'preload');
+      link.setAttribute('as', 'fetch');
+      link.setAttribute('crossorigin', 'anonymous');
+      link.href = `${tplUrl}.plain.html`;
+      document.head.appendChild(link);
+    }
   }
 </script>
 <style>
@@ -19,6 +37,11 @@
   }
 </style>
 <link rel="stylesheet" href="/styles/styles.css" />
-<script src="/scripts/component-base.js" type="module"></script>
 <script src="/scripts/libs.js" type="module"></script>
+<script src="/scripts/render/dom.js" type="module"></script>
+<script src="/scripts/render/dom-manipulations.js" type="module"></script>
+<script src="/scripts/render/dom-reducers.js" type="module"></script>
+<script src="/scripts/render/dom-utils.js" type="module"></script>
+<script src="/scripts/component-list/component-list.js" type="module"></script>
 <script src="/scripts/index.js" type="module"></script>
+<script src="/scripts/component-base.js" type="module"></script>

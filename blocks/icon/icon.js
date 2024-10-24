@@ -28,8 +28,7 @@ export default class Icon extends ComponentBase {
     ];
   }
 
-  constructor() {
-    super();
+  onInit() {
     this.setupSprite();
   }
 

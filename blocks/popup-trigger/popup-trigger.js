@@ -1,17 +1,16 @@
 import ComponentBase from '../../scripts/component-base.js';
-
+import { componentList } from '../../scripts/component-list/component-list.js';
 import { popupState } from '../../scripts/libs.js';
+import { loadModules } from '../../scripts/render/dom-reducers.js';
 
 export default class PopupTrigger extends ComponentBase {
-  static observedAttributes = ['data-active', 'data-url'];
+  static observedAttributes = ['data-active', 'data-action'];
 
   static loaderConfig = {
     ...ComponentBase.loaderConfig,
     targetsSelectors: 'a:is([href*="#popup-trigger"],[href*="#popup-close"])',
     targetsAsContainers: true,
   };
-
-  dependencies = ['popup'];
 
   nestedComponentsConfig = {};
 
@@ -23,8 +22,9 @@ export default class PopupTrigger extends ComponentBase {
     return [
       ...super.extendConfig(),
       {
-        elements: {
+        selectors: {
           popupBtn: 'button',
+          triggerIcon: 'raqn-icon',
         },
         closePopupIdentifier: '#popup-close',
       },
@@ -39,50 +39,31 @@ export default class PopupTrigger extends ComponentBase {
   }
 
   onInit() {
-    this.createButton();
-    this.popupBtn.append(...this.childNodes);
-    this.append(this.popupBtn);
-    this.processTargetAnchor();
+    this.setAction();
+    this.queryElements();
   }
 
-  processTargetAnchor() {
-    const { target: anchor } = this.initOptions;
+  setAction() {
     const { closePopupIdentifier } = this.config;
-    const anchorUrl = new URL(anchor.href);
+    const anchorUrl = new URL(this.dataset.action, window.location.origin);
 
     if (anchorUrl.hash === closePopupIdentifier) {
       this.isClosePopupTrigger = true;
-    } else {
-      this.dataset.url = anchorUrl.pathname;
+      this.dataset.action = anchorUrl.hash;
     }
-
-    if (anchor.hasAttribute('aria-label')) {
-      this.ariaLabel = anchor.getAttribute('aria-label');
-      this.popupBtn.setAttribute('aria-label', this.ariaLabel);
-    }
-  }
-
-  addContentFromTarget() {
-    const { target } = this.initOptions;
-    this.popupBtn.append(...target.childNodes);
-  }
-
-  createButton() {
-    this.popupBtn = document.createElement('button');
-    this.popupBtn.setAttribute('aria-expanded', 'false');
-    this.popupBtn.setAttribute('aria-haspopup', 'true');
-    this.popupBtn.setAttribute('type', 'button');
   }
 
   addListeners() {
-    this.popupBtn.addEventListener('click', (e) => {
+    this.elements.popupBtn.addEventListener('click', (e) => {
       e.preventDefault();
       this.dataset.active = !this.isActive;
     });
   }
 
-  onAttributeUrlChanged({ oldValue, newValue }) {
-    if (this.isClosePopupTrigger) return;
+  onAttributeActionChanged({ oldValue, newValue }) {
+    if (this.isClosePopupTrigger) {
+      return;
+    }
     if (oldValue === newValue) return;
     let sourceUrl;
 
@@ -123,7 +104,7 @@ export default class PopupTrigger extends ComponentBase {
     this.popup = await this.createPopup();
     this.addPopupToPage();
     // the icon is initialize async by page loader
-    this.triggerIcon = this.querySelector('raqn-icon');
+    // this.triggerIcon = this.querySelector('raqn-icon');
 
     // Reassign to just toggle after the popup is created;
     this.loadPopup = this.togglePopup;
@@ -131,22 +112,25 @@ export default class PopupTrigger extends ComponentBase {
   }
 
   async createPopup() {
-    const popup = document.createElement('raqn-popup');
-    popup.dataset.url = this.popupSourceUrl;
-    popup.dataset.active = true;
+    const { popup } = componentList;
+    loadModules(null, { popup });
+
+    const popupEl = document.createElement('raqn-popup');
+    popupEl.dataset.action = this.popupSourceUrl;
+    popupEl.dataset.active = true;
     // Set the popupTrigger property of the popup component to this trigger instance
-    popup.popupTrigger = this;
-    return popup;
+    popupEl.popupTrigger = this;
+    return popupEl;
   }
 
   togglePopup() {
     this.popup.dataset.active = this.isActive;
-    this.popupBtn.setAttribute('aria-expanded', this.isActive);
-    if (this.triggerIcon) {
-      this.triggerIcon.dataset.active = this.isActive;
+    this.elements.popupBtn.setAttribute('aria-expanded', this.isActive);
+    if (this.elements.triggerIcon) {
+      this.elements.triggerIcon.dataset.active = this.isActive;
     }
     if (!this.isActive) {
-      this.popupBtn.focus();
+      this.elements.popupBtn.focus();
     }
   }
 
