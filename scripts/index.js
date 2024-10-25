@@ -13,7 +13,6 @@ export default {
       this.pageVirtualDomManipulation,
       this.loadAndProcessTemplate,
       this.renderPage,
-      this.onPageRender,
     );
   },
 
@@ -32,10 +31,6 @@ export default {
       document.body.innerHTML = '';
       document.body.append(...renderedDOM);
     }
-  },
-
-  onPageRender() {
-    Promise.allSettled(window.raqnOnComponentsLoaded).then(() => {});
   },
 
   async loadAndProcessTemplate() {

@@ -107,11 +107,11 @@ export const loadModules = (nodes, extra = {}) => {
     .sort((a, b) => modules[a].priority - modules[b].priority)
     .flatMap((component) => {
       const { tag, priority } = modules[component];
-      if (window.raqnComponents[tag]) return window.raqnComponents[tag].default;
+      if (window.raqnComponents[tag]) return window.raqnComponents[tag];
       if (!modules[component]?.module?.path) return [];
       return new Promise((resolve) => {
         setTimeout(async () => {
-          resolve(await loadAndDefine(modules[component]));
+          resolve(await loadAndDefine(modules[component]).js);
         }, priority || 0);
       });
     });
