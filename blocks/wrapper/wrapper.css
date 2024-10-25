@@ -1,8 +1,0 @@
-raqn-wrapper {
-  --wrapper-background: var(--scope-background, black);
-  --wrapper-color: var(--scope-color, white);
-
-  display: grid;
-  background: var(--wrapper-background);
-  color: var(--wrapper-color);
-}

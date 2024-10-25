@@ -10,9 +10,11 @@ import {
   flatAsValue,
   flat,
   mergeUniqueArrays,
+  runTasks,
 } from './libs.js';
 import { externalConfig } from './libs/external-config.js';
-import { generalManipulation, generateDom, renderVirtualDom } from './render/dom.js';
+import { generateVirtualDom, renderVirtualDom } from './render/dom.js';
+import { generalManipulation } from './render/dom-manipulations.js';
 
 export default class ComponentBase extends HTMLElement {
   // All supported data attributes must be added to observedAttributes
@@ -233,7 +235,7 @@ export default class ComponentBase extends HTMLElement {
   // Build-in method called after the element is added to the DOM.
   async connectedCallback() {
     // Common identifier for raqn web components
-    this.setAttribute('raqnWebComponent', '');
+    this.setAttribute('raqnwebcomponent', '');
     this.setAttribute('isloading', '');
     try {
       this.initialized = this.getAttribute('initialized');
@@ -480,9 +482,22 @@ export default class ComponentBase extends HTMLElement {
   }
 
   async addFragmentContent() {
-    const element = document.createElement('div');
-    element.innerHTML = this.fragmentContent;
-    this.append(...renderVirtualDom(generalManipulation(generateDom(element.childNodes))));
+    await runTasks.call(
+      this,
+      null,
+      function fragmentVirtualDom() {
+        const element = document.createElement('div');
+        element.innerHTML = this.fragmentContent;
+        return generateVirtualDom(element.childNodes);
+      },
+      // eslint-disable-next-line prefer-arrow-callback
+      async function fragmentVirtualDomManipulation({ fragmentVirtualDom }) {
+        await generalManipulation(fragmentVirtualDom);
+      },
+      function renderFragment({ fragmentVirtualDom }) {
+        this.append(...renderVirtualDom(fragmentVirtualDom));
+      },
+    );
   }
 
   queryElements() {

@@ -1,26 +1,15 @@
 // eslint-disable-next-line import/prefer-default-export
+import { deepMerge, getMeta, loadAndDefine, previewModule } from '../libs.js';
+import { recursive, tplPlaceholderCheck, queryTemplatePlaceholders } from './dom-utils.js';
+import { componentList, injectedComponents } from '../component-list/component-list.js';
 
-import { getMeta, loadModule } from '../libs.js';
-import { componentList, injectedComponents } from './component-list.js';
+window.raqnLoadedComponents ??= {};
+window.raqnOnComponentsLoaded ??= [];
+window.raqnComponents ??= {};
+const { raqnLoadedComponents } = window;
 
-window.loadedComponents = window.loadedComponents || {};
-window.initialization = window.initialization || [];
-window.raqnComponents = window.raqnComponents || {};
-const { loadedComponents } = window;
-
-export const filterNodes = (nodes, tag, className) => {
-  const filtered = [];
-  // eslint-disable-next-line no-plusplus
-  for (let i = 0; i < nodes.length; i++) {
-    const node = nodes[i];
-
-    if (node.tag === tag && (className ? node.class.includes(className) : true)) {
-      node.initialIndex = i;
-      filtered.push(node);
-    }
-  }
-  return filtered;
-};
+export const forPreviewManipulation = async (manipulation) => (await previewModule(import.meta, manipulation)) || {};
+export const { noContentPlaceholder, duplicatedPlaceholder } = await forPreviewManipulation();
 
 export const eagerImage = (node) => {
   if (!window.raqnEagerImages) {
@@ -36,91 +25,93 @@ export const eagerImage = (node) => {
       window.raqnEagerImages -= 1;
     }
   }
-  return node;
 };
 
 export const prepareGrid = (node) => {
-  if (node.children && node.children.length > 0) {
-    const grids = filterNodes(node.children, 'raqn-grid');
-    const gridItems = filterNodes(node.children, 'raqn-grid-item');
+  if (node.children && node.children.length > 0 && node.tag === 'raqn-section') {
+    const [grid, ...gridItems] = node.queryAll((n) => ['raqn-grid', 'raqn-grid-item'].includes(n.tag), {
+      queryLevel: 1,
+    });
 
-    grids.map((grid, i) => {
-      const initial = node.children.indexOf(grid);
-      const nextGridIndex = grids[i + 1] ? node.children.indexOf(grids[i + 1]) : node.children.length;
-      gridItems.map((item) => {
-        const itemIndex = node.children.indexOf(item);
-        // get elements between grid and item and insert into grid
-        if (itemIndex > initial && itemIndex < nextGridIndex) {
-          const children = node.children.splice(initial + 1, itemIndex - initial);
-          const gridItem = children.pop(); // remove grid item from children
-          gridItem.children = children;
-          grid.children.push(gridItem);
-        }
-      });
-      return grid;
+    if (!grid) return;
+    gridItems.forEach((item) => {
+      const currentChildren = [...node.children];
+      const initial = currentChildren.indexOf(grid);
+      const itemIndex = currentChildren.indexOf(item);
+      const gridItemChildren = currentChildren.splice(initial + 1, itemIndex - initial - 1);
+      item.append(...gridItemChildren);
+      grid.append(item);
     });
   }
-  return node;
 };
-// Compare this snippet from scripts/render/dom.js:
 
-export const recursive = (fn) => (nodes, level) =>
-  nodes.map((node) => {
-    if (node.children) {
-      node.children = recursive(fn)(node.children, level + 1);
-    }
-    return fn(node, level);
-  });
+const addToLoadComponents = (blockSelector, config) => {
+  const { dependencies } = config;
 
-// eslint-disable-next-line prefer-destructuring
-export const toWebComponent = (node) => {
-  Object.keys(componentList).forEach((componentClass) => {
-    if ((node.class && node.class.includes(componentClass)) || node.tag === componentClass) {
-      const { dependencies } = componentList[componentClass];
-      if (componentList[componentClass].transform) {
-        // eslint-disable-next-line no-param-reassign
-        node = componentList[componentClass].transform(node);
-      } else {
-        node.tag = componentList[componentClass].tag;
-      }
+  const toLoad = [blockSelector, ...(dependencies || [])];
 
-      if (!loadedComponents[componentClass]) {
-        loadedComponents[componentClass] = componentList[componentClass];
-      }
-      if (dependencies) {
-        dependencies.forEach((dependency) => {
-          if (!loadedComponents[dependency]) {
-            loadedComponents[dependency] = componentList[dependency];
-          }
-        });
-      }
+  toLoad.forEach((load) => {
+    if (!raqnLoadedComponents[load]) {
+      raqnLoadedComponents[load] = componentList[load];
     }
   });
-  return node;
+};
+
+export const toWebComponent = (virtualDom) => {
+  const componentConfig = deepMerge({}, componentList);
+  const componentConfigList = Object.entries(componentConfig);
+
+  const { replaceBlocks, queryBlocks } = componentConfigList.reduce(
+    (acc, item) => {
+      const [, config] = item;
+      if (config.method === 'replace') {
+        acc.replaceBlocks.push(item);
+      } else acc.queryBlocks.push(item);
+      return acc;
+    },
+    { replaceBlocks: [], queryBlocks: [] },
+  );
+
+  // Simple and fast in place tag replacement
+  recursive((node) => {
+    replaceBlocks.forEach(([blockSelector, config]) => {
+      if (node?.class?.includes?.(blockSelector) || config.filterNode?.(node)) {
+        node.tag = config.tag;
+        addToLoadComponents(blockSelector, config);
+      }
+    });
+  })(virtualDom);
+
+  // More complex transformation need to be done in order based on a separate query for each component.
+  queryBlocks.forEach(([blockSelector, config]) => {
+    const filter =
+      config.filterNode || ((node) => node?.class?.includes?.(blockSelector) || node.tag === blockSelector);
+    const nodes = virtualDom.queryAll(filter, { queryLevel: config.queryLevel });
+
+    nodes.forEach((node) => {
+      const defaultNode = [{ tag: config.tag }];
+      const hasTransform = typeof config.transform === 'function';
+      const transformNode = config.transform?.(node);
+      if ((!hasTransform || (hasTransform && transformNode)) && config.method) {
+        node[config.method](...(transformNode || defaultNode));
+      }
+      addToLoadComponents(blockSelector, config);
+    });
+  });
 };
 
 // load modules in order of priority
-
 export const loadModules = (nodes, extra = {}) => {
-  const modules = { ...loadedComponents, ...extra };
-  window.initialization = Object.keys(modules)
+  const modules = { ...raqnLoadedComponents, ...extra };
+  window.raqnOnComponentsLoaded = Object.keys(modules)
     .sort((a, b) => modules[a].priority - modules[b].priority)
-    .map((component) => {
-      const { script, tag, priority } = modules[component];
-      if (window.raqnComponents[tag]) return window.raqnComponents[tag].default;
+    .flatMap((component) => {
+      const { tag, priority } = modules[component];
+      if (window.raqnComponents[tag]) return window.raqnComponents[tag];
+      if (!modules[component]?.module?.path) return [];
       return new Promise((resolve) => {
         setTimeout(async () => {
-          const { js, css } = loadModule(script);
-
-          const mod = await js;
-          const style = await css;
-          if (mod.default.prototype instanceof HTMLElement) {
-            if (!window.customElements.get(tag)) {
-              window.customElements.define(tag, mod.default);
-              window.raqnComponents[tag] = mod.default;
-            }
-          }
-          resolve({ tag, mod, style });
+          resolve(await loadAndDefine(modules[component]).js);
         }, priority || 0);
       });
     });
@@ -129,40 +120,70 @@ export const loadModules = (nodes, extra = {}) => {
 
 // Just inject components that are not in the list
 export const inject = (nodes) => {
-  const items = nodes.slice();
-  items.unshift(...injectedComponents);
-  return items;
+  const [header] = nodes.children;
+  header.before(...injectedComponents);
 };
+
 // clear empty text nodes or nodes with only text breaklines and spaces
 export const cleanEmptyTextNodes = (node) => {
-  // remove empty text nodes to avoid rendering those
-  if (node.children) {
-    node.children = node.children.filter((n) => {
-      if (n.tag === 'textNode') {
-        const text = n.text.replace(/ /g, '').replace(/\n/g, '');
-        return text !== '';
-      }
-      return true;
-    });
+  if (node.tag === 'textNode') {
+    const text = node.text.replace(/ /g, '').replace(/\n/g, '');
+    if (text === '') node.remove();
   }
-  return node;
 };
 
 // clear empty nodes that are not necessary to avoid rendering
+export const cleanBrNodes = (node) => {
+  if (node.tag === 'br') {
+    node.remove();
+  }
+};
+
 export const cleanEmptyNodes = (node) => {
-  if (node.tag === 'p' && node.children.length === 1 && ['a', 'picture'].includes(node.children[0].tag)) {
-    return node.children[0];
-  }
-  if (node.tag === 'em' && node.children.length === 1 && node.children[0].tag === 'a') {
-    return node.children[0];
-  }
-  if (
-    node.tag === 'div' &&
-    node.class.length === 0 &&
-    node.children.length === 1 &&
-    node.children[0].tag !== 'textNode'
-  ) {
-    return node.children[0];
-  }
-  return node;
+  cleanEmptyTextNodes(node);
+  cleanBrNodes(node);
+};
+
+// in some cases when the placeholder is the only content in a block row the text is not placed in a <p>
+// wrap the placeholder in a <p> to normalize placeholder identification.
+export const buildTplPlaceholder = (node) => {
+  if (!tplPlaceholderCheck('div', node)) return;
+
+  node.append(
+    {
+      tag: 'p',
+      children: [node.firstChild],
+    },
+    { processChildren: true },
+  );
+};
+
+export const replaceTemplatePlaceholders = (tplVirtualDom) => {
+  const pageVirtualDom = window.raqnVirtualDom;
+
+  const { placeholders, placeholdersNodes } = queryTemplatePlaceholders(tplVirtualDom);
+
+  duplicatedPlaceholder?.(placeholdersNodes, placeholders);
+
+  placeholdersNodes.forEach((node, i) => {
+    const placeholder = placeholders[i];
+    const placeholderContent = pageVirtualDom.queryAll(
+      (n) => {
+        if (n.tag !== 'raqn-section') return false;
+        if (n.hasClass(placeholder)) return true;
+        // if main content special placeholder is defined in the template any section without a placeholder will be added to the main content.
+        if (placeholder === 'tpl-content-auto-main' && n.class.every((ph) => !placeholders.includes(ph))) return true;
+
+        return false;
+      },
+      { queryLevel: 4 },
+    );
+
+    if (placeholderContent.length) node.replaceWith(...placeholderContent);
+    else if (noContentPlaceholder) {
+      noContentPlaceholder(node);
+    } else node.remove();
+  });
+  const [main] = pageVirtualDom.queryAll((n) => n.tag === 'main', { queryLevel: 1 });
+  main.prepend(...tplVirtualDom.children);
 };

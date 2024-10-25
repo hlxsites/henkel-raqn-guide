@@ -1,5 +1,6 @@
 raqn-grid {
   /* Set to initial to prevent inheritance for nested grids */
+  --grid-gap: initial;
   --grid-height: initial;
   --grid-width: 100%;
   --grid-justify-items: initial;
@@ -29,12 +30,5 @@ raqn-grid {
   height: var(--grid-height);
   background: var(--grid-background);
   color: var(--grid-color);
-}
-
-/* 
- * First level grids will (as any other block) will act as a container
- * and width should not be applied.
- */
-raqn-grid:not(main > div > raqn-grid) {
   width: var(--grid-width);
 }

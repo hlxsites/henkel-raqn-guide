@@ -22,6 +22,11 @@ export const globalConfig = {
   classes: {
     noScroll: 'no-scroll',
   },
+  previewHosts: {
+    localhost: 'localhost',
+    review: 'aem.page',
+  },
+  isPreview: undefined,
 };
 
 export const metaTags = {
@@ -54,7 +59,8 @@ export const metaTags = {
   },
   template: {
     metaName: 'template',
-    // contentType: 'string template name',
+    fallbackContent: '/page-templates/',
+    // contentType: 'string template name and path defaults to fallbackContent - or the full path including template name',
   },
   lcp: {
     metaName: 'lcp',
@@ -100,6 +106,23 @@ export const metaTags = {
     // contentType: 'string theme name',
   },
 };
+
+export const isPreview = () => {
+  if (typeof globalConfig.isPreview !== 'undefined') return globalConfig.isPreview;
+
+  const { hostname, searchParams } = new URL(window.location);
+  const isDisabled = searchParams.has('raqnPreviewOff');
+  if (isDisabled) {
+    globalConfig.isPreview = !isDisabled;
+    return globalConfig.isPreview;
+  }
+  const { previewHosts } = globalConfig;
+
+  globalConfig.isPreview = Object.values(previewHosts).some((host) => hostname.endsWith(host));
+  return globalConfig.isPreview;
+};
+
+export const isTemplatePage = (url) => (url || window.location.pathname).includes(metaTags.template.fallbackContent);
 
 export const camelCaseAttr = (val) => val.replace(/-([a-z])/g, (k) => k[1].toUpperCase());
 export const capitalizeCaseAttr = (val) => camelCaseAttr(val.replace(/^[a-z]/g, (k) => k.toUpperCase()));
@@ -323,33 +346,62 @@ export function deepMerge(origin, ...toMerge) {
   return deepMerge(origin, ...toMerge);
 }
 
-export function loadModule(urlWithoutExtension, loadCSS = true) {
+export function loadModule(urlWithoutExtension, { loadCSS = true, loadJS = true }) {
+  const modules = { js: Promise.resolve(), css: Promise.resolve() };
+  if (!urlWithoutExtension) return modules;
   try {
-    const js = import(`${urlWithoutExtension}.js`);
-    if (!loadCSS) return { js, css: Promise.resolve() };
-    const css = new Promise((resolve, reject) => {
-      const cssHref = `${urlWithoutExtension}.css`;
-      if (!document.querySelector(`head > link[href="${cssHref}"]`)) {
-        const link = document.createElement('link');
-        link.rel = 'stylesheet';
-        link.href = cssHref;
-        link.onload = resolve;
-        link.onerror = reject;
-        document.head.append(link);
-      } else {
-        resolve();
-      }
-    }).catch((error) =>
-      // eslint-disable-next-line no-console
-      console.log('Could not load module style', urlWithoutExtension, error),
-    );
+    if (loadJS) {
+      modules.js = import(`${urlWithoutExtension}.js`);
+    }
 
-    return { css, js };
+    if (loadCSS) {
+      modules.css = new Promise((resolve, reject) => {
+        const cssHref = `${urlWithoutExtension}.css`;
+        const style = document.querySelector(`head > link[href="${cssHref}"]`);
+        if (!style) {
+          const link = document.createElement('link');
+          link.href = cssHref;
+          // make the css loading not be render blocking
+          link.rel = 'preload';
+          link.as = 'style';
+          link.onload = () => {
+            link.onload = null;
+            link.rel = 'stylesheet';
+            resolve(link);
+          };
+          link.onerror = reject;
+          document.head.append(link);
+        } else {
+          resolve(style);
+        }
+      }).catch((error) =>
+        // eslint-disable-next-line no-console
+        console.log('Could not load module style', urlWithoutExtension, error),
+      );
+    }
+
+    return modules;
   } catch (error) {
     // eslint-disable-next-line no-console
     console.log('Could not load module', urlWithoutExtension, error);
   }
-  return { css: Promise.resolve(), js: Promise.resolve() };
+  return modules;
+}
+
+export async function loadAndDefine(componentConfig) {
+  const { tag, module: { path, loadJS, loadCSS } = {} } = componentConfig;
+  const { js, css } = loadModule(path, { loadJS, loadCSS });
+
+  const module = await js;
+  const style = await css;
+
+  if (module?.default.prototype instanceof HTMLElement) {
+    if (!window.customElements.get(tag)) {
+      window.customElements.define(tag, module.default);
+      window.raqnComponents[tag] = module.default;
+    }
+  }
+  return { tag, module, style };
 }
 
 export function mergeUniqueArrays(...arrays) {
@@ -543,4 +595,77 @@ export const classToFlat = (classes = [], valueLength = 1, extend = {}) =>
 export function blockBodyScroll(boolean) {
   const { noScroll } = globalConfig.classes;
   document.body.classList.toggle(noScroll, boolean);
+}
+
+/**
+ * Load a file used only for preview.
+ * Adds an easy way to load inside a file the preview version of the same file with a .preview.js suffix,
+ * using the `import.meta` as value for `path` param.
+ *
+ * @param {string|import.meta} path - The path including file name from where to load the preview file
+ *                   If the file is in the same path as the current one where this method is called
+ *                   then `import.meta` can be used as value
+ * @param {string} name - the name of an export from the module.
+ * @returns {module|*} - the module or a specific export from the module.
+ */
+export const previewModule = async (path, name) => {
+  if (!isPreview()) return null;
+  let newPath = path;
+  if (path.url) {
+    const localPath = path.url.split('.js');
+    localPath.splice(1, 1, '.preview.js');
+    newPath = localPath.join('');
+  }
+  const module = await import(newPath);
+  return name ? module[name] : module;
+};
+
+export function yieldToMain() {
+  return new Promise((resolve) => {
+    setTimeout(resolve, 0);
+  });
+}
+
+/**
+ * Functions running complex computation have a potential to generate a task with high block time.
+ *
+ * To mitigate this issue the functionality should be splitted into multiple functions which
+ * should be called using the runTasks() method.
+ *
+ * Functions called with runTasks() can further more use same technique
+ * inside of them to break down the functionality into smaller tasks and call them using runTasks();
+ *
+ * Use call() or apply() methods to call the runTasks() method in order to set the thisArg for the tasks in the list.
+ *
+ * @param  {*} params - initial parameter accessible in all tasks calls under the `params` key.
+ * @param  {...any} taskList - and succession of function to be called as tasks. The tasks can be async.
+ * @returns {object} - contains all the results from all tasks calls where the key is the task function name including the initial params key.
+ */
+export async function runTasks(params, ...taskList) {
+  const prevResults = {};
+  let i = 0;
+  prevResults.params = params;
+
+  while (taskList.length > 0) {
+    i += 1;
+    const task = taskList.shift();
+
+    // Run the task:
+    // eslint-disable-next-line no-await-in-loop
+    let result = await task.call(this, prevResults, i);
+    if (!task.name.length) {
+      // eslint-disable-next-line no-console
+      console.warn("The task doesn't have a name. Please use a named function to create the task.");
+    }
+    if (result?.stopTaskRun) {
+      result = result.value;
+      taskList.splice(0, taskList.length);
+    }
+    prevResults[task.name || i] = result;
+
+    // Yield to the main thread
+    // eslint-disable-next-line no-await-in-loop
+    await yieldToMain();
+  }
+  return prevResults;
 }

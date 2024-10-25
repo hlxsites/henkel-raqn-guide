@@ -69,7 +69,8 @@ body {
   padding: 0;
   margin: 0;
   width: 100%;
-  padding-top: var(--header-height, 110px);
+
+  /* padding-top: var(--header-height, 110px); */
 }
 
 body.no-scroll {
@@ -200,7 +201,7 @@ img {
 /* Set default block style to all raqn web components 
    Use :where() to give lower specificity in order to not overwrite any display option set on the web component tag 
 */
-:where([raqnWebComponent]) {
+:where([raqnwebcomponent]) {  
   display: block;
 }
 
@@ -209,9 +210,16 @@ main > div > *:not(.full-width) {
   margin-inline: var(--container-width);
 }
 
+:where(main, raqn-header, raqn-footer) > raqn-section > *:not(.full-width) {
+  margin-inline: var(--container-width);
+  width: initial;
+}
+
+
 /* Change the above behavior by setting the full-with class on the block. This will make the background take the full width of the page */
 .full-width {
-  padding-inline: var(--container-width);
+  max-width: var(--max-width);
+  margin-inline: auto;
 }
 
 /* TODO Check if this is still needed */
