@@ -2,18 +2,13 @@ raqn-grid {
   /* Set to initial to prevent inheritance for nested grids */
   --grid-gap: initial;
   --grid-height: initial;
-  --grid-width: 100%;
+  --grid-width: initial;
   --grid-justify-items: initial;
   --grid-align-items: initial;
   --grid-justify-content: initial;
   --grid-align-content: initial;
-  --grid-columns: initial;
-  --grid-rows: initial;
-  --grid-auto-columns: initial;
-  --grid-auto-rows: initial;
-  --grid-tpl-areas: initial;
-  --grid-tpl-columns: repeat(var(--grid-columns, 2), 1fr);
-  --grid-tpl-rows: repeat(var(--grid-rows, 0), 1fr);
+  --grid-template-columns: initial;
+  --grid-template-rows: initial;
   --grid-background: var(--background, black);
   --grid-color: var(--text, white);
 
@@ -21,7 +16,7 @@ raqn-grid {
 
   /* defaults to 2 columns */
   grid-template-columns: var(--grid-template-columns, 1fr 1fr);
-  grid-template-rows: var(--grid-template-rows, 1fr);
+  grid-template-rows: var(--grid-template-rows, auto);
   gap: var(--grid-gap, 20px);
   justify-items: var(--grid-justify-items);
   align-items: var(--grid-align-items);

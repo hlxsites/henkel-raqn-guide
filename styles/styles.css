@@ -201,7 +201,7 @@ img {
 /* Set default block style to all raqn web components 
    Use :where() to give lower specificity in order to not overwrite any display option set on the web component tag 
 */
-:where([raqnwebcomponent]) {  
+:where([raqnwebcomponent]) {
   display: block;
 }
 
@@ -215,25 +215,10 @@ main > div > *:not(.full-width) {
   width: initial;
 }
 
-
 /* Change the above behavior by setting the full-with class on the block. This will make the background take the full width of the page */
 .full-width {
   max-width: var(--max-width);
   margin-inline: auto;
-}
-
-/* TODO Check if this is still needed */
-main > div > div {
-  background: var(--background, #fff);
-  color: var(--text, #000);
-  padding: var(--padding, 0);
-}
-
-/* TODO Check if this is still needed */
-main > div > div > div {
-  max-width: var(--max-width, 100%);
-  margin: var(--margin, 0 auto);
-  width: 100%;
 }
 
 a {
@@ -266,7 +251,7 @@ button {
 }
 
 /* Hide raqn web components based on different states */
-[isloading],
+[isloading]:not(.show-loader),
 .hide-with-error,
 .hide {
   display: none;
@@ -275,4 +260,44 @@ button {
 
 #franklin-svg-sprite {
   display: none;
+}
+
+.show-loader {
+  position: relative;
+  min-height: 100px;
+
+  &::before {
+    content: '';
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background: white;
+  }
+
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    transform-origin: center;
+    z-index: 2;
+    border: 5px solid #f3f3f3; /* Light grey */
+    border-top: 5px solid #555; /* Blue */
+    border-radius: 50%;
+    width: 25px;
+    height: 25px;
+    animation: spin 0.75s linear infinite;
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+
+  100% {
+    transform: rotate(360deg);
+  }
 }

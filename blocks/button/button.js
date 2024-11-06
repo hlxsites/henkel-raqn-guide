@@ -1,21 +1,10 @@
 import ComponentBase from '../../scripts/component-base.js';
 
 export default class Button extends ComponentBase {
-  static loaderConfig = {
-    ...ComponentBase.loaderConfig,
-    targetsSelectors: ':is(p,div):has(> a[href]:only-child)',
-    selectorTest: (el) => el.childNodes.length === 1,
-  };
-
-  nestedComponentsConfig = {};
-
   extendConfig() {
     return [
       ...super.extendConfig(),
       {
-        targetsAsContainers: {
-          addToTargetMethod: 'append',
-        },
         selectors: {
           anchor: ':scope > a',
           ariaText: ':scope > a:has(> raqn-icon, > .icon) > strong',
@@ -24,21 +13,11 @@ export default class Button extends ComponentBase {
     ];
   }
 
-  connected() {
-    this.initAsBlock();
+  init() {
+    super.init();
     this.queryElements();
     this.wrapText();
     this.addAriaText();
-  }
-
-  initAsBlock() {
-    if (!this.isInitAsBlock) return;
-    const anchor = this.querySelector('a');
-    this.innerHTML = '';
-    if (!anchor) {
-      throw new Error(`No anchor found in the "${this.componentName}" block`);
-    }
-    this.append(anchor);
   }
 
   wrapText() {

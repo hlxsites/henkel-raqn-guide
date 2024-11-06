@@ -16,7 +16,7 @@ export default async function preview(component, classes, uuid) {
 
   main.innerHTML = '';
   document.body.append(main);
-  await main.append(...renderVirtualDom(pageManipulation(virtualDom)));
+  await main.append(...renderVirtualDom(await pageManipulation(virtualDom)));
 
   webComponent.style.display = 'inline-grid';
   webComponent.style.width = 'auto';

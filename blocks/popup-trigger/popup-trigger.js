@@ -1,18 +1,15 @@
 import ComponentBase from '../../scripts/component-base.js';
 import { componentList } from '../../scripts/component-list/component-list.js';
-import { popupState } from '../../scripts/libs.js';
-import { loadModules } from '../../scripts/render/dom-reducers.js';
+import { popupState, loadAndDefine } from '../../scripts/libs.js';
 
 export default class PopupTrigger extends ComponentBase {
   static observedAttributes = ['data-active', 'data-action'];
 
-  static loaderConfig = {
-    ...ComponentBase.loaderConfig,
-    targetsSelectors: 'a:is([href*="#popup-trigger"],[href*="#popup-close"])',
-    targetsAsContainers: true,
-  };
+  isClosePopupTrigger = false;
 
-  nestedComponentsConfig = {};
+  ariaLabel = null;
+
+  popupSourceUrl = null;
 
   get isActive() {
     return this.dataset.active === 'true';
@@ -31,16 +28,10 @@ export default class PopupTrigger extends ComponentBase {
     ];
   }
 
-  setDefaults() {
-    super.setDefaults();
-    this.isClosePopupTrigger = false;
-    this.ariaLabel = null;
-    this.popupSourceUrl = null;
-  }
-
-  onInit() {
+  init() {
     this.setAction();
     this.queryElements();
+    this.addListeners();
   }
 
   setAction() {
@@ -112,8 +103,7 @@ export default class PopupTrigger extends ComponentBase {
   }
 
   async createPopup() {
-    const { popup } = componentList;
-    loadModules(null, { popup });
+    loadAndDefine(componentList.popup);
 
     const popupEl = document.createElement('raqn-popup');
     popupEl.dataset.action = this.popupSourceUrl;

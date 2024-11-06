@@ -13,19 +13,11 @@ export const highlightTemplatePlaceholders = (tplVirtualDom) => {
 
 export const noContentPlaceholder = (node) => {
   node.class.push('template-placeholder');
-  node.append(
-    {
-      tag: 'span',
-      class: ['error-message-box'],
-      children: [
-        {
-          tag: 'textNode',
-          text: "This template placeholder doesn't have content in this page",
-        },
-      ],
-    },
-    { processChildren: true },
-  );
+  node.append({
+    tag: 'span',
+    class: ['error-message-box'],
+    text: "This template placeholder doesn't have content in this page",
+  });
 };
 
 export const duplicatedPlaceholder = (placeholdersNodes, placeholders, markAll = false) => {
@@ -49,19 +41,11 @@ export const duplicatedPlaceholder = (placeholdersNodes, placeholders, markAll =
 
   duplicatesNodes.forEach((node) => {
     node.class.push('template-placeholder');
-    node.append(
-      {
-        tag: 'span',
-        class: ['error-message-box'],
-        children: [
-          {
-            tag: 'textNode',
-            text: 'This template placeholder is duplicated in the template',
-          },
-        ],
-      },
-      { processChildren: true },
-    );
+    node.append({
+      tag: 'span',
+      class: ['error-message-box'],
+      text: 'This template placeholder is duplicated in the template',
+    });
   });
 };
 

@@ -1,4 +1,5 @@
-import { previewModule } from '../libs.js';
+import { previewModule, getMeta, metaTags } from '../libs.js';
+import { setPropsAndAttributes, getClassWithPrefix } from '../render/dom-utils.js';
 
 const forPreviewList = await previewModule(import.meta, 'componentList');
 
@@ -20,15 +21,19 @@ const forPreviewList = await previewModule(import.meta, 'componentList');
  * @prop {string} method                 - The virtualDom mode mutation method found in /scripts/render/dom/dom.js/nodeProxy
  *                                         e.g." 'append', 'replaceWith' etc.
  *                                         Or the special value 'replace' which does a simple tag value change.
- * @prop {string} method                 - The virtualDom mutation method found in /scripts/render/dom/dom.js/nodeProxy. e.g." 'append', 'replaceWith'
- * @prop {object} module                 - webComponent module loading configuration.
- * @prop {string} module.path            - Root relative path to the module folder.
+ * @prop {number} queryLevel             - set te depth level after which the search for the tag will stop.
+ *                                         Option to optimize the query if it's unnecessary to to query the entire virtual dom.
+ * @prop {configMethod} [filterNode]     - Filter method to identify if the node is a match for the component
+ * @prop {configMethod} [transform]      - Method to modify the node in place or return a new node
+ *                                         if match si more complex and can not be achieve by matching against 'blockName'
+ * @prop {object}   module               - webComponent module loading configuration.
+ * @prop {string}   module.path          - Root relative path to the module folder.
  * @prop {boolean} [module.loadJS=true]  - Set if the component has js module to load.
  * @prop {boolean} [module.loadCSS=true] - Set if the component has css module to load.
- * @prop {number} [module.priority]      - The order in which the modules will be loaded.
- * @prop {configMethod} [filterNode]     - Filter method to identify if the node is a match for the component
- *                                         if match si more complex and can not be achieve by matching against 'blockName'
- * @prop {configMethod} [transform]      - Method to modify the node in place or return a new node
+ * @prop {number}  [module.priority]     - The order in which the modules will be loaded.
+ * @prop {number}  [module.dependencies] - An array of 'blockName's for which the modules will be loaded together with the current one.
+ *                                         If a dependency is breakpoint specific that should be handled in the component
+ *                                         using 'loadAndDefine(componentList[blockName])'
  */
 /**
  * @type {Object.<blockName, componentConfig>}
@@ -54,14 +59,34 @@ export const componentList = {
     tag: 'raqn-header',
     method: 'append',
     queryLevel: 1,
-    module: { path: '/blocks/header/header' },
-    dependencies: ['navigation', 'grid', 'grid-item'],
-    priority: 1,
+    metaHeader: getMeta(metaTags.header.metaName),
+    filterNode(node) {
+      if (['header', this.tag].includes(node.tag)) {
+        // if the header is disabled remove it
+        if (!this.metaHeader) return node.remove() || false;
+        return true;
+      }
+      return false;
+    },
+    module: {
+      path: '/blocks/header/header',
+      priority: 1,
+      dependencies: ['navigation', 'grid', 'grid-item'],
+    },
   },
   footer: {
     tag: 'raqn-footer',
     method: 'append',
     queryLevel: 1,
+    metaFooter: getMeta(metaTags.footer.metaName),
+    filterNode(node) {
+      if (['footer', this.tag].includes(node.tag)) {
+        // if the footer is disabled remove it
+        if (!this.metaFooter) return node.remove() || false;
+        return true;
+      }
+      return false;
+    },
     module: {
       path: '/blocks/footer/footer',
       priority: 3,
@@ -76,14 +101,6 @@ export const componentList = {
     transform(node) {
       node.tag = this.tag;
 
-      // Set options from section metadata to section.
-      const metaBlock = 'section-metadata';
-      const [sectionMetaData] = node.queryAll((n) => n.hasClass(metaBlock));
-      if (sectionMetaData) {
-        node.class = [...sectionMetaData.class.filter((c) => c !== metaBlock)];
-        sectionMetaData.remove();
-      }
-
       // Handle sections with multiple grids
       const sectionGrids = node.queryAll((n) => n.hasClass('grid'), { queryLevel: 1 });
       if (sectionGrids.length > 1) {
@@ -92,6 +109,16 @@ export const componentList = {
         } else {
           node.remove();
         }
+        return;
+      }
+
+      // Set options from section metadata to section.
+      const metaBlock = 'section-metadata';
+      const [sectionMetaData] = node.queryAll((n) => n.hasClass(metaBlock));
+      if (sectionMetaData) {
+        node.class = [...sectionMetaData.class.filter((c) => c !== metaBlock)];
+        setPropsAndAttributes(node);
+        sectionMetaData.remove();
       }
     },
   },
@@ -101,15 +128,18 @@ export const componentList = {
     module: {
       path: '/blocks/navigation/navigation',
       priority: 1,
+      dependencies: ['icon'],
     },
-    // dependencies: ['accordion', 'icon'],
   },
   icon: {
     tag: 'raqn-icon',
-    method: 'replace',
     module: {
       path: '/blocks/icon/icon',
       priority: 1,
+    },
+    transform(node) {
+      node.tag = this.tag;
+      node.attributes['data-icon'] = getClassWithPrefix(node, 'icon-');
     },
   },
   picture: {
@@ -149,6 +179,7 @@ export const componentList = {
     module: {
       path: '/blocks/accordion/accordion',
       priority: 2,
+      dependencies: ['icon'],
     },
   },
   button: {
@@ -221,8 +252,8 @@ export const componentList = {
     module: {
       path: '/blocks/grid/grid',
       priority: 0,
+      dependencies: ['grid-item'],
     },
-    dependencies: ['grid-item'],
   },
   'grid-item': {
     method: 'replace',

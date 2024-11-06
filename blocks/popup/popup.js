@@ -18,7 +18,11 @@ export default class Popup extends ComponentBase {
 
   configPopupAttributes = ['data-type', 'data-size', 'data-offset', 'data-height'];
 
-  dependencies = ['icon'];
+  /**
+   * Optional special property to set a reference to a popupTrigger element which controls this popup.
+   * This will automatically control the states of the popupTrigger based on popup interaction.
+   */
+  popupTrigger = null;
 
   get isActive() {
     return this.dataset.active !== 'true';
@@ -28,10 +32,6 @@ export default class Popup extends ComponentBase {
     return [
       ...super.extendConfig(),
       {
-        contentFromTargets: false,
-        targetsAsContainers: {
-          contentFromTargets: false,
-        },
         showCloseBtn: true,
         selectors: {
           popupBase: '.popup__base',
@@ -51,15 +51,6 @@ export default class Popup extends ComponentBase {
         },
       },
     ];
-  }
-
-  setDefaults() {
-    super.setDefaults();
-    /**
-     * Optional special property to set a reference to a popupTrigger element which controls this popup.
-     * This will automatically control the states of the popupTrigger based on popup interaction.
-     */
-    this.popupTrigger = null;
   }
 
   setBinds() {

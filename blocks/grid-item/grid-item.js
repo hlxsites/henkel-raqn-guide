@@ -2,7 +2,6 @@ import ComponentBase from '../../scripts/component-base.js';
 
 export default class GridItem extends ComponentBase {
   static observedAttributes = [
-    'data-level',
     'data-order',
     'data-sticky',
     'data-column',
@@ -12,20 +11,7 @@ export default class GridItem extends ComponentBase {
     'data-align',
   ];
 
-  nestedComponentsConfig = {};
-
-  attributesValues = {
-    all: {
-      data: {
-        level: 1,
-      },
-    },
-  };
-
-  setDefaults() {
-    super.setDefaults();
-    this.gridParent = null;
-  }
+  gridParent = null;
 
   get siblingsItems() {
     return this.gridParent.gridItems.filter((x) => x !== this);
@@ -48,7 +34,8 @@ export default class GridItem extends ComponentBase {
     }
   }
 
-  connected() {
+  init() {
+    super.init();
     this.gridParent ??= this.parentElement;
   }
 

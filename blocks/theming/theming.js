@@ -15,8 +15,6 @@ import { externalConfig } from '../../scripts/libs/external-config.js';
 const k = Object.keys;
 
 export default class Theming extends ComponentBase {
-  componentsConfig = {};
-
   elements = {};
 
   variations = {};
@@ -49,14 +47,13 @@ export default class Theming extends ComponentBase {
               `<link rel="preload" href="${window.location.origin}/fonts/${data[key].options[type]}" as="font" type="font/woff2" crossorigin>`,
             );
             return `@font-face {
-            font-display: fallback;
-            font-family: '${key}';
-            src: url('${window.location.origin}/fonts/${data[key].options[type]}');
-            ${type === 'italic' ? 'font-style' : 'font-weight'}: ${type};
-            }
-            `;
+  font-display: fallback;
+  font-family: '${key}';
+  src: url('${window.location.origin}/fonts/${data[key].options[type]}');
+  ${type === 'italic' ? 'font-style' : 'font-weight'}: ${type};
+}`;
           })
-          .join('');
+          .join('\n');
       })
       .join('');
   }
@@ -76,9 +73,8 @@ export default class Theming extends ComponentBase {
           const query = getMediaQuery(min, max);
           return `
 @media ${query} {
-      ${callback(obj[bp])}
-        }
-      `;
+    ${callback(obj[bp])}
+}`;
         }
         // regular
         return callback(obj[bp]);
@@ -108,7 +104,7 @@ export default class Theming extends ComponentBase {
       } else if (isComponent) {
         Object.keys(responseData).forEach((key) => {
           if (key.indexOf(':') === 0 || responseData[key].data.length === 0) return;
-          this.componentsConfig[key] = this.componentsConfig[key] || {};
+          this.componentsConfig[key] ??= {};
           this.componentsConfig[key] = readValue(responseData[key].data, this.componentsConfig[key]);
         });
       } else {
@@ -121,10 +117,10 @@ export default class Theming extends ComponentBase {
 
   defineVariations() {
     const names = k(this.variations);
-    const result = names.reduce((a, name) => {
+    const result = names.reduce((acc, name) => {
       const unflatted = unFlat(this.variations[name]);
       return (
-        a +
+        acc +
         this.reduceViewports(unflatted, (actionData) => {
           const actions = k(actionData);
           return actions.reduce((b, action) => {
@@ -147,21 +143,19 @@ export default class Theming extends ComponentBase {
   variablesValues(data, name, prepend = '.') {
     const f = flat(data);
     return `${prepend || '.'}${name} {
-      ${k(f)
-        .map((key) => `\n--${key}: ${f[key]};`)
-        .join('')}
-    }
-        `;
+${k(f)
+  .map((key) => `--${key}: ${f[key]};`)
+  .join('\n')}
+}\n`;
   }
 
   variablesScopes(data, name, prepend = '.') {
     const f = flat(data);
     return `${prepend}${name} {
-      ${k(f)
-        .map((key) => `\n${key}: var(--${name}-${key}, ${f[key]});`)
-        .join('')}
-    }
-        `;
+  ${k(f)
+    .map((key) => `${key}: var(--${name}-${key}, ${f[key]});`)
+    .join('\n')}
+  }`;
   }
 
   renderFont(data, name) {
@@ -175,10 +169,20 @@ export default class Theming extends ComponentBase {
   }
 
   async loadFragment() {
-    const themeConfigs = getMetaGroup(metaTags.themeConfig.metaNamePrefix);
+    const { themeConfig } = metaTags;
+
+    const themeConfigs = getMetaGroup(themeConfig.metaNamePrefix);
     const base = getBaseUrl();
     await Promise.allSettled(
-      themeConfigs.map(async ({ name, content }) => {
+      themeConfigs.map(async ({ name, content, nameWithPrefix }) => {
+        if (!content.includes(`${themeConfig.fallbackContent}`) && name !== 'fontface') {
+          // eslint-disable-next-line no-console
+          console.error(
+            `The configured "${nameWithPrefix}" config url is not containing a "${themeConfig.fallbackContent}" folder.`,
+          );
+          return {};
+        }
+
         const response =
           name === 'component'
             ? externalConfig.loadConfig(true) // use the loader to prevent duplicated calls

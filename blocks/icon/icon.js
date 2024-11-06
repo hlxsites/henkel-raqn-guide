@@ -1,7 +1,17 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { flatAsValue, isObject, stringToJsVal, getMeta, metaTags } from '../../scripts/libs.js';
+import { stringToJsVal, getMeta, metaTags } from '../../scripts/libs.js';
 
 const metaIcons = getMeta(metaTags.icons.metaName);
+
+const sprite = (function setupSprite() {
+  let svgSprite = document.getElementById('raqn-svg-sprite');
+  if (!svgSprite) {
+    svgSprite = document.createElement('div');
+    svgSprite.id = 'raqn-svg-sprite';
+    document.body.append(svgSprite);
+  }
+  return svgSprite;
+})();
 
 export default class Icon extends ComponentBase {
   static observedAttributes = ['data-active', 'data-icon'];
@@ -9,6 +19,16 @@ export default class Icon extends ComponentBase {
   #initialIcon = null;
 
   #activeIcon = null;
+
+  svgSprite = sprite;
+
+  attributesValues = {
+    all: {
+      attribute: {
+        'aria-hidden': 'true',
+      },
+    },
+  };
 
   get cache() {
     window.ICONS_CACHE ??= {};
@@ -19,45 +39,9 @@ export default class Icon extends ComponentBase {
     return stringToJsVal(this.dataset.active) === true;
   }
 
-  extendConfig() {
-    return [
-      ...super.extendConfig(),
-      {
-        contentFromTargets: false,
-      },
-    ];
-  }
-
-  onInit() {
-    this.setupSprite();
-  }
-
-  setupSprite() {
-    this.svgSprite = document.getElementById('franklin-svg-sprite');
-    if (!this.svgSprite) {
-      this.svgSprite = document.createElement('div');
-      this.svgSprite.id = 'franklin-svg-sprite';
-      document.body.append(this.svgSprite);
-    }
-  }
-
-  setDefaults() {
-    super.setDefaults();
-    this.nestedComponentsConfig = {};
-  }
-
   iconUrl(iconName) {
     const path = `${metaIcons}`;
     return `${path}/${iconName}.svg`;
-  }
-
-  async connected() {
-    this.setAttribute('aria-hidden', 'true');
-  }
-
-  // ${viewport}-icon-${value} or icon-${value}
-  applyIcon(icon) {
-    this.dataset.icon = isObject(icon) ? flatAsValue(icon) : icon;
   }
 
   // Same icon component can be reused with any other icons just by changing the attribute

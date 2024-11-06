@@ -101,7 +101,8 @@ export default class SwaggerUI extends ComponentBase {
     this.switchAPI(apiFilter.length > 0 ? apiFilter[0] : window.location.hash);
   }
 
-  async ready() {
+  async init() {
+    super.init();
     const apiFilter = [...this.querySelectorAll('a')]
       .map((a) => new URL(a.href).hash)
       .filter((hash) => hash.length > 0 && hash.indexOf('--') > 0);

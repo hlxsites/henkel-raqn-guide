@@ -13,7 +13,8 @@ export default class Router extends ComponentBase {
     return `${url}.plain.html`;
   }
 
-  ready() {
+  init() {
+    super.init();
     document.addEventListener(
       'click',
       (event) => {
