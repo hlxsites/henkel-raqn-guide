@@ -698,12 +698,8 @@ export const previewModule = async (path, name) => {
 };
 
 export function yieldToMain() {
-  return new Promise((resolve, reject) => {
-    try {
-      setTimeout(resolve, 0);
-    } catch (error) {
-      reject();
-    }
+  return new Promise((resolve) => {
+    setTimeout(resolve, 0);
   });
 }
 
@@ -733,13 +729,9 @@ export async function runTasks(params, ...taskList) {
 
     // Run the task:
     let result = null;
-    try {
-      // eslint-disable-next-line no-await-in-loop
-      result = await task.call(this, prevResults, i);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.error(error);
-    }
+    // eslint-disable-next-line no-await-in-loop
+    result = await task.call(this, prevResults, i);
+
     if (!task.name.length) {
       // eslint-disable-next-line no-console
       console.warn("The task doesn't have a name. Please use a named function to create the task.");
