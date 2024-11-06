@@ -420,8 +420,8 @@ export function deepMergeByType(keyPathMethods, origin, ...toMerge) {
   return deepMergeByType({ pathsArrays, currentPath }, origin, ...toMerge);
 }
 
-export async function loadModule(urlWithoutExtension, { loadCSS = true, loadJS = true }) {
-  const modules = { js: Promise.resolve(null), css: Promise.resolve(null) };
+export function loadModule(urlWithoutExtension, { loadCSS = true, loadJS = true }) {
+  const modules = { js: null, css: null };
   if (!urlWithoutExtension) return modules;
 
   if (loadJS) {
@@ -447,13 +447,10 @@ export async function loadModule(urlWithoutExtension, { loadCSS = true, loadJS =
           link.rel = 'stylesheet';
           resolve(link);
         };
-        link.onerror = (error) => reject(error);
+        link.onerror = reject;
         document.head.append(link);
       } else {
-        style.onload = () => {
-          resolve(style);
-        };
-        style.onerror = (error) => reject(error);
+        resolve(style);
       }
     }).catch((error) => {
       // eslint-disable-next-line no-console
@@ -462,23 +459,26 @@ export async function loadModule(urlWithoutExtension, { loadCSS = true, loadJS =
     });
   }
 
-  modules.js = await modules.js;
-  modules.css = await modules.css;
-
   return modules;
 }
 
 export async function loadAndDefine(componentConfig) {
   const { tag, module: { path, loadJS, loadCSS } = {} } = componentConfig;
-  const { js, css } = await loadModule(path, { loadJS, loadCSS });
+  if (window.raqnComponents[tag]) {
+    return { tag, module: window.raqnComponents[tag] };
+  }
 
-  if (js?.default?.prototype instanceof HTMLElement) {
+  const { js } = loadModule(path, { loadJS, loadCSS });
+
+  const module = await js;
+
+  if (module?.default?.prototype instanceof HTMLElement) {
     if (!window.customElements.get(tag)) {
-      window.customElements.define(tag, js.default);
-      window.raqnComponents[tag] = js.default;
+      window.customElements.define(tag, module.default);
+      window.raqnComponents[tag] = module.default;
     }
   }
-  return { tag, module: js, style: css };
+  return { tag, module };
 }
 
 export function mergeUniqueArrays(...arrays) {
