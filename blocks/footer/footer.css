@@ -19,11 +19,6 @@ raqn-footer ul li a {
 }
 
 @media screen and (min-width: 1024px) {
-  raqn-footer {
-    display: grid;
-    grid-template-columns: auto 20vw;
-  }
-
   raqn-footer ul li a {
     padding: 10px 1.2em;
     border-inline-end: 1px solid var(--text);

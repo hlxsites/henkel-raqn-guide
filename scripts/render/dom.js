@@ -1,4 +1,3 @@
-import { classToFlat } from '../libs.js';
 import { queryAllNodes } from './dom-utils.js';
 
 // define instances for web components
@@ -15,6 +14,19 @@ export const recursiveParent = (node) => {
 
 const getSettings = (nodes) =>
   (nodes.length > 1 && Object.hasOwn(nodes.at(-1), 'processChildren') && nodes.pop()) || {};
+
+const nodeDefaults = () => ({
+  isRoot: null,
+  tag: null,
+  class: [],
+  id: null,
+  parentNode: null,
+  siblings: [],
+  children: [],
+  customProps: {},
+  attributes: {},
+  text: null,
+});
 
 // proxy object to enhance virtual dom node object.
 export function nodeProxy(rawNode) {
@@ -52,6 +64,11 @@ export function nodeProxy(rawNode) {
 
       if (prop === 'lastChild') {
         return target.children.at(-1);
+      }
+
+      // mehod
+      if (prop === 'hasParentNode') {
+        return target.parentNode && target.parentNode.isProxy;
       }
 
       // mehod
@@ -198,9 +215,7 @@ function createNodes({ nodes, siblings = [], parentNode = null, processChildren 
     const node =
       (n.isProxy && n) ||
       nodeProxy({
-        class: [],
-        attributes: [],
-        children: [],
+        ...nodeDefaults(),
         ...n,
       });
     node.siblings = siblings;
@@ -230,12 +245,9 @@ export const generateVirtualDom = (realDomNodes, { reference = true, parentNode 
   const isRoot = parentNode === 'virtualDom';
   const virtualDom = isRoot
     ? nodeProxy({
+        ...nodeDefaults(),
         isRoot: true,
         tag: parentNode,
-        parentNode: null,
-        siblings: [],
-        children: [],
-        attributes: {},
       })
     : {
         children: [],
@@ -250,16 +262,18 @@ export const generateVirtualDom = (realDomNodes, { reference = true, parentNode 
       // eslint-disable-next-line no-plusplus
       for (let j = 0; j < element.attributes.length; j++) {
         const { name, value } = element.attributes[j];
-        attributes[name] = value;
+        if (!['id', 'class'].includes(name)) {
+          attributes[name] = value;
+        }
       }
     }
 
     const node = nodeProxy({
+      ...nodeDefaults(),
+      tag: element.tagName ? element.tagName.toLowerCase() : 'textNode',
       parentNode: isRoot ? virtualDom : parentNode,
       siblings: virtualDom.children,
-      tag: element.tagName ? element.tagName.toLowerCase() : 'textNode',
       class: classList,
-      attributesValues: classToFlat(classList),
       id: element.id,
       attributes,
       text: !element.tagName ? element.textContent : null,
@@ -280,44 +294,36 @@ export const renderVirtualDom = (virtualdom) => {
   // eslint-disable-next-line no-plusplus
   for (let i = 0; i < siblings.length; i++) {
     const virtualNode = siblings[i];
-    const { children } = virtualNode;
-    const child = children ? renderVirtualDom(children) : null;
+    const children = virtualNode.children ? renderVirtualDom(virtualNode.children) : null;
     if (virtualNode.tag !== 'textNode') {
       const el = document.createElement(virtualNode.tag);
       if (virtualNode.tag.indexOf('raqn-') === 0) {
         el.setAttribute('raqnwebcomponent', '');
-        if (!window.raqnInstances[virtualNode.tag]) {
-          window.raqnInstances[virtualNode.tag] = [];
-        }
+        window.raqnInstances[virtualNode.tag] ??= [];
         window.raqnInstances[virtualNode.tag].push(el);
       }
-      if (virtualNode.class?.length > 0) {
-        el.classList.add(...virtualNode.class);
-      }
-      if (virtualNode.id) {
-        el.id = virtualNode.id;
-      }
-      if (virtualNode.attributes) {
-        Object.keys(virtualNode.attributes).forEach((name) => {
-          const value = virtualNode.attributes[name];
-          el.setAttribute(name, value);
-        });
-      }
-      
-      virtualNode.initialAttributesValues = classToFlat(virtualNode.class);
 
-      if (virtualNode.text) {
-        el.textContent = virtualNode.text;
-      }
+      if (virtualNode.class?.length > 0) el.classList.add(...virtualNode.class);
+      if (virtualNode.id) el.id = virtualNode.id;
+      if (virtualNode.text?.length) el.textContent = virtualNode.text;
+      if (children) el.append(...children);
 
-      if (child) {
-        el.append(...child);
-      }
+      Object.entries(virtualNode.attributes).forEach(([name, value]) => {
+        el.setAttribute(name, value);
+      });
+
+      Object.entries(virtualNode.customProps).forEach(([name, value]) => {
+        el[name] = value;
+      });
+
       virtualNode.reference = el;
+      el.virtualNode = virtualNode;
+
       dom.push(el);
-    } else {
+    } else if (virtualNode.text?.length) {
       const textNode = document.createTextNode(virtualNode.text);
       virtualNode.reference = textNode;
+      textNode.virtualNode = virtualNode;
       dom.push(textNode);
     }
   }

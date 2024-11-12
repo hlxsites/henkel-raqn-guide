@@ -91,7 +91,7 @@ export default function initEditor(listeners = true) {
             try {
               const fn = window.raqnComponents[componentName];
               const name = fn.name.toLowerCase();
-              const component = await loadModule(`/blocks/${name}/${name}.editor`, { loadCSS: false });
+              const component = loadModule(`/blocks/${name}/${name}.editor`, { loadCSS: false });
               const mod = await component.js;
               if (mod && mod.default) {
                 const dialog = await mod.default();

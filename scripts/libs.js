@@ -53,10 +53,6 @@ export const metaTags = {
     fallbackContent: '/footer',
     // contentType: 'path without extension',
   },
-  structure: {
-    metaNamePrefix: 'structure',
-    // contentType: 'boolean string',
-  },
   template: {
     metaName: 'template',
     fallbackContent: '/page-templates/',
@@ -73,16 +69,17 @@ export const metaTags = {
   },
   themeConfig: {
     metaNamePrefix: 'theme-config',
+    fallbackContent: '/configs/',
     // contentType: 'boolean string',
   },
   themeConfigColor: {
     metaName: 'theme-config-color',
-    fallbackContent: '/color',
+    fallbackContent: '/configs/color',
     // contentType: 'path without extension',
   },
   themeConfigFont: {
     metaName: 'theme-config-font',
-    fallbackContent: '/font',
+    fallbackContent: '/configs/font',
     // contentType: 'path without extension',
   },
   themeConfigFontFiles: {
@@ -92,12 +89,12 @@ export const metaTags = {
   },
   themeConfigLayout: {
     metaName: 'theme-config-layout',
-    fallbackContent: '/layout',
+    fallbackContent: '/configs/layout',
     // contentType: 'path without extension',
   },
   themeConfigComponent: {
     metaName: 'theme-config-component',
-    fallbackContent: '/components-config',
+    fallbackContent: '/configs/components-config',
     // contentType: 'path without extension',
   },
   theme: {
@@ -124,8 +121,9 @@ export const isPreview = () => {
 
 export const isTemplatePage = (url) => (url || window.location.pathname).includes(metaTags.template.fallbackContent);
 
+export const capitalizeCase = (val) => val.replace(/^[a-z]/g, (k) => k.toUpperCase());
 export const camelCaseAttr = (val) => val.replace(/-([a-z])/g, (k) => k[1].toUpperCase());
-export const capitalizeCaseAttr = (val) => camelCaseAttr(val.replace(/^[a-z]/g, (k) => k.toUpperCase()));
+export const capitalizeCaseAttr = (val) => camelCaseAttr(capitalizeCase(val));
 
 export function getMediaQuery(breakpointMin, breakpointMax) {
   const min = `(min-width: ${breakpointMin}px)`;
@@ -142,6 +140,7 @@ export function getBreakPoints() {
     ordered: [],
     byName: {},
     active: null,
+    previousActive: null,
   };
 
   // return if already set
@@ -182,6 +181,7 @@ export function listenBreakpointChange(callback) {
         active = { ...breakpoint };
         if (breakpoints.active.name !== breakpoint.name) {
           breakpoints.active = { ...breakpoint };
+          breakpoints.previousActive = { ...e.previousRaqnBreakpoint };
         }
       }
 
@@ -346,62 +346,139 @@ export function deepMerge(origin, ...toMerge) {
   return deepMerge(origin, ...toMerge);
 }
 
-export function loadModule(urlWithoutExtension, { loadCSS = true, loadJS = true }) {
-  const modules = { js: Promise.resolve(), css: Promise.resolve() };
-  if (!urlWithoutExtension) return modules;
-  try {
-    if (loadJS) {
-      modules.js = import(`${urlWithoutExtension}.js`);
-    }
+/**
+ * Helps handle the merging of non object prop values like string or arrays
+ * by providing a key path and a method which defines how to handle the merge.
+ *  @example
+ * keyPathMethods: {
+ *  '**.*': (a, b) => {}, // matches any key at any level. As an example by using a,b type checks can define general merging handling or all arrays properties.
+ *  '**.class': (a, b) => {} // matches class key at any level
+ *  '**.class|classes': (a, b) => {} // matches class or classes keys at any level
+ *  '**.all|xs.class': (a, b) => {} // matches all.class or xs.class key paths at any level of nesting
+ *  'all.class': (a, b) => {} // matches the exact key path nesting
+ *  'all.class': (a, b) => {} // matches the exact key path nesting
+ *  'all|xs.*.settings|config.*.class': (a, b) => { // matches class key at 5th level of nesting where '*' can be any
+ *                                      } // key and first level is all and 3rd level si settings
+ *  '*.*.*.class': (a, b) => {} // matches class key at 4th level of nesting where '*' can be any key
+ *  '*.*.*.class': (a, b) => {} // matches class key at 4th level of nesting where '*' can be any key
+ * }
+ */
+export function deepMergeByType(keyPathMethods, origin, ...toMerge) {
+  if (!toMerge.length) return origin;
+  const merge = toMerge.shift();
+  const pathsArrays =
+    keyPathMethods?.pathsArrays ||
+    Object.entries(keyPathMethods).flatMap(([key, method]) => {
+      if (key === 'currentPath') return [];
+      return [[key.split('.').map((k) => k.split('|')), method]];
+    });
+  const { currentPath = [] } = keyPathMethods;
 
-    if (loadCSS) {
-      modules.css = new Promise((resolve, reject) => {
-        const cssHref = `${urlWithoutExtension}.css`;
-        const style = document.querySelector(`head > link[href="${cssHref}"]`);
-        if (!style) {
-          const link = document.createElement('link');
-          link.href = cssHref;
-          // make the css loading not be render blocking
-          link.rel = 'preload';
-          link.as = 'style';
-          link.onload = () => {
-            link.onload = null;
-            link.rel = 'stylesheet';
-            resolve(link);
-          };
-          link.onerror = reject;
-          document.head.append(link);
-        } else {
-          resolve(style);
+  if (isOnlyObject(origin) && isOnlyObject(merge)) {
+    Object.keys(merge).forEach((key) => {
+      const localPath = [...currentPath, key];
+
+      if (isOnlyObject(merge[key])) {
+        const noKeyInOrigin = !origin[key];
+        // overwrite origin non object values with objects
+        const overwriteOriginWithObject = !isOnlyObject(origin[key]) && isOnlyObject(merge[key]);
+        if (noKeyInOrigin || overwriteOriginWithObject) {
+          Object.assign(origin, { [key]: {} });
         }
-      }).catch((error) =>
-        // eslint-disable-next-line no-console
-        console.log('Could not load module style', urlWithoutExtension, error),
-      );
-    }
+        deepMergeByType({ pathsArrays, currentPath: localPath }, origin[key], merge[key]);
+      } else {
+        const extendByBath =
+          !!pathsArrays.length &&
+          pathsArrays.some(([keyPathPattern, method]) => {
+            const keyPathCheck = [...keyPathPattern];
+            const localPathCheck = [...localPath];
 
-    return modules;
-  } catch (error) {
-    // eslint-disable-next-line no-console
-    console.log('Could not load module', urlWithoutExtension, error);
+            if (keyPathCheck.at(0).at(0) === '**') {
+              keyPathCheck.shift();
+              if (localPathCheck.length > keyPathCheck.length) {
+                localPathCheck.splice(0, localPathCheck.length - keyPathCheck.length);
+              }
+            }
+
+            if (localPathCheck.length !== keyPathCheck.length) return false;
+
+            const isPathMatch = localPathCheck.every((k, i) =>
+              keyPathCheck[i].some((check) => k === check || check === '*'),
+            );
+            if (!isPathMatch) return false;
+            Object.assign(origin, { [key]: method(origin[key], merge[key]) });
+            return true;
+          });
+
+        if (!extendByBath) {
+          Object.assign(origin, { [key]: merge[key] });
+        }
+      }
+    });
   }
+
+  return deepMergeByType({ pathsArrays, currentPath }, origin, ...toMerge);
+}
+
+export function loadModule(urlWithoutExtension, { loadCSS = true, loadJS = true }) {
+  const modules = { js: null, css: null };
+  if (!urlWithoutExtension) return modules;
+
+  if (loadJS) {
+    modules.js = import(`${urlWithoutExtension}.js`).catch((error) => {
+      // eslint-disable-next-line no-console
+      console.log('Could not load module js', urlWithoutExtension, error);
+      return error;
+    });
+  }
+
+  if (loadCSS) {
+    modules.css = new Promise((resolve, reject) => {
+      const cssHref = `${urlWithoutExtension}.css`;
+      const style = document.querySelector(`head > link[href="${cssHref}"]`);
+      if (!style) {
+        const link = document.createElement('link');
+        link.href = cssHref;
+        // make the css loading not be render blocking
+        link.rel = 'preload';
+        link.as = 'style';
+        link.onload = () => {
+          link.onload = null;
+          link.rel = 'stylesheet';
+          resolve(link);
+        };
+        link.onerror = reject;
+        document.head.append(link);
+      } else {
+        resolve(style);
+      }
+    }).catch((error) => {
+      // eslint-disable-next-line no-console
+      console.log('Could not load module style', urlWithoutExtension, error);
+      return error;
+    });
+  }
+
   return modules;
 }
 
 export async function loadAndDefine(componentConfig) {
   const { tag, module: { path, loadJS, loadCSS } = {} } = componentConfig;
-  const { js, css } = loadModule(path, { loadJS, loadCSS });
+  if (window.raqnComponents[tag]) {
+    return { tag, module: window.raqnComponents[tag] };
+  }
+
+  const { js } = loadModule(path, { loadJS, loadCSS });
 
   const module = await js;
-  const style = await css;
 
-  if (module?.default.prototype instanceof HTMLElement) {
+  if (module?.default?.prototype instanceof HTMLElement) {
     if (!window.customElements.get(tag)) {
       window.customElements.define(tag, module.default);
       window.raqnComponents[tag] = module.default;
     }
   }
-  return { tag, module, style };
+  return { tag, module };
 }
 
 export function mergeUniqueArrays(...arrays) {
@@ -512,7 +589,7 @@ export const focusTrap = (elem, { dynamicContent } = { dynamicContent: false }) 
  * @param {String} alreadyFlat - prefix or recursive keys.
  * */
 
-export function flat(obj = {}, alreadyFlat = '', sep = '-', maxDepth = 10) {
+export function flat(obj = {}, alreadyFlat = '', sep = '.', maxDepth = 10) {
   const f = {};
   // check if its a object
   Object.keys(obj).forEach((k) => {
@@ -531,7 +608,7 @@ export function flat(obj = {}, alreadyFlat = '', sep = '-', maxDepth = 10) {
   return f;
 }
 
-export function flatAsValue(data, sep = '-') {
+export function flatAsValue(data, sep = '.') {
   return Object.entries(data)
     .reduce((acc, [key, value]) => {
       if (isObject(value)) {
@@ -542,7 +619,7 @@ export function flatAsValue(data, sep = '-') {
     .trim();
 }
 
-export function flatAsClasses(data, sep = '-') {
+export function flatAsClasses(data, sep = '.') {
   return Object.entries(data)
     .reduce((acc, [key, value]) => {
       const accm = acc ? `${acc} ` : '';
@@ -563,7 +640,7 @@ export function flatAsClasses(data, sep = '-') {
  * @param {Object} obj - Object to unflatten
  * */
 
-export function unFlat(f, sep = '-') {
+export function unFlat(f, sep = '.') {
   const un = {};
   // for each key create objects
   Object.keys(f).forEach((key) => {
@@ -651,8 +728,10 @@ export async function runTasks(params, ...taskList) {
     const task = taskList.shift();
 
     // Run the task:
+    let result = null;
     // eslint-disable-next-line no-await-in-loop
-    let result = await task.call(this, prevResults, i);
+    result = await task.call(this, prevResults, i);
+
     if (!task.name.length) {
       // eslint-disable-next-line no-console
       console.warn("The task doesn't have a name. Please use a named function to create the task.");

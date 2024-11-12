@@ -1,20 +1,23 @@
-import { blockBodyScroll } from '../../scripts/libs.js';
+import { blockBodyScroll, loadAndDefine } from '../../scripts/libs.js';
+import { componentList } from '../../scripts/component-list/component-list.js';
 import ComponentBase from '../../scripts/component-base.js';
 
 export default class Navigation extends ComponentBase {
   static observedAttributes = ['data-menu-icon', 'data-item-icon', 'data-compact'];
 
-  dependencies = ['icon', 'accordion'];
+  active = {};
+
+  isActive = false;
+
+  #navContentInit = false;
+
+  navCompactedContentInit = false;
 
   attributesValues = {
     all: {
       data: {
-        menu: {
-          icon: 'menu__close',
-        },
-        item: {
-          icon: 'chevron-right',
-        },
+        'menu-icon': 'menu__close',
+        'item-icon': 'chevron-right',
       },
     },
     m: {
@@ -34,15 +37,8 @@ export default class Navigation extends ComponentBase {
     },
   };
 
-  setDefaults() {
-    super.setDefaults();
-    this.active = {};
-    this.isActive = false;
-    this.navContentInit = false;
-    this.navCompactedContentInit = false;
-  }
-
-  async ready() {
+  async init() {
+    super.init();
     this.navContent = this.querySelector('ul');
     this.innerHTML = '';
     this.navCompactedContent = this.navContent.cloneNode(true); // the clone need to be done before `this.navContent` is modified
@@ -60,8 +56,8 @@ export default class Navigation extends ComponentBase {
   }
 
   setupNav() {
-    if (!this.navContentInit) {
-      this.navContentInit = true;
+    if (!this.#navContentInit) {
+      this.#navContentInit = true;
       this.setupClasses(this.navContent);
     }
     this.navButton?.remove();
@@ -70,6 +66,7 @@ export default class Navigation extends ComponentBase {
 
   async setupCompactedNav() {
     if (!this.navCompactedContentInit) {
+      loadAndDefine(componentList.accordion);
       this.navCompactedContentInit = true;
       this.setupClasses(this.navCompactedContent, true);
       this.navCompactedContent.addEventListener('click', (e) => this.activate(e));
@@ -187,8 +184,7 @@ export default class Navigation extends ComponentBase {
   closeLevels(activeLevel, currentLevel = 1) {
     let whileCurrentLevel = currentLevel;
     while (whileCurrentLevel <= activeLevel) {
-      const activeElem = this.active[currentLevel];
-
+      const activeElem = this.active[whileCurrentLevel];
       activeElem.classList.remove('active');
       const accordion = activeElem.querySelector('raqn-accordion');
       const control = accordion.querySelector('.accordion-control');

@@ -14,6 +14,7 @@ import { isPreview } from '../libs.js';
 
 const { tplPageDuplicatedPlaceholder, highlightTemplatePlaceholders } = await forPreviewManipulation();
 
+// ! curryManipulation returns a promise.
 // preset manipulation for main page
 export const pageManipulation = curryManipulation([
   recursive(cleanEmptyNodes),

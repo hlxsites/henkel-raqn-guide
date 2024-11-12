@@ -18,6 +18,7 @@ export default {
 
   generatePageVirtualDom() {
     window.raqnVirtualDom = generateVirtualDom(document.body.childNodes);
+    document.body.innerHTML = '';
   },
 
   async pageVirtualDomManipulation() {
@@ -28,7 +29,6 @@ export default {
     const renderedDOM = renderVirtualDom(window.raqnVirtualDom);
 
     if (renderedDOM) {
-      document.body.innerHTML = '';
       document.body.append(...renderedDOM);
     }
   },

@@ -4,10 +4,11 @@ window.raqnComponentsMasterConfig = window.raqnComponentsMasterConfig || null;
 
 // eslint-disable-next-line import/prefer-default-export
 export const externalConfig = {
-  async getConfig(componentName, configName = 'default') {
+  async getConfig(componentName, configName) {
+    const configNameFallback = configName || 'default';
     window.raqnComponentsMasterConfig ??= await this.loadConfig();
     const componentConfig = window.raqnComponentsMasterConfig?.[componentName];
-    const parsedConfig = componentConfig?.[configName];
+    const parsedConfig = componentConfig?.[configNameFallback];
 
     // return copy of object to prevent mutation of raqnComponentsMasterConfig;
     if (parsedConfig) return deepMerge({}, parsedConfig);
@@ -16,8 +17,18 @@ export const externalConfig = {
 
   async loadConfig(rawConfig) {
     window.raqnComponentsConfig ??= (async () => {
-      const { metaName } = metaTags.themeConfigComponent;
+      const {
+        themeConfigComponent: { metaName },
+        themeConfig,
+      } = metaTags;
       const metaConfigPath = getMeta(metaName);
+      if (!metaConfigPath.includes(`${themeConfig.fallbackContent}`)) {
+        // eslint-disable-next-line no-console
+        console.error(
+          `The configured "${metaName}" config url is not containing a "${themeConfig.fallbackContent}" folder.`,
+        );
+        return {};
+      }
       const basepath = getBaseUrl();
       const configPath = `${basepath}${metaConfigPath}.json`;
       let result = null;

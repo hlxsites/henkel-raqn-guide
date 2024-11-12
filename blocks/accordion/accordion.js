@@ -1,23 +1,11 @@
 import ComponentBase from '../../scripts/component-base.js';
+import { componentList } from '../../scripts/component-list/component-list.js';
 
 export default class Accordion extends ComponentBase {
-  dependencies = ['icon'];
+  dependencies = componentList.accordion.module.dependencies;
 
-  extendNestedConfig() {
-    return [
-      ...super.extendNestedConfig(),
-      {
-        button: {
-          componentName: 'button',
-          loaderConfig: {
-            targetsSelectorsPrefix: ':scope > :is(:nth-child(even))',
-          },
-        },
-      },
-    ];
-  }
-
-  ready() {
+  init() {
+    super.init();
     this.setAttribute('role', 'navigation');
     let children = Array.from(this.children);
     children = children.map((child) => {

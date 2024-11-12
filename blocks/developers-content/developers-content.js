@@ -3,27 +3,8 @@ import ComponentBase from '../../scripts/component-base.js';
 const sitePathPrefix = window.location.hostname === 'docs.raqn.io' ? '/developers' : '';
 
 export default class DeveloperToc extends ComponentBase {
-  static loaderConfig = {
-    ...ComponentBase.loaderConfig,
-    targetsSelectors: 'main > div:first-child',
-    targetsSelectorsLimit: 1,
-  };
-  
-  extendConfig() {
-    return [
-      ...super.extendConfig(),
-      {
-        contentFromTargets: false,
-        addToTargetMethod: 'replaceWith',
-        targetsAsContainers: {
-          addToTargetMethod: 'prepend',
-          contentFromTargets: false,
-        },
-      },
-    ];
-  }
-
-  ready() {
+  init() {
+    super.init();
     this.generateTablesOfContent();
   }
 
@@ -32,7 +13,7 @@ export default class DeveloperToc extends ComponentBase {
   }
 
   toLink(path) {
-    if(window.location.host.startsWith('localhost') || window.location.host.search(/\.aem\.(page|live)/) > 0) {
+    if (window.location.host.startsWith('localhost') || window.location.host.search(/\.aem\.(page|live)/) > 0) {
       return path;
     }
     return `${sitePathPrefix}${path}`;
@@ -40,13 +21,13 @@ export default class DeveloperToc extends ComponentBase {
 
   async loadPageHierarchy() {
     const response = await fetch(`${sitePathPrefix}/query-index.json`);
-    if(!response.ok) return [];
+    if (!response.ok) return [];
     const json = await response.json();
 
     const pageHierarchy = [];
-    const pageHierarchyObject = { children:pageHierarchy };
+    const pageHierarchyObject = { children: pageHierarchy };
     let currentNode;
-    json.data.forEach(page => {
+    json.data.forEach((page) => {
       const segments = page.path.split('/').slice(1);
       let currentParent = pageHierarchyObject;
       let nodePath = '';
@@ -60,12 +41,12 @@ export default class DeveloperToc extends ComponentBase {
             active: window.location.pathname.startsWith(`${sitePathPrefix}${nodePath}`),
             children: [],
           };
-          if(nodePath === page.path) {
+          if (nodePath === page.path) {
             node.page = page;
-            if(this.isIndex(node)) {
+            if (this.isIndex(node)) {
               currentParent.link = page.path;
             }
-            if(!currentNode && node.active) {
+            if (!currentNode && node.active) {
               currentNode = node;
             }
           }
@@ -77,16 +58,16 @@ export default class DeveloperToc extends ComponentBase {
 
     const postProcessHierarchy = (node) => {
       node.children.sort((a, b) => a.segment.localeCompare(b.segment));
-      if(!node.page && !node.link) {
+      if (!node.page && !node.link) {
         const firstChildPage = node.children.find((child) => child.page);
-        if(firstChildPage) {
+        if (firstChildPage) {
           node.link = firstChildPage.page.path;
         }
       }
       node.children.forEach((child) => postProcessHierarchy(child));
     };
     postProcessHierarchy(pageHierarchyObject);
-    
+
     return [pageHierarchy, currentNode];
   }
 
@@ -98,20 +79,22 @@ export default class DeveloperToc extends ComponentBase {
   }
 
   generateProjects(org) {
-    return org.children.map((project) => {
-      const h2 = document.createElement('h2');
-      h2.innerText = `${org.segment} - ${project.segment}`;
-      return `<li class=${project.active ? 'active' : ''}>${h2.outerHTML}
-        <ul>${ project.children.map((repository) => this.generateRepository(repository)).join('')}</ul></li>`;
-    }).join('');
+    return org.children
+      .map((project) => {
+        const h2 = document.createElement('h2');
+        h2.innerText = `${org.segment} - ${project.segment}`;
+        return `<li class=${project.active ? 'active' : ''}>${h2.outerHTML}
+        <ul>${project.children.map((repository) => this.generateRepository(repository)).join('')}</ul></li>`;
+      })
+      .join('');
   }
 
   generatePages(node) {
-    if(this.isIndex(node)) return '';
+    if (this.isIndex(node)) return '';
 
     const link = node.link || node.page?.path;
     const li = document.createElement('li');
-    if(link) {
+    if (link) {
       const a = document.createElement('a');
       a.href = this.toLink(link);
       a.innerText = node.segment;
@@ -121,17 +104,17 @@ export default class DeveloperToc extends ComponentBase {
     }
 
     const childrenHTML = node.children.map((child) => this.generatePages(child)).join('');
-    if(childrenHTML) {
+    if (childrenHTML) {
       const ul = document.createElement('ul');
       ul.innerHTML = childrenHTML;
       li.appendChild(ul);
     }
-    
+
     return li.outerHTML;
   }
 
-  findRepositoryRoot(node){
-    if(node.children.length === 1 && !node.children[0].page) {
+  findRepositoryRoot(node) {
+    if (node.children.length === 1 && !node.children[0].page) {
       return this.findRepositoryRoot(node.children[0]);
     }
     return node;
@@ -145,7 +128,7 @@ export default class DeveloperToc extends ComponentBase {
 
     let tocs = `<ul class="main">${pageHierarchy.map((project) => this.generateProjects(project)).join('')}</ul>`;
 
-    if(currentRepository && currentNode) {
+    if (currentRepository && currentNode) {
       const h2 = document.createElement('h2');
       h2.innerText = `${currentOrg.segment} - ${currentProject.segment} - ${currentRepository.segment}`;
       const root = this.findRepositoryRoot(currentRepository);

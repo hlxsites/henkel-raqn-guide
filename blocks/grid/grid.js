@@ -1,48 +1,14 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { flat, stringToJsVal } from '../../scripts/libs.js';
+import { componentList } from '../../scripts/component-list/component-list.js';
+import { stringToJsVal } from '../../scripts/libs.js';
 
 export default class Grid extends ComponentBase {
   // only one attribute is observed rest is set as css variables directly
   static observedAttributes = ['data-reverse'];
 
-  attributesValues = {
-    all: {
-      grid: {
-        template: {
-          columns: 'repeat(auto-fill, 200px)',
-          rows: 'auto',
-        },
-        height: 'initial',
-      },
-    },
-  };
-
-  // use `grid` item as action from component base and apply those as css variables
-  // dinamic from {@link ../scripts/component-base.js:runConfigsByViewports}
-  // EG ${viewport}-grid-${attr}-"${value}"
-  applyGrid(grid) {
-    const f = flat(grid);
-    Object.keys(f).forEach((key) => {
-      this.style.setProperty(`--grid-${key}`, f[key]);
-    });
-  }
-
-  // for backwards compatibility
-  applyData(data) {
-    ['columns', 'rows'].forEach((key) => {
-      if (data[key]) {
-        if (data.template) {
-          data.template[key] = data[key];
-        } else {
-          data.template = { [key]: data[key] };
-        }
-      }
-    });
-    this.applyGrid(data);
-  }
+  dependencies = componentList.grid.module.dependencies;
 
   async onAttributeReverseChanged({ oldValue, newValue }) {
-    // await for initialization because access to this.gridItems is required;
     await this.initialization;
 
     if (oldValue === newValue) return;

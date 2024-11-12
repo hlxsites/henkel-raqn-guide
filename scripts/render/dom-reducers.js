@@ -1,6 +1,6 @@
 // eslint-disable-next-line import/prefer-default-export
 import { deepMerge, getMeta, loadAndDefine, previewModule } from '../libs.js';
-import { recursive, tplPlaceholderCheck, queryTemplatePlaceholders } from './dom-utils.js';
+import { recursive, tplPlaceholderCheck, queryTemplatePlaceholders, setPropsAndAttributes } from './dom-utils.js';
 import { componentList, injectedComponents } from '../component-list/component-list.js';
 
 window.raqnLoadedComponents ??= {};
@@ -46,7 +46,7 @@ export const prepareGrid = (node) => {
 };
 
 const addToLoadComponents = (blockSelector, config) => {
-  const { dependencies } = config;
+  const { dependencies } = config.module || {};
 
   const toLoad = [blockSelector, ...(dependencies || [])];
 
@@ -74,28 +74,33 @@ export const toWebComponent = (virtualDom) => {
 
   // Simple and fast in place tag replacement
   recursive((node) => {
-    replaceBlocks.forEach(([blockSelector, config]) => {
-      if (node?.class?.includes?.(blockSelector) || config.filterNode?.(node)) {
+    replaceBlocks.forEach(([blockName, config]) => {
+      if (node?.class?.includes?.(blockName) || config.filterNode?.(node)) {
         node.tag = config.tag;
-        addToLoadComponents(blockSelector, config);
+        setPropsAndAttributes(node);
+        addToLoadComponents(blockName, config);
       }
     });
   })(virtualDom);
 
   // More complex transformation need to be done in order based on a separate query for each component.
-  queryBlocks.forEach(([blockSelector, config]) => {
+  queryBlocks.forEach(([blockName, config]) => {
     const filter =
-      config.filterNode || ((node) => node?.class?.includes?.(blockSelector) || node.tag === blockSelector);
+      config.filterNode?.bind(config) || ((node) => node?.class?.includes?.(blockName) || node.tag === blockName);
     const nodes = virtualDom.queryAll(filter, { queryLevel: config.queryLevel });
 
     nodes.forEach((node) => {
       const defaultNode = [{ tag: config.tag }];
       const hasTransform = typeof config.transform === 'function';
       const transformNode = config.transform?.(node);
-      if ((!hasTransform || (hasTransform && transformNode)) && config.method) {
-        node[config.method](...(transformNode || defaultNode));
+      if ((!hasTransform || (hasTransform && transformNode?.length)) && config.method) {
+        const newNode = transformNode || defaultNode;
+        newNode[0].class ??= [];
+        newNode[0].class.push(...node.class);
+        setPropsAndAttributes(newNode[0]);
+        node[config.method](...newNode);
       }
-      addToLoadComponents(blockSelector, config);
+      addToLoadComponents(blockName, config);
     });
   });
 };
@@ -104,14 +109,22 @@ export const toWebComponent = (virtualDom) => {
 export const loadModules = (nodes, extra = {}) => {
   const modules = { ...raqnLoadedComponents, ...extra };
   window.raqnOnComponentsLoaded = Object.keys(modules)
-    .sort((a, b) => modules[a].priority - modules[b].priority)
-    .flatMap((component) => {
-      const { tag, priority } = modules[component];
+    .filter((component) => modules[component]?.module?.path)
+    .sort((a, b) => modules[a].module.priority - modules[b].module.priority)
+    .forEach((component) => {
+      const {
+        module: { priority },
+        tag,
+      } = modules[component];
       if (window.raqnComponents[tag]) return window.raqnComponents[tag];
-      if (!modules[component]?.module?.path) return [];
-      return new Promise((resolve) => {
+      return new Promise((resolve, reject) => {
         setTimeout(async () => {
-          resolve(await loadAndDefine(modules[component]).js);
+          try {
+            const { module } = await loadAndDefine(modules[component]);
+            resolve(module);
+          } catch (error) {
+            reject(error);
+          }
         }, priority || 0);
       });
     });

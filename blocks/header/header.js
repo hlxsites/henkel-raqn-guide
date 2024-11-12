@@ -1,27 +1,19 @@
 import ComponentBase from '../../scripts/component-base.js';
 import { eagerImage, getMeta, metaTags } from '../../scripts/libs.js';
+import { componentList } from '../../scripts/component-list/component-list.js';
 
 const metaHeader = getMeta(metaTags.header.metaName);
 
 export default class Header extends ComponentBase {
-  static loaderConfig = {
-    ...ComponentBase.loaderConfig,
-    loaderStopInit() {
-      return metaHeader === false;
-    },
-  };
+  dependencies = componentList.header.module.dependencies;
 
   attributesValues = {
     all: {
-      class: {
-        color: 'primary',
-      },
+      class: ['color-primary'],
     },
   };
 
   fragmentPath = `${metaHeader}.plain.html`;
-
-  dependencies = ['navigation', 'image'];
 
   extendConfig() {
     return [
@@ -32,7 +24,8 @@ export default class Header extends ComponentBase {
     ];
   }
 
-  connected() {
+  async init() {
+    super.init();
     eagerImage(this, 1);
   }
 }

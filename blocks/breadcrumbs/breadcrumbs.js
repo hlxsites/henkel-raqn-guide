@@ -1,32 +1,15 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { getMeta, metaTags } from '../../scripts/libs.js';
+import { getMeta, metaTags, capitalizeCase } from '../../scripts/libs.js';
 
 export default class Breadcrumbs extends ComponentBase {
-  static loaderConfig = {
-    ...ComponentBase.loaderConfig,
-    targetsSelectors: 'main > div:first-child',
-    targetsSelectorsLimit: 1,
+  attributesValues = {
+    all: {
+      class: ['full-width'],
+    },
   };
 
-  nestedComponentsConfig = {};
-
-  extendConfig() {
-    return [
-      ...super.extendConfig(),
-      {
-        contentFromTargets: false,
-        addToTargetMethod: 'replaceWith',
-        targetsAsContainers: {
-          addToTargetMethod: 'prepend',
-          contentFromTargets: false,
-        },
-      },
-    ];
-  }
-
-  connected() {
-    this.classList.add('full-width');
-    this.classList.add('breadcrumbs');
+  init() {
+    super.init();
     const { origin, pathname } = window.location;
     let breadcrumbRoot = getMeta(metaTags.breadcrumbRoot.metaName);
     breadcrumbRoot = breadcrumbRoot?.startsWith('/') ? breadcrumbRoot : `/${breadcrumbRoot}`;
@@ -52,7 +35,7 @@ export default class Breadcrumbs extends ComponentBase {
   capitalize(string) {
     return string
       .split('-')
-      .map((str) => str.charAt(0).toUpperCase() + str.slice(1))
+      .map((str) => capitalizeCase(str))
       .join(' ');
   }
 }

@@ -1,7 +1,7 @@
 import ComponentBase from '../../scripts/component-base.js';
 import {
+  capitalizeCase,
   flat,
-  getBreakPoints,
   getMediaQuery,
   getMetaGroup,
   getMeta,
@@ -9,16 +9,13 @@ import {
   readValue,
   unFlat,
   getBaseUrl,
+  runTasks,
 } from '../../scripts/libs.js';
 import { externalConfig } from '../../scripts/libs/external-config.js';
 
 const k = Object.keys;
 
 export default class Theming extends ComponentBase {
-  componentsConfig = {};
-
-  elements = {};
-
   variations = {};
 
   setDefaults() {
@@ -49,14 +46,13 @@ export default class Theming extends ComponentBase {
               `<link rel="preload" href="${window.location.origin}/fonts/${data[key].options[type]}" as="font" type="font/woff2" crossorigin>`,
             );
             return `@font-face {
-            font-display: fallback;
-            font-family: '${key}';
-            src: url('${window.location.origin}/fonts/${data[key].options[type]}');
-            ${type === 'italic' ? 'font-style' : 'font-weight'}: ${type};
-            }
-            `;
+  font-display: fallback;
+  font-family: '${key}';
+  src: url('${window.location.origin}/fonts/${data[key].options[type]}');
+  ${type === 'italic' ? 'font-style' : 'font-weight'}: ${type};
+}`;
           })
-          .join('');
+          .join('\n');
       })
       .join('');
   }
@@ -70,18 +66,17 @@ export default class Theming extends ComponentBase {
     const breakpoints = Object.keys(obj);
     return breakpoints
       .map((bp) => {
-        const options = getBreakPoints();
+        const options = this.breakpoints;
         if (options.byName[bp]) {
           const { min, max } = options.byName[bp];
           const query = getMediaQuery(min, max);
           return `
 @media ${query} {
-      ${callback(obj[bp])}
-        }
-      `;
+    ${callback(obj[bp], options.byName[bp])}
+}`;
         }
         // regular
-        return callback(obj[bp]);
+        return callback(obj[bp], 'all');
       })
       .join('\n');
   }
@@ -108,7 +103,7 @@ export default class Theming extends ComponentBase {
       } else if (isComponent) {
         Object.keys(responseData).forEach((key) => {
           if (key.indexOf(':') === 0 || responseData[key].data.length === 0) return;
-          this.componentsConfig[key] = this.componentsConfig[key] || {};
+          this.componentsConfig[key] ??= {};
           this.componentsConfig[key] = readValue(responseData[key].data, this.componentsConfig[key]);
         });
       } else {
@@ -121,16 +116,16 @@ export default class Theming extends ComponentBase {
 
   defineVariations() {
     const names = k(this.variations);
-    const result = names.reduce((a, name) => {
+    const result = names.reduce((acc, name) => {
       const unflatted = unFlat(this.variations[name]);
       return (
-        a +
-        this.reduceViewports(unflatted, (actionData) => {
+        acc +
+        this.reduceViewports(unflatted, (actionData, breakpoint) => {
           const actions = k(actionData);
           return actions.reduce((b, action) => {
-            const actionName = `render${action.charAt(0).toUpperCase()}${action.slice(1)}`;
+            const actionName = `render${capitalizeCase(action)}`;
             if (this[actionName]) {
-              return b + this[actionName](actionData[action], name);
+              return b + this[actionName](actionData[action], name, breakpoint);
             }
             return b;
           }, '');
@@ -147,48 +142,65 @@ export default class Theming extends ComponentBase {
   variablesValues(data, name, prepend = '.') {
     const f = flat(data);
     return `${prepend || '.'}${name} {
-      ${k(f)
-        .map((key) => `\n--${key}: ${f[key]};`)
-        .join('')}
-    }
-        `;
+${k(f)
+  .map((key) => `--${key}: ${f[key]};`)
+  .join('\n')}
+}\n`;
   }
 
   variablesScopes(data, name, prepend = '.') {
     const f = flat(data);
     return `${prepend}${name} {
-      ${k(f)
-        .map((key) => `\n${key}: var(--${name}-${key}, ${f[key]});`)
-        .join('')}
-    }
-        `;
+${k(f)
+  .map((key) => `${key}: var(--${name}-${key}, ${f[key]});`)
+  .join('\n')}
+  }`;
   }
 
-  renderFont(data, name) {
+  renderFont(data, name, breakpoint) {
     const elements = k(data);
-    const flattened = flat(data);
-    this.tags = elements.reduce((a, key) => {
-      const props = flat(data[key]);
-      return a + this.variablesScopes(props, key, '');
-    }, '');
+    const flattened = flat(data, '', '-');
+
+    if (!this.tags.length && breakpoint === 'all' && name === 'default') {
+      this.tags = elements.reduce((acc, key) => {
+        const props = data[key];
+
+        return `${acc}\n ${this.variablesScopes(props, key, '')}`;
+      }, '');
+    }
     return this.variablesValues(flattened, name, '.font-');
   }
 
   async loadFragment() {
-    const themeConfigs = getMetaGroup(metaTags.themeConfig.metaNamePrefix);
+    const { themeConfig } = metaTags;
+    const themeConfigs = getMetaGroup(themeConfig.metaNamePrefix);
     const base = getBaseUrl();
-    await Promise.allSettled(
-      themeConfigs.map(async ({ name, content }) => {
-        const response =
-          name === 'component'
-            ? externalConfig.loadConfig(true) // use the loader to prevent duplicated calls
-            : await fetch(`${name !== 'fontface' ? base : ''}${content}.json`);
-        return this.processFragment(response, name);
-      }),
+    await runTasks.call(
+      this,
+      null,
+      function loadConfigs() {
+        return Promise.allSettled(
+          themeConfigs.map(async ({ name, content, nameWithPrefix }) => {
+            if (!content.includes(`${themeConfig.fallbackContent}`) && name !== 'fontface') {
+              // eslint-disable-next-line no-console
+              console.error(
+                `The configured "${nameWithPrefix}" config url is not containing a "${themeConfig.fallbackContent}" folder.`,
+              );
+              return {};
+            }
+
+            const response =
+              name === 'component'
+                ? externalConfig.loadConfig(true) // use the loader to prevent duplicated calls
+                : await fetch(`${name !== 'fontface' ? base : ''}${content}.json`);
+            return this.processFragment(response, name);
+          }),
+        );
+      },
+      this.defineVariations,
+      this.styles,
     );
 
-    this.defineVariations();
-    this.styles();
     setTimeout(() => {
       document.body.style.display = 'block';
     });

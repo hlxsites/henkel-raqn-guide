@@ -2,16 +2,18 @@ import {
   getBreakPoints,
   listenBreakpointChange,
   camelCaseAttr,
+  capitalizeCase,
   capitalizeCaseAttr,
-  deepMerge,
-  classToFlat,
-  unFlat,
   isObject,
-  flatAsValue,
-  flat,
+  deepMerge,
+  deepMergeByType,
+  unFlat,
+  stringToArray,
   mergeUniqueArrays,
+  stringToJsVal,
   runTasks,
 } from './libs.js';
+import { componentList } from './component-list/component-list.js';
 import { externalConfig } from './libs/external-config.js';
 import { generateVirtualDom, renderVirtualDom } from './render/dom.js';
 import { generalManipulation } from './render/dom-manipulations.js';
@@ -21,7 +23,14 @@ export default class ComponentBase extends HTMLElement {
   // The order of observedAttributes is the order in which the values from config are added.
   static observedAttributes = [];
 
-  dataAttributesKeys = [];
+  // dependencies must to be added and checked locally for cases when components are created inside other components
+  static dependencies = componentList[this.componentName]?.module?.dependencies || [];
+
+  initialization; // set as promise in constructor();
+
+  initResolvers; // the resolvers for the initialization promise;
+
+  initialized = false;
 
   uuid = `gen${crypto.randomUUID().split('-')[0]}`;
 
@@ -31,92 +40,68 @@ export default class ComponentBase extends HTMLElement {
 
   overrideExternalConfig = false;
 
-  wasInitBeforeConnected = false;
+  virtualNode = null;
 
   fragmentPath = null;
 
   fragmentCache = 'default';
 
-  dependencies = [];
+  // Settings which automatically react on breakpoints changes
+  attributesValues = {}; // add defaults here if no external configId is provided
 
-  attributesValues = {};
+  currentAttrValues = {}; // The values for the current breakpoint. Set automatically.
 
-  initOptions = {};
-
-  externalOptions = {};
-
-  elements = {};
-
-  childComponents = {
-    // using the nested feature
-    nestedComponents: [],
-    // from inner html blocks
-    innerComponents: [],
-    // from inner html blocks
-    innerGrids: [],
-  };
-
-  // set only if content is loaded externally
-  innerBlocks = [];
-
-  // set only if content is loaded externally
-  innerGrids = [];
+  elements = {}; // references to other elements should be saved here
 
   initError = null;
 
   breakpoints = getBreakPoints();
 
-  // use the extendConfig() method to extend the default config
+  // All settings which are not in `attributesValues` which might require extension in extended components should be in the config.
+  // Use the `extendConfig()` method to extend the config
   config = {
+    selectors: {},
+    classes: {
+      showLoader: 'show-loader',
+    },
+    subscriptions: {},
+    publishes: {},
+    dispatches: {
+      initialized: (uuid) => `initialized:${uuid}`,
+    },
     listenBreakpoints: false,
     hideOnInitError: true,
-    hideOnChildrenError: false,
-    addToTargetMethod: 'replaceWith',
-    contentFromTargets: true,
-    targetsAsContainers: {
-      addToTargetMethod: 'replaceWith',
-      contentFromTargets: true,
+    // All the component attributes which are not in the `observedAttributes`
+    knownAttributes: {
+      configId: 'config-id',
+      isLoading: 'isloading',
+      raqnwebcomponent: 'raqnwebcomponent',
+    },
+    // Merge options for non object values in `attributesValues`
+    attributesMergeMethods: {
+      '**.class': (a, b) => mergeUniqueArrays(a, b),
     },
   };
 
-  // use the extendNestedConfig() method to extend the default config
-  nestedComponentsConfig = {
-    image: {
-      componentName: 'image',
-    },
-    button: {
-      componentName: 'button',
-    },
-  };
+  dataAttributesKeys = this.constructor.observedAttributes.flatMap((data) => {
+    if (!data.startsWith('data-')) return [];
+    const [, noData] = data.split('data-');
+    return { data, noData, noDataCamelCase: camelCaseAttr(noData) };
+  });
 
-  static loaderConfig = {
-    targetsSelectorsPrefix: null,
-    targetsSelectors: null,
-    selectorTest: null, // a function to filter elements matched by targetsSelectors
-    targetsSelectorsLimit: null,
-    targetsAsContainers: false,
-    loaderStopInit() {
-      return false;
-    },
-  };
-
-  get Handler() {
-    return window.raqnComponents[this.componentName];
-  }
-
-  get isInitAsBlock() {
-    return this.initOptions?.target?.classList?.contains(this.componentName);
+  get configId() {
+    return this.getAttribute(this.config.knownAttributes.configId);
   }
 
   constructor() {
     super();
-    this.setDefaults();
     this.setInitializationPromise();
-    this.extendConfigRunner({ config: 'config', method: 'extendConfig' });
-    this.extendConfigRunner({ config: 'nestedComponentsConfig', method: 'extendNestedConfig' });
+    this.setDefaults();
     this.setBinds();
   }
 
+  /**
+   * Add any custom properties to the class with a default value or use class fields */
   setDefaults() {}
 
   setInitializationPromise() {
@@ -126,231 +111,134 @@ export default class ComponentBase extends HTMLElement {
         reject,
       };
     });
-    // Promise.withResolvers don't fullfill last 2 versions of Safari
-    // eg this breaks everything in Safari < 17.4, we need to support.
-    // const { promise, resolve, reject } = Promise.withResolvers();
+  }
+
+  /**
+   * Use this to bind any method to the class */
+  setBinds() {
+    this.onBreakpointChange = this.onBreakpointChange.bind(this);
+  }
+
+  // Build-in method called after the element is added to the DOM.
+  async connectedCallback() {
+    const { knownAttributes, hideOnInitError, dispatches } = this.config;
+    // Common identifier for raqn web components
+    this.setAttribute(knownAttributes.raqnwebcomponent, '');
+    this.setAttribute(knownAttributes.isLoading, 'true');
+    try {
+      this.initSubscriptions(); // must subscribe each type the element is added to the document
+      if (!this.initialized) {
+        this.setAttribute('id', this.uuid);
+        await this.onConnected();
+        this.initialized = true;
+        this.initResolvers.resolve(this);
+        this.dispatchEvent(new CustomEvent(dispatches.initialized(this.uuid), { detail: { element: this } }));
+      } else {
+        await this.reConnected();
+      }
+    } catch (error) {
+      this.initResolvers.reject(error);
+      this.dispatchEvent(new CustomEvent(dispatches.initialized(this.uuid), { detail: { error } }));
+      this.initError = error;
+      this.hideWithError(hideOnInitError, 'has-init-error');
+      // eslint-disable-next-line no-console
+      console.error(`There was an error after the '${this.componentName}' webComponent was connected:`, this, error);
+    }
+    this.removeAttribute(knownAttributes.isLoading);
+  }
+
+  /**
+   * Do not overwrite this method unless absolutely needed. */
+  async onConnected() {
+    await this.initSettings();
+    await this.loadFragment(this.fragmentPath);
+    await this.init();
+  }
+
+  /**
+   * Use this method to add the component's functionality */
+  async init() {
+    await this.addListeners();
+  }
+
+  async initSettings() {
+    this.extendConfigRunner({ field: 'config', method: 'extendConfig' });
+    this.setInitialAttributesValues();
+    await this.buildExternalConfig();
+    this.runConfigsByViewport(); // set the values for current breakpoint
   }
 
   // Using the `method` which returns an array of objects it's easier to extend
   // configs when the components are deeply extended with multiple levels of inheritance;
-  extendConfigRunner({ config, method }) {
+  extendConfigRunner({ field, method }) {
     const conf = this[method]?.();
-    if (!conf.length) return;
-    this[config] = deepMerge({}, ...conf);
+    if (conf.length <= 1) return;
+    this[field] = deepMerge({}, ...conf);
   }
 
   extendConfig() {
     return [...(super.extendConfig?.() || []), this.config];
   }
 
-  extendNestedConfig() {
-    return [...(super.extendNestedConfig?.() || []), this.nestedComponentsConfig];
-  }
-
-  setBinds() {
-    this.onBreakpointChange = this.onBreakpointChange.bind(this);
-  }
-
-  setDataAttributesKeys() {
-    const { observedAttributes } = this.constructor;
-    this.dataAttributesKeys = observedAttributes.map((dataAttr) => {
-      const [, key] = dataAttr.split('data-');
-
-      return {
-        data: dataAttr,
-        noData: key,
-        noDataCamelCase: camelCaseAttr(key),
-      };
-    });
-  }
-
-  // ! Needs to be called after the element is created;
-  async init(initOptions) {
-    try {
-      await this.Handler;
-      this.wasInitBeforeConnected = true;
-      this.initOptions = initOptions || {};
-      this.setInitialAttributesValues();
-      await this.buildExternalConfig();
-      this.runConfigsByViewport();
-      this.addDefaultsToNestedConfig();
-      // Add extra functionality to be run on init.
-      await this.onInit();
-      this.addContentFromTargetCheck();
-      await this.connectComponent();
-    } catch (error) {
-      if (initOptions.throwInitError) {
-        throw error;
-      } else {
-        // eslint-disable-next-line no-console
-        console.error(`There was an error while initializing the '${this.componentName}' webComponent:`, this, error);
-      }
-    }
-  }
-
-  /**
-   * When the element was created with data attributes before the ini() method is called
-   * use the data attr values as default for attributesValues
-   */
   setInitialAttributesValues() {
-    const initial = [...this.classList];
-    initial.unshift(); // remove the component name
-    this.initialAttributesValues = classToFlat(initial.splice(1));
-    const initialAttributesValues = this.initialAttributesValues || { all: { data: {} } };
-    if (this.dataAttributesKeys && !this.dataAttributesKeys.length) {
-      this.setDataAttributesKeys();
-    } else {
-      this.dataAttributesKeys = this.dataAttributesKeys || [];
-    }
+    const initialAttributesValues = {};
+
+    this.classList.remove(this.componentName);
+    const classes = [...this.classList];
+    const { byName } = this.breakpoints;
+    this.removeAttribute('class');
+
+    /** Add any class prefixed with a breakpoint to `attributesValues`
+     * Classes without a prefix will be added to the element and
+     * not handled by `attributesValues` functionality */
+    classes.reduce((acc, cls) => {
+      const isBreakpoint = ['all', ...Object.keys(byName)].includes(cls.split('-')[0]);
+      if (!isBreakpoint) return this.classList.add(cls) || acc;
+
+      const [breakpoint, ...partCls] = cls.split('-');
+      if (partCls[0] === 'class') partCls.shift();
+      acc[breakpoint] ??= {};
+      acc[breakpoint].class ??= [];
+      acc[breakpoint].class.push(partCls.join('-'));
+
+      return acc;
+    }, initialAttributesValues);
+
+    /**
+     * When the element was created with data attributes
+     * use the values as default for attributesValues.all */
     this.dataAttributesKeys.forEach(({ noData, noDataCamelCase }) => {
       const value = this.dataset[noDataCamelCase];
 
-      if (typeof value === 'undefined') return {};
-      const initialValue = unFlat({ [noData]: value });
-      if (initialAttributesValues.all && initialAttributesValues.all.data) {
-        initialAttributesValues.all.data = deepMerge({}, initialAttributesValues.all.data, initialValue);
-      }
-      return initialAttributesValues;
+      if (typeof value === 'undefined') return;
+      const initialValue = { [noData]: value };
+      initialAttributesValues.all ??= { data: {} };
+      initialAttributesValues.all.data = deepMerge({}, initialAttributesValues.all.data, initialValue);
     });
 
-    this.attributesValues = deepMerge(
+    this.attributesValues = deepMergeByType(
+      this.config.attributesMergeMethods,
       {},
       this.attributesValues,
-      this.initOptions?.attributesValues || {},
       initialAttributesValues,
     );
   }
 
-  async connectComponent() {
-    if (!this.initOptions.target) return this;
-    const { targetsAsContainers } = this.initOptions.loaderConfig || {};
-    const conf = this.config;
-    const addToTargetMethod = targetsAsContainers ? conf.targetsAsContainers.addToTargetMethod : conf.addToTargetMethod;
-
-    this.initOptions.target[addToTargetMethod](this);
-
-    return this.initialization;
-  }
-
-  // Build-in method called after the element is added to the DOM.
-  async connectedCallback() {
-    // Common identifier for raqn web components
-    this.setAttribute('raqnwebcomponent', '');
-    this.setAttribute('isloading', '');
-    try {
-      this.initialized = this.getAttribute('initialized');
-      this.initSubscriptions(); // must subscribe each type the element is added to the document
-      if (!this.initialized) {
-        await this.initOnConnected();
-        this.setAttribute('id', this.uuid);
-        await this.loadFragment(this.fragmentPath);
-        await this.connected(); // manipulate/create the html
-        this.dataAttributesKeys = await this.setDataAttributesKeys();
-        this.addListeners(); // html is ready add listeners
-        await this.ready(); // add extra functionality
-        this.setAttribute('initialized', true);
-        this.initialized = true;
-        this.initResolvers.resolve(this);
-        this.dispatchEvent(new CustomEvent(`initialized:${this.uuid}`, { detail: { element: this } }));
-      }
-    } catch (error) {
-      this.initResolvers.reject(error);
-      this.dispatchEvent(new CustomEvent(`initialized:${this.uuid}`, { detail: { error } }));
-      this.initError = error;
-      this.hideWithError(this.config.hideOnInitError, 'has-init-error');
-      // eslint-disable-next-line no-console
-      console.error(`There was an error after the '${this.componentName}' webComponent was connected:`, this, error);
-    }
-    this.removeAttribute('isloading');
-  }
-
-  // This allows for components to be initialized as a string by adding them to another element's innerHTML
-  // The attributes `data-config-name` and `data-config-by-classes` can be used to set the config
-
-  async initOnConnected() {
-    if (this.wasInitBeforeConnected) return;
-    await this.Handler;
-    this.setInitialAttributesValues();
-    await this.buildExternalConfig();
-    this.runConfigsByViewport();
-    this.addDefaultsToNestedConfig();
-    // Add extra functionality to be run on init.
-    await this.onInit();
-  }
-
   async buildExternalConfig() {
-    let configByClasses = mergeUniqueArrays(this.initOptions.configByClasses, this.classList);
-    // normalize the configByClasses to serializable format
-    const { byName } = getBreakPoints();
-    configByClasses = configByClasses
-      // remove the first class which is the component name and keep only compound classes
-      .filter((c, index) => c.includes('-') && index !== 0)
-      // make sure break points are included in the config
-      .map((c) => {
-        const exceptions = ['all', 'config'];
-        const firstClass = c.split('-')[0];
-        const isBreakpoint = Object.keys(byName).includes(firstClass) || exceptions.includes(firstClass);
-        return isBreakpoint ? c : `all-${c}`;
-      });
+    const unFlatConfig = unFlat(await externalConfig.getConfig(this.componentName, this.configId));
 
-    // serialize the configByClasses into a flat object
-    let values = classToFlat(configByClasses);
-
-    // get the external config
-    // TODO With the unFlatten approach of setting this.attributesValues there is an increased amount of processing
-    // each time a viewport changes when we need to flatten again the values
-    // better approach would be to generate this.attributesValues in the final state needed by each time of data:
-    // - class -  as arrays with unique values
-    // - data - as flatten values with camel case keys
-    // - attributes - as flatten values with hyphen separated keys.
-    // for anything else set them flatten as they come from from external config
-    const configs = unFlat(await externalConfig.getConfig(this.componentName, values.config));
-
-    if (this.overrideExternalConfig) {
-      // Used for preview functionality
-      values = deepMerge({}, configs, this.attributesValues, values);
-    } else {
-      values = deepMerge({}, configs, values);
-    }
-
-    delete values.config;
-
-    // add to attributesValues
-    this.attributesValues = deepMerge({}, this.attributesValues, values);
-  }
-
-  addDefaultsToNestedConfig() {
-    Object.keys(this.nestedComponentsConfig).forEach((key) => {
-      const defaults = {
-        targets: [this],
-        active: true,
-        loaderConfig: {
-          targetsAsContainers: true,
-        },
-      };
-      this.nestedComponentsConfig[key] = deepMerge({}, defaults, this.nestedComponentsConfig[key]);
+    // turn classes to array
+    Object.values(unFlatConfig).forEach((value) => {
+      if (typeof value.class === 'string') {
+        value.class = stringToArray(value.class, { divider: ' ' });
+      }
     });
-  }
 
-  addContentFromTargetCheck() {
-    if (!this.initOptions.target) return;
+    const toMerge = [this.attributesValues, unFlatConfig];
 
-    const { targetsAsContainers } = this.initOptions.loaderConfig;
-    const {
-      contentFromTargets,
-      targetsAsContainers: { contentFromTargets: contentFromTargetsAsContainer },
-    } = this.config;
-    const getContent = targetsAsContainers ? contentFromTargetsAsContainer : contentFromTargets;
+    if (this.overrideExternalConfig) toMerge.reverse();
 
-    if (!getContent) return;
-    this.addContentFromTarget();
-  }
-
-  addContentFromTarget() {
-    const { target } = this.initOptions;
-    const { contentFromTargets } = this.config;
-    if (!contentFromTargets) return;
-    this.append(...target.childNodes);
+    this.attributesValues = deepMergeByType(this.config.attributesMergeMethods, {}, ...toMerge);
   }
 
   onBreakpointChange(e) {
@@ -359,77 +247,83 @@ export default class ComponentBase extends HTMLElement {
     }
   }
 
+  currentAttributesValues() {
+    const { name } = this.breakpoints.active;
+    const currentAttrValues = deepMergeByType(
+      this.config.attributesMergeMethods,
+      {},
+      this.attributesValues.all,
+      this.attributesValues[name],
+    );
+    this.currentAttrValues = currentAttrValues;
+    return currentAttrValues;
+  }
+
   runConfigsByViewport() {
-    const { name } = getBreakPoints().active;
-    const current = deepMerge({}, this.attributesValues.all, this.attributesValues[name]);
-    this.removeAttribute('class');
-    Object.keys(current).forEach((key) => {
-      const action = `apply${key.charAt(0).toUpperCase() + key.slice(1)}`;
+    const oldValues = this.currentAttrValues;
+    const newValues = this.currentAttributesValues();
+    const keysArray = mergeUniqueArrays(Object.keys(oldValues), Object.keys(newValues));
+
+    keysArray.forEach((key) => {
+      const action = `apply${capitalizeCase(key)}`;
       if (typeof this[action] === 'function') {
-        return this[action]?.(current[key]);
+        this[action]?.({ oldValue: oldValues[key], newValue: newValues[key] });
       }
-      return this.applyClass(current[key]);
     });
   }
 
-  // ${viewport}-data-${attr}-"${value}"
-  applyData(entries) {
-    // received as {col:{ direction:2 }, columns: 2}
-    const values = flat(entries);
-    // transformed into values as {col-direction: 2, columns: 2}
-    if (!this.dataAttributesKeys) {
-      this.setDataAttributesKeys();
-    }
+  applyData({ oldValue, newValue }) {
     // Add only supported data attributes from observedAttributes;
     // Sometimes the order in which the attributes are set matters.
     // Control the order by using the order of the observedAttributes.
     this.dataAttributesKeys.forEach(({ noData, noDataCamelCase }) => {
-      if (typeof values[noData] !== 'undefined') {
-        this.dataset[noDataCamelCase] = values[noData];
-      } else {
+      const hasNewVal = typeof newValue?.[noData] !== 'undefined';
+      // delete only when needed to minimize the times the attributeChangedCallback is triggered;
+      if (typeof oldValue?.[noData] !== 'undefined' && !hasNewVal) {
         delete this.dataset[noDataCamelCase];
+      }
+      if (hasNewVal) {
+        this.dataset[noDataCamelCase] = newValue[noData];
       }
     });
   }
 
-  // ${viewport}-class-${value}
-  applyClass(className) {
-    // {'color':'primary', 'max':'width'} -> 'color-primary max-width'
-
-    // classes can be serialized as a string or an object
-    if (isObject(className)) {
-      // if an object is passed, it's flat and splitted
-      this.classList.add(...flatAsValue(className).split(' '));
-    } else if (className) {
-      // strings are added as is
-      this.setAttribute('class', className);
-    }
+  applyClass({ oldValue, newValue }) {
+    if (oldValue?.length) this.classList.remove(...oldValue);
+    if (newValue?.length) this.classList.add(...newValue);
   }
 
-  // ${viewport}-attribute-${value}
+  applyAttribute({ oldValue, newValue }) {
+    [oldValue, newValue].forEach((value, i) => {
+      if (!isObject(value)) return;
+      const isOld = i === 0;
+      const addRemove = isOld ? 'removeAttribute' : 'setAttribute';
 
-  applyAttribute(entries) {
-    // received as {col:{ direction:2 }, columns: 2}
-    const values = flat(entries);
-    // transformed into values as {col-direction: 2, columns: 2}
-    Object.keys(values).forEach((key) => {
-      // camelCaseAttr converts col-direction into colDirection
-      this.setAttribute(key, values[key]);
+      Object.keys(value).forEach((key) => {
+        if (isOld && typeof newValue?.[key] !== 'undefined') return;
+        this[addRemove](key, value[key]);
+      });
     });
   }
 
-  // ${viewport}-nest-${value}
+  applyStyle({ oldValue, newValue }) {
+    [oldValue, newValue].forEach((value, i) => {
+      if (!isObject(value)) return;
+      const isOld = i === 0;
+      const addRemove = isOld ? 'removeProperty' : 'setProperty';
 
-  applyNest(config) {
-    const names = Object.keys(config);
-    names.map((key) => {
-      const instance = document.createElement(`raqn-${key}`);
-      instance.initOptions.configByClasses = [config[key]];
-
-      this.cachedChildren = Array.from(this.initOptions.target.children);
-      this.cachedChildren.forEach((child) => instance.append(child));
-      this.append(instance);
+      Object.keys(value).forEach((key) => {
+        if (isOld && typeof newValue?.[key] !== 'undefined') return;
+        this.style[addRemove](key, value[key]);
+      });
     });
+  }
+
+  // TODO handle this part
+  applySetting(config) {
+    // delete the setting to run only once on init
+    delete this.attributesValues.all.setting;
+    deepMerge(this.config, config);
   }
 
   /**
@@ -451,6 +345,12 @@ export default class ComponentBase extends HTMLElement {
     }
   }
 
+  // to add a loading spinner for the component add 'isloading' attribute to the `observedAttributes`
+  onAttributeIsloadingChanged({ oldValue, newValue }) {
+    if (oldValue === newValue) return;
+    this.classList.toggle(this.config.classes.showLoader, stringToJsVal(newValue) || false);
+  }
+
   getBreakpointAttrVal(attr) {
     const { name: activeBrName } = this.breakpoints.active;
     const attribute = this.attributesValues?.[attr];
@@ -459,7 +359,7 @@ export default class ComponentBase extends HTMLElement {
   }
 
   addListeners() {
-    if (Object.keys(this.attributesValues).length > 1) {
+    if (Object.keys(this.attributesValues).length >= 1) {
       listenBreakpointChange(this.onBreakpointChange);
     }
   }
@@ -524,11 +424,14 @@ export default class ComponentBase extends HTMLElement {
 
   initSubscriptions() {}
 
-  onInit() {}
+  removeSubscriptions() {}
 
-  connected() {}
+  removeListeners() {}
 
-  ready() {}
+  reConnected() {}
 
-  disconnectedCallback() {}
+  disconnectedCallback() {
+    this.removeSubscriptions();
+    this.removeListeners();
+  }
 }

@@ -18,12 +18,17 @@ export const recursive =
 export const queryAllNodes = (nodes, fn, settings) => {
   const { currentLevel = 1, queryLevel } = settings || {};
   return nodes.reduce((acc, node) => {
+    const hasParent = node.hasParentNode;
     const match = fn(node);
+    const wasRemoved = !node.hasParentNode && hasParent;
+
     if (match) acc.push(node);
     // If this will throw an error it means the node was not created properly using the `createNodes()` method
     // with the `processChildren` option set to `true` if the node has children.
     // ! do not fix the error here by checking is node.children exists.
     try {
+      // if the node was removed during the query skip the children.
+      if (wasRemoved) return acc;
       if (node.children.length && (!queryLevel || currentLevel < queryLevel)) {
         const fromChildren = queryAllNodes(node.children, fn, { currentLevel: currentLevel + 1, queryLevel });
         acc.push(...fromChildren);
@@ -96,4 +101,15 @@ export const queryTemplatePlaceholders = (tplVirtualDom) => {
     return true;
   });
   return { placeholders, placeholdersNodes };
+};
+
+export const getClassWithPrefix = (node, prefix) =>
+  node.class.find((cls, i) => cls.startsWith(prefix) && node.class.splice(i, 1))?.slice(prefix.length);
+
+export const setPropsAndAttributes = (node) => {
+  const externalConfig = getClassWithPrefix(node, 'config-');
+
+  if (externalConfig) {
+    node.attributes['config-id'] = externalConfig;
+  }
 };

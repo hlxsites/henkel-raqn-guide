@@ -7,7 +7,8 @@ mermaid.initialize({
 });
 
 export default class Mermaid extends ComponentBase {
-  ready() {
+  init() {
+    super.init();
     const code = this.querySelector('code');
     if(!code) {
       throw new Error('Cannot initialize mermaid without code content.');
