@@ -3,6 +3,7 @@
 ## Description
 
 A component which generates a button used to:
+
 1. open a pop-up.
 2. close the currently active popup
 
@@ -21,6 +22,7 @@ This component is not supported as a block. It's only used as a nested component
 `N/A`
 
 ## WebComponent Tag
+
 ### `<raqn-popup-trigger></raqn-popup-trigger>`
 
 ## Initialization
@@ -42,20 +44,17 @@ When `#popup-trigger` hash is used, the url of the anchor will be used to load t
 ## Editorial Initializations (in MS Word)
 
 ### 1. Open a popup
+
 The popup content will be loaded from the url provided in the anchor configured with the `#popup-trigger` hash.
 
-Example: 
+Example:
 
-`https://example.com/page-with-the-popup-content#popup-trigger`
-
+`http://localhost:3000/schemas/page-with-the-popup-content#popup-trigger`
 
 ### 2. Close the currently open popup
 
 In this case the url or the current page can be used on the anchor because the url will be ignored. Only the `#popup-close` hash of the url is important.
 
-Example: 
+Example:
 
-`https://example.com/current-page#popup-close`
-
-
-
+`http://localhost:3000/schemas/current-page#popup-close`

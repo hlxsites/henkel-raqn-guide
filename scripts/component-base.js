@@ -151,8 +151,10 @@ export default class ComponentBase extends HTMLElement {
 
   setDataAttributesKeys() {
     const { observedAttributes } = this.constructor;
+    if (observedAttributes.length === 0) return [];
     this.dataAttributesKeys = observedAttributes.map((dataAttr) => {
       const [, key] = dataAttr.split('data-');
+      if (!key) return {};
 
       return {
         data: dataAttr,
@@ -160,6 +162,7 @@ export default class ComponentBase extends HTMLElement {
         noDataCamelCase: camelCaseAttr(key),
       };
     });
+    return this.dataAttributesKeys;
   }
 
   // ! Needs to be called after the element is created;

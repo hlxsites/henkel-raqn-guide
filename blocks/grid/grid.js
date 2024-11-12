@@ -10,9 +10,10 @@ export default class Grid extends ComponentBase {
       grid: {
         gap: '80px',
         template: {
-          rows: 'auto',
+          columns: '1fr 1fr 1fr 1fr 1fr',
+          rows: '1fr',
         },
-        heigth: 'initial',
+        heigth: 'auto',
       },
     },
   };

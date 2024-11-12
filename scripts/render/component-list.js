@@ -63,6 +63,16 @@ export const componentList = {
     dependencies: ['navigation', 'grid', 'grid-item'],
     priority: 1,
   },
+  form: {
+    tag: 'raqn-form',
+    script: '/blocks/form/form',
+    priority: 2,
+  },
+  'raqn-input': {
+    tag: 'raqn-input',
+    script: '/blocks/form/text/input',
+    priority: 2,
+  },
   footer: {
     tag: 'raqn-footer',
     script: '/blocks/footer/footer',
@@ -115,6 +125,11 @@ export const componentList = {
   'popup-trigger': {
     tag: 'raqn-popup-trigger',
     script: '/blocks/popup-trigger/popup-trigger',
+    priority: 3,
+  },
+  'example': {
+    tag: 'raqn-example',
+    script: '/blocks/example/example',
     priority: 3,
   },
 };
