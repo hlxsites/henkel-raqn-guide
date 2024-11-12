@@ -109,11 +109,14 @@ export const toWebComponent = (virtualDom) => {
 export const loadModules = (nodes, extra = {}) => {
   const modules = { ...raqnLoadedComponents, ...extra };
   window.raqnOnComponentsLoaded = Object.keys(modules)
-    .sort((a, b) => modules[a].priority - modules[b].priority)
-    .flatMap((component) => {
-      const { tag, priority } = modules[component];
+    .filter((component) => modules[component]?.module?.path)
+    .sort((a, b) => modules[a].module.priority - modules[b].module.priority)
+    .forEach((component) => {
+      const {
+        module: { priority },
+        tag,
+      } = modules[component];
       if (window.raqnComponents[tag]) return window.raqnComponents[tag];
-      if (!modules[component]?.module?.path) return [];
       return new Promise((resolve, reject) => {
         setTimeout(async () => {
           try {
