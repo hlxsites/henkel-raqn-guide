@@ -1,8 +1,36 @@
-raqn-developers-content h2, 
-raqn-developers-content h2 a, 
-raqn-developers-content h3,
-raqn-developers-content h3 a,
-raqn-developers-content a {
-  margin: 10px;
-  font-size: var(--scope-font-size, 1.3);
+raqn-developers-content ul {
+  list-style: none;
+}
+
+raqn-developers-content ul ul {
+  display: none;
+}
+
+raqn-developers-content ul ul.active {
+  display: block;
+}
+
+raqn-developers-content ul,
+raqn-developers-content li {
+  margin: 0;
+  padding: 0;
+}
+
+
+raqn-developers-content li .subline {
+  display: block;
+  font-size: 0.7rem;
+}
+
+raqn-developers-content li a {
+  display: block;
+  margin-block: 0.2rem;
+}
+
+raqn-developers-content li a.active {
+  font-weight: bold;
+}
+
+raqn-developers-content > ul > li ul {
+  padding-inline-start: 1rem;
 }

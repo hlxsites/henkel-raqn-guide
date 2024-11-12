@@ -1,6 +1,6 @@
 import ComponentBase from '../../scripts/component-base.js';
 
-const sitePathPrefix = window.location.hostname === 'docs.raqn.io' ? '/developers' : '';
+const sitePathPrefix = '/developers';
 
 export default class DeveloperToc extends ComponentBase {
   init() {
@@ -8,134 +8,110 @@ export default class DeveloperToc extends ComponentBase {
     this.generateTablesOfContent();
   }
 
-  isIndex(node) {
-    return node.page && (node.segment === 'README' || node.segment === 'readme');
-  }
-
-  toLink(path) {
-    if (window.location.host.startsWith('localhost') || window.location.host.search(/\.aem\.(page|live)/) > 0) {
-      return path;
-    }
-    return `${sitePathPrefix}${path}`;
+  isIndex(segment) {
+    return segment.toUpperCase() === 'README';
   }
 
   async loadPageHierarchy() {
-    const response = await fetch(`${sitePathPrefix}/query-index.json`);
-    if (!response.ok) return [];
+    const response = await fetch('/query-index.json');
+    if(!response.ok) return [];
     const json = await response.json();
 
-    const pageHierarchy = [];
-    const pageHierarchyObject = { children: pageHierarchy };
-    let currentNode;
-    json.data.forEach((page) => {
-      const segments = page.path.split('/').slice(1);
-      let currentParent = pageHierarchyObject;
-      let nodePath = '';
+    const pageHierarchy = { children:[] };
+    // explode flat list into a hierarchy 
+    json.data.filter(page => page.path.startsWith(sitePathPrefix)).forEach(page => {
+      const segments = page.path.split('/').slice(2); // slice removes the first empty segement (because of leading /) and the /developers prefix
+      const pageSegment = segments.pop(); // remove last segement which refers to the page itself
+      let currentParent = pageHierarchy;
+      const active = window.location.pathname === page.path;
       segments.forEach((segment) => {
-        nodePath += `/${segment}`;
         let node = currentParent.children.find((child) => child.segment === segment);
         if (!node) {
           node = {
-            nodePath,
             segment,
-            active: window.location.pathname.startsWith(`${sitePathPrefix}${nodePath}`),
+            label: segment,
             children: [],
           };
-          if (nodePath === page.path) {
-            node.page = page;
-            if (this.isIndex(node)) {
-              currentParent.link = page.path;
-            }
-            if (!currentNode && node.active) {
-              currentNode = node;
-            }
-          }
           currentParent.children.push(node);
         }
+        node.active = node.active || active;
         currentParent = node;
+      });
+      currentParent.children.push({ 
+        segment: pageSegment,
+        label: this.isIndex(pageSegment) ? 'overview' : pageSegment, // rename README to Overview
+        link: page.path,
+        active,
       });
     });
 
-    const postProcessHierarchy = (node) => {
-      node.children.sort((a, b) => a.segment.localeCompare(b.segment));
-      if (!node.page && !node.link) {
-        const firstChildPage = node.children.find((child) => child.page);
-        if (firstChildPage) {
-          node.link = firstChildPage.page.path;
+    // shift repositories to the top level removing org and project levels
+    const orgs = pageHierarchy.children;
+    pageHierarchy.children = [];
+    orgs.forEach((org) => org.children.forEach((project) => project.children.forEach((repository) => {
+      repository.parents = [org.segment, project.segment];
+      pageHierarchy.children.push(repository);
+      // remove branch level if there is only one branch
+      if(repository.children.length === 1) {
+        repository.children = repository.children[0].children;
+      } 
+    })));
+    
+    // collapse all parents with only one child
+    const collapse = (node) => {
+      if(!node.children) return;
+      if(node.children.length === 1) {
+        const onlyChild = node.children[0];
+        if(this.isIndex(onlyChild.segment)) {
+          node.link = onlyChild.link;
+        } else {
+          node.parents = [...(node.parents || []), node.segment];
+          Object.assign(node, onlyChild);
         }
+        if(!onlyChild.children) {
+          delete node.children;
+        }
+        collapse(node);
+      } else {
+        node.children.forEach((child) => collapse(child));
       }
-      node.children.forEach((child) => postProcessHierarchy(child));
     };
-    postProcessHierarchy(pageHierarchyObject);
+    pageHierarchy.children.forEach((repository) => repository.children.forEach((child) => collapse(child)));
 
-    return [pageHierarchy, currentNode];
+    const sortChildren = (node) => {
+      node.children?.sort((a, b) => {
+        // readme should come first
+        if(a.link && this.isIndex(a.segment)) return -1;
+        if(b.link && this.isIndex(b.segment)) return 1;
+        return a.segment.localeCompare(b.segment);
+      });
+      node.children?.forEach((child) => sortChildren(child));
+    };
+    sortChildren(pageHierarchy);
+    
+    return pageHierarchy;
+  }
+  
+  generate(hierarchy, generator) {
+    return hierarchy.children.map((child) => generator.call(this, child)).join('');
   }
 
-  generateRepository(repository) {
-    const a = document.createElement('a');
-    a.href = this.toLink(repository.link);
-    a.innerText = repository.segment;
-    return `<li class=${repository.active ? 'active' : ''}><h3>${a.outerHTML}</h3>`;
-  }
-
-  generateProjects(org) {
-    return org.children
-      .map((project) => {
-        const h2 = document.createElement('h2');
-        h2.innerText = `${org.segment} - ${project.segment}`;
-        return `<li class=${project.active ? 'active' : ''}>${h2.outerHTML}
-        <ul>${project.children.map((repository) => this.generateRepository(repository)).join('')}</ul></li>`;
-      })
-      .join('');
-  }
-
-  generatePages(node) {
-    if (this.isIndex(node)) return '';
-
-    const link = node.link || node.page?.path;
-    const li = document.createElement('li');
-    if (link) {
-      const a = document.createElement('a');
-      a.href = this.toLink(link);
-      a.innerText = node.segment;
-      li.innerHTML = a.outerHTML;
-    } else {
-      li.innerText = node.segment;
+  getLink(node) {
+    if(node.link) {
+      return node.link;
     }
-
-    const childrenHTML = node.children.map((child) => this.generatePages(child)).join('');
-    if (childrenHTML) {
-      const ul = document.createElement('ul');
-      ul.innerHTML = childrenHTML;
-      li.appendChild(ul);
-    }
-
-    return li.outerHTML;
+    return this.getLink(node.children[0]);
   }
-
-  findRepositoryRoot(node) {
-    if (node.children.length === 1 && !node.children[0].page) {
-      return this.findRepositoryRoot(node.children[0]);
-    }
-    return node;
+  
+  generateStructure(node) {
+    return `<li><a class="${node.link && node.active ? 'active' : ''}" href="${this.getLink(node)}">${node.label}
+      ${node.parents ? `<span class="subline">${node.parents.join(' - ')}</span>` : ''}</a>
+      ${node.children ? `<ul class="${node.active ? 'active' : ''}">${this.generate(node, this.generateStructure)}</ul>` : ''}
+    </li>`;
   }
 
   async generateTablesOfContent() {
-    const [pageHierarchy, currentNode] = await this.loadPageHierarchy();
-    const currentOrg = pageHierarchy.find((org) => org.active);
-    const currentProject = currentOrg?.children.find((project) => project.active);
-    const currentRepository = currentProject?.children.find((repository) => repository.active);
-
-    let tocs = `<ul class="main">${pageHierarchy.map((project) => this.generateProjects(project)).join('')}</ul>`;
-
-    if (currentRepository && currentNode) {
-      const h2 = document.createElement('h2');
-      h2.innerText = `${currentOrg.segment} - ${currentProject.segment} - ${currentRepository.segment}`;
-      const root = this.findRepositoryRoot(currentRepository);
-      tocs += `<hr><div class="active">${h2.outerHTML}
-        <ul>${root.children.map((child) => this.generatePages(child)).join('')}</ul></div>`;
-    }
-
-    this.innerHTML = tocs;
+    const pageHierarchy = await this.loadPageHierarchy();
+    this.innerHTML = `<ul>${this.generate(pageHierarchy, this.generateStructure)}</ul>`;
   }
 }
