@@ -1,12 +1,13 @@
 import { generateVirtualDom, renderVirtualDom } from './render/dom.js';
 import { pageManipulation, templateManipulation } from './render/dom-manipulations.js';
 import { getMeta, metaTags, runTasks, isTemplatePage, previewModule } from './libs.js';
+import { subscribe } from './pubsub.js';
 
 await previewModule(import.meta);
 
 export default {
   init() {
-    runTasks.call(
+    return runTasks.call(
       this, // all the tasks bellow will be bound to this object when called.
       null,
       this.generatePageVirtualDom,
@@ -89,4 +90,6 @@ export default {
   async templateVirtualDomManipulation({ templateVirtualDom }) {
     await templateManipulation(templateVirtualDom);
   },
-}.init();
+}.init().then(() => {
+  subscribe('raqn:page:editor:load', () => import('./editor.js')); 
+});

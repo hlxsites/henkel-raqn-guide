@@ -12,6 +12,7 @@ import {
   runTasks,
 } from '../../scripts/libs.js';
 import { externalConfig } from '../../scripts/libs/external-config.js';
+import { publish } from '../../scripts/pubsub.js';
 
 const k = Object.keys;
 
@@ -203,6 +204,7 @@ ${k(f)
 
     setTimeout(() => {
       document.body.style.display = 'block';
+      publish('raqn:page:load', {}, { usePostMessage: true, targetOrigin: '*' });
     });
   }
 }

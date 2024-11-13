@@ -199,6 +199,17 @@ export function nodeProxy(rawNode) {
         return true;
       }
 
+      if (prop === 'toJSON') {
+        return () => {
+          const copy = { ...target };
+          delete copy.reference;
+          delete copy.parentNode;
+          delete copy.siblings;
+          const childrenJson = copy.children.map((child) => child.toJSON());
+          return { ...copy, children: childrenJson }; ;
+        };
+      }
+
       return target[prop];
     },
   });
@@ -248,6 +259,7 @@ export const generateVirtualDom = (realDomNodes, { reference = true, parentNode 
         ...nodeDefaults(),
         isRoot: true,
         tag: parentNode,
+        reference: realDomNodes[0].parentNode,
       })
     : {
         children: [],
@@ -318,7 +330,6 @@ export const renderVirtualDom = (virtualdom) => {
 
       virtualNode.reference = el;
       el.virtualNode = virtualNode;
-
       dom.push(el);
     } else if (virtualNode.text?.length) {
       const textNode = document.createTextNode(virtualNode.text);

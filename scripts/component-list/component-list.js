@@ -45,6 +45,7 @@ export const componentList = {
     module: {
       path: '/blocks/theming/theming',
       priority: 1,
+      editor: true,
     },
   },
   breadcrumbs: {
@@ -171,6 +172,7 @@ export const componentList = {
     module: {
       path: '/blocks/card/card',
       priority: 2,
+      editor: true,
     },
   },
   accordion: {
@@ -192,6 +194,7 @@ export const componentList = {
     module: {
       path: '/blocks/button/button',
       priority: 0,
+      editor: true,
     },
   },
   'popup-trigger': {
@@ -253,6 +256,7 @@ export const componentList = {
       path: '/blocks/grid/grid',
       priority: 0,
       dependencies: ['grid-item'],
+      editor: true,
     },
   },
   'grid-item': {

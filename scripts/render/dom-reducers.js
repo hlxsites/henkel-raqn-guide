@@ -3,10 +3,13 @@ import { deepMerge, getMeta, loadAndDefine, previewModule } from '../libs.js';
 import { recursive, tplPlaceholderCheck, queryTemplatePlaceholders, setPropsAndAttributes } from './dom-utils.js';
 import { componentList, injectedComponents } from '../component-list/component-list.js';
 
-window.raqnLoadedComponents ??= {};
+window.raqnComponentsList ??= {};
 window.raqnOnComponentsLoaded ??= [];
 window.raqnComponents ??= {};
-const { raqnLoadedComponents } = window;
+// export those variables to be used in other modules
+export const { raqnComponentsList } = window;
+export const { raqnComponents } = window;
+export const { raqnOnComponentsLoaded } = window;
 
 export const forPreviewManipulation = async (manipulation) => (await previewModule(import.meta, manipulation)) || {};
 export const { noContentPlaceholder, duplicatedPlaceholder } = await forPreviewManipulation();
@@ -51,8 +54,8 @@ const addToLoadComponents = (blockSelector, config) => {
   const toLoad = [blockSelector, ...(dependencies || [])];
 
   toLoad.forEach((load) => {
-    if (!raqnLoadedComponents[load]) {
-      raqnLoadedComponents[load] = componentList[load];
+    if (!raqnComponentsList[load]) {
+      raqnComponentsList[load] = componentList[load];
     }
   });
 };
@@ -107,7 +110,7 @@ export const toWebComponent = (virtualDom) => {
 
 // load modules in order of priority
 export const loadModules = (nodes, extra = {}) => {
-  const modules = { ...raqnLoadedComponents, ...extra };
+  const modules = { ...raqnComponentsList, ...extra };
   window.raqnOnComponentsLoaded = Object.keys(modules)
     .filter((component) => modules[component]?.module?.path)
     .sort((a, b) => modules[a].module.priority - modules[b].module.priority)
@@ -121,6 +124,7 @@ export const loadModules = (nodes, extra = {}) => {
         setTimeout(async () => {
           try {
             const { module } = await loadAndDefine(modules[component]);
+            
             resolve(module);
           } catch (error) {
             reject(error);
