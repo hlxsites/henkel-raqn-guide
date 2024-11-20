@@ -240,14 +240,6 @@ export function nodeProxy(rawNode) {
         target.children = value;
         return true;
       }
-      if (prop === 'parentNode') {
-        const oldParent = target.parentNode;
-        if (oldParent) {
-          // don't trigger setter
-          oldParent.children.filter((child) => child !== receiver);
-        }
-        target.parentNode = value;
-      }
       target[prop] = value;
       return true;
     },
