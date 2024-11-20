@@ -139,43 +139,38 @@ export const cleanEmptyNodes = (node) => {
 // in some cases when the placeholder is the only content in a block row the text is not placed in a <p>
 // wrap the placeholder in a <p> to normalize placeholder identification.
 export const buildTplPlaceholder = (node) => {
-  if (!tplPlaceholderCheck('div', node)) return;
-
-  node.append(
-    {
-      tag: 'p',
-      children: [node.firstChild],
-    },
-    { processChildren: true },
-  );
+  if (!tplPlaceholderCheck('p', node)) return;
+  const child = createNode({ tag: 'p'});
+  node.wrapWith(child);
 };
 
 export const replaceTemplatePlaceholders = (tplVirtualDom) => {
   const pageVirtualDom = window.raqnVirtualDom;
-
   const { placeholders, placeholdersNodes } = queryTemplatePlaceholders(tplVirtualDom);
-
   duplicatedPlaceholder?.(placeholdersNodes, placeholders);
-
   placeholdersNodes.forEach((node, i) => {
     const placeholder = placeholders[i];
     const placeholderContent = pageVirtualDom.queryAll(
       (n) => {
         if (n.tag !== 'raqn-section') return false;
-        if (n.hasClass(placeholder)) return true;
-        // if main content special placeholder is defined in the template any section without a placeholder will be added to the main content.
-        if (placeholder === 'tpl-content-auto-main' && n.class.every((ph) => !placeholders.includes(ph))) return true;
 
+        if (n.hasClass(placeholder) === true) return true;
+        // console.log('n', n.tag, n.class, n.hasClass(placeholder));
+        // // if main content special placeholder is defined in the template any section without a placeholder will be added to the main content.
+        if (placeholder === 'tpl-content-auto-main' && n.class.every((ph) => !placeholders.includes(ph))) return true;
         return false;
       },
-      { queryLevel: 4 },
     );
-
-    if (placeholderContent.length) node.replaceWith(...placeholderContent);
+    if (placeholderContent.length) {
+      node.tag = 'raqn-section';
+      node.children = placeholderContent;
+    }
     else if (noContentPlaceholder) {
       noContentPlaceholder(node);
     } else node.remove();
   });
-  const [main] = pageVirtualDom.queryAll((n) => n.tag === 'main', { queryLevel: 1 });
-  main.prepend(...tplVirtualDom.children);
+  const [main] = pageVirtualDom.queryAll((n) => n.tag === 'main');
+  const section = createNode({ tag: 'raqn-section'});
+  section.children = tplVirtualDom.firstChild.children;
+  main.children = [section];
 };

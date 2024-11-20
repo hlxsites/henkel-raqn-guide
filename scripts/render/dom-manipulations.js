@@ -40,7 +40,7 @@ export const generalManipulation = curryManipulation([
 export const templateManipulation = curryManipulation([
   recursive(cleanEmptyNodes),
   recursive(buildTplPlaceholder),
-  toWebComponent,
+  recursive(toWebComponent),
   recursive(prepareGrid),
   loadModules,
   replaceTemplatePlaceholders,

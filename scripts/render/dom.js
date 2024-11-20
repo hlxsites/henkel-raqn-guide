@@ -1,5 +1,3 @@
-import { queryAllNodes } from './dom-utils.js';
-
 // define instances for web components
 window.raqnInstances = window.raqnInstances || {};
 
@@ -120,7 +118,7 @@ export function nodeProxy(rawNode) {
           const newNodes = createNodes({ nodes, ...getSettings(nodes) });
           target.parentNode.children = [...target.parentNode.children].splice(target.indexInSiblings, 1, ...newNodes);
           } else {
-            console.log('replaceWith: node has no parent', target.tag, nodes);
+            console.log('replaceWith: node has no parent', target, nodes);
             console.error('replaceWith: node has no parent');
           }
         };
@@ -137,16 +135,13 @@ export function nodeProxy(rawNode) {
             target.parentNode.children = arrayCopy;
           }
           // it's a single lose node, so we need to wrap it and return the wrapper
-          wrapper.children = [target];
+          wrapper.children = [receiver];
           return wrapper;
         };
       }
 
       if (prop === 'clone') {
-        return () => {
-          const clone = nodeProxy({ ...target });
-          return clone;
-        };
+        return () => nodeProxy({ ...target });
       }
 
       // mehod
@@ -205,7 +200,11 @@ export function nodeProxy(rawNode) {
 
       // mehod  
       if (prop === 'queryAll') {
-        return (fn, settings) => queryAllNodes(target.children, fn, settings);
+        return (fn, settings) => {
+          const isMatch = fn(receiver, settings);
+          const childs = receiver.children.reduce((matchs,node) =>  [...matchs,...node.queryAll(fn, settings)],[]);
+          return [...(isMatch ? [receiver] : []), ...childs];
+        };
       }
 
       if (prop === 'isProxy') {
@@ -262,7 +261,7 @@ function createNodes({ nodes } = {}) {
     if (n.isProxy) return n;
     return nodeProxy({
         ...nodeDefaults(),
-        ...n,
+        ...n || {},
       });
   });
 }

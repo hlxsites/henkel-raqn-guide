@@ -32,6 +32,7 @@ export default {
   },
 
   renderPage() {
+    console.log('rendering page', window.raqnVirtualDom);
     const renderedDOM = window.raqnVirtualDom.children.map(n => renderVirtualDom(n));
 
     if (renderedDOM) {
@@ -88,12 +89,12 @@ export default {
     if (!templateContent) return { stopTaskRun: true, value: null };
     const element = document.createElement('div');
     element.innerHTML = templateContent;
-    window.raqnTplVirtualDom = generateVirtualDom(element.childNodes);
+    window.raqnTplVirtualDom = generateVirtualDom(element);
     return window.raqnTplVirtualDom;
   },
 
-  async templateVirtualDomManipulation({ templateVirtualDom }) {
-    await templateManipulation(templateVirtualDom);
+  async templateVirtualDomManipulation() {
+    await templateManipulation(window.raqnTplVirtualDom);
   },
 }.init().then(() => {
   subscribe('raqn:page:editor:load', () => import('./editor.js')); 

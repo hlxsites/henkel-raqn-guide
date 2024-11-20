@@ -166,6 +166,7 @@ export const componentList = {
           // crate a new link node and wrap the image with it
           // so it's not reference on the old tree
           const linkCopy = link.clone();
+          console.log('linkCopy', linkCopy);
           // wrap the picture with the link
           node.wrapWith(linkCopy);
           // wrap the link with webcomponent
