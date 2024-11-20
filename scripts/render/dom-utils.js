@@ -16,7 +16,7 @@ export const recursive =
   };
 
 export const queryAllNodes = (nodes, fn, settings) => {
-  const { currentLevel = 1, queryLevel } = settings || {};
+  const { currentLevel = 1, queryLevel = 1 } = settings || {};
   return nodes.reduce((acc, node) => {
     const hasParent = node.hasParentNode;
     const match = fn(node);

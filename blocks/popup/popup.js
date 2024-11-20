@@ -57,7 +57,8 @@ export default class Popup extends ComponentBase {
     this.closeOnEsc = this.closeOnEsc.bind(this);
   }
 
-  onInit() {
+  init() {
+    console.log('Popup initialized');
     this.showPopup(false);
     this.createPopupHtml();
     this.setUrlFromTarget();
@@ -103,12 +104,13 @@ export default class Popup extends ComponentBase {
   }
 
   addListeners() {
-    this.elements.popupCloseBtn.addEventListener('click', () => {
-      this.dataset.active = false;
-    });
-    this.elements.popupOverlay.addEventListener('click', () => {
-      this.dataset.active = false;
-    });
+    console.log('Popup listeners added');
+    // this.elements.popupCloseBtn.addEventListener('click', () => {
+    //   this.dataset.active = false;
+    // });
+    // this.elements.popupOverlay.addEventListener('click', () => {
+    //   this.dataset.active = false;
+    // });
   }
 
   connected() {

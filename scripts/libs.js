@@ -92,8 +92,8 @@ export const metaTags = {
     fallbackContent: '/configs/layout',
     // contentType: 'path without extension',
   },
-  themeConfigComponent: {
-    metaName: 'theme-config-component',
+  componentsConfigs: {
+    metaName: 'config-component',
     fallbackContent: '/configs/components-config',
     // contentType: 'path without extension',
   },

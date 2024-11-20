@@ -1,7 +1,8 @@
 // eslint-disable-next-line import/prefer-default-export
 import { deepMerge, getMeta, loadAndDefine, previewModule } from '../libs.js';
-import { recursive, tplPlaceholderCheck, queryTemplatePlaceholders, setPropsAndAttributes } from './dom-utils.js';
+import { tplPlaceholderCheck, queryTemplatePlaceholders, setPropsAndAttributes } from './dom-utils.js';
 import { componentList, injectedComponents } from '../component-list/component-list.js';
+import { createNode } from './dom.js';
 
 window.raqnComponentsList ??= {};
 window.raqnOnComponentsLoaded ??= [];
@@ -31,21 +32,27 @@ export const eagerImage = (node) => {
 };
 
 export const prepareGrid = (node) => {
-  if (node.children && node.children.length > 0 && node.tag === 'raqn-section') {
-    const [grid, ...gridItems] = node.queryAll((n) => ['raqn-grid', 'raqn-grid-item'].includes(n.tag), {
-      queryLevel: 1,
-    });
+  if (node.children && node.children.length > 0) {
+    const grids = node.children.filter((child) => child.tag === 'raqn-grid');
+    const gridItems = node.children.filter((child) => child.tag === 'raqn-grid-item');
 
-    if (!grid) return;
-    gridItems.forEach((item) => {
-      const currentChildren = [...node.children];
-      const initial = currentChildren.indexOf(grid);
-      const itemIndex = currentChildren.indexOf(item);
-      const gridItemChildren = currentChildren.splice(initial + 1, itemIndex - initial - 1);
-      item.append(...gridItemChildren);
-      grid.append(item);
+    grids.map((grid, i) => {
+      const initial = node.children.indexOf(grid);
+      const nextGridIndex = grids[i + 1] ? node.children.indexOf(grids[i + 1]) : node.children.length;
+      gridItems.map((item) => {
+        const itemIndex = node.children.indexOf(item);
+        // get elements between grid and item and insert into grid
+        if (itemIndex > initial && itemIndex < nextGridIndex) {
+          const children = node.children.splice(initial + 1, itemIndex - initial);
+          const gridItem = children.pop(); // remove grid item from children
+          gridItem.children = children;
+          grid.children.push(gridItem);
+        }
+      });
+      return grid;
     });
   }
+  return node;
 };
 
 const addToLoadComponents = (blockSelector, config) => {
@@ -63,48 +70,16 @@ const addToLoadComponents = (blockSelector, config) => {
 export const toWebComponent = (virtualDom) => {
   const componentConfig = deepMerge({}, componentList);
   const componentConfigList = Object.entries(componentConfig);
-
-  const { replaceBlocks, queryBlocks } = componentConfigList.reduce(
-    (acc, item) => {
-      const [, config] = item;
-      if (config.method === 'replace') {
-        acc.replaceBlocks.push(item);
-      } else acc.queryBlocks.push(item);
-      return acc;
-    },
-    { replaceBlocks: [], queryBlocks: [] },
-  );
-
   // Simple and fast in place tag replacement
-  recursive((node) => {
-    replaceBlocks.forEach(([blockName, config]) => {
-      if (node?.class?.includes?.(blockName) || config.filterNode?.(node)) {
-        node.tag = config.tag;
-        setPropsAndAttributes(node);
-        addToLoadComponents(blockName, config);
-      }
-    });
-  })(virtualDom);
-
-  // More complex transformation need to be done in order based on a separate query for each component.
-  queryBlocks.forEach(([blockName, config]) => {
-    const filter =
-      config.filterNode?.bind(config) || ((node) => node?.class?.includes?.(blockName) || node.tag === blockName);
-    const nodes = virtualDom.queryAll(filter, { queryLevel: config.queryLevel });
-
-    nodes.forEach((node) => {
-      const defaultNode = [{ tag: config.tag }];
-      const hasTransform = typeof config.transform === 'function';
-      const transformNode = config.transform?.(node);
-      if ((!hasTransform || (hasTransform && transformNode?.length)) && config.method) {
-        const newNode = transformNode || defaultNode;
-        newNode[0].class ??= [];
-        newNode[0].class.push(...node.class);
-        setPropsAndAttributes(newNode[0]);
-        node[config.method](...newNode);
-      }
+  // recursive((node) => {
+  componentConfigList.forEach(([blockName, config]) => {
+    const { method = 'replace', tag, filterNode } = config;
+    if (virtualDom.tag === blockName || virtualDom?.class?.includes?.(blockName) || filterNode?.bind(config)(virtualDom)) {
+      const transformNode = config?.transform?.bind(config)(virtualDom) || { tag };
+      virtualDom[method](transformNode);
+      setPropsAndAttributes(virtualDom);
       addToLoadComponents(blockName, config);
-    });
+    }
   });
 };
 
@@ -137,8 +112,8 @@ export const loadModules = (nodes, extra = {}) => {
 
 // Just inject components that are not in the list
 export const inject = (nodes) => {
-  const [header] = nodes.children;
-  header.before(...injectedComponents);
+  const injects = injectedComponents.map((component) => createNode(component));
+  nodes.children = [...injects, ...nodes.children];
 };
 
 // clear empty text nodes or nodes with only text breaklines and spaces

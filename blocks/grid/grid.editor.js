@@ -5,37 +5,7 @@ export default function config() {
       inputs: [],
     },
     attributes: {
-      grid: {
-        'template-rows': {
-          type: 'text',
-          label: 'Row',
-          helpText: 'The row number.',
-          value: '1fr',
-        },
-        'template-columns': {
-          type: 'text',
-          label: 'Columns',
-          helpText: 'The column number.',
-          value: '1fr 1fr',
-        },
-        gap: {
-          type: 'text',
-          label: 'Gap',
-          helpText: 'The gap between the grid items.',
-          value: '20px',
-        },
-        height: {
-          type: 'text',
-          label: 'Height',
-          helpText: 'The height of the grid.',
-          value: 'initial',
-        },
-        width: {
-          type: 'text',
-          label: 'Width',
-          helpText: 'The width of the grid.',
-          value: 'auto',
-        },
+      data: {
         reverse: {
           type: 'select',
           options: [
@@ -55,7 +25,39 @@ export default function config() {
           label: 'Reverse',
           helpText: 'Reverse the order of the grid items.',
         },
-        'justify-items': {
+      },
+      style: {
+        '--grid-template-rows': {
+          type: 'text',
+          label: 'Row',
+          helpText: 'The row number.',
+          value: '1fr',
+        },
+        '--grid-template-columns': {
+          type: 'text',
+          label: 'Columns',
+          helpText: 'The column number.',
+          value: '1fr 1fr',
+        },
+        '--grid-gap': {
+          type: 'text',
+          label: 'Gap',
+          helpText: 'The gap between the grid items.',
+          value: '20px',
+        },
+        '--grid-height': {
+          type: 'text',
+          label: 'Height',
+          helpText: 'The height of the grid.',
+          value: 'initial',
+        },
+        '--grid-width': {
+          type: 'text',
+          label: 'Width',
+          helpText: 'The width of the grid.',
+          value: 'auto',
+        },
+        '--grid-justify-items': {
           type: 'select',
           options: [
             {
@@ -78,7 +80,7 @@ export default function config() {
           label: 'Justify Items',
           helpText: 'The alignment of the items along the inline (row) axis.',
         },
-        'align-items': {
+        '--grid-align-items': {
           type: 'select',
           options: [
             {
@@ -101,7 +103,7 @@ export default function config() {
           label: 'Align Items',
           helpText: 'The alignment of the items along the block (column) axis.',
         },
-        'justify-content': {
+        '--grid-justify-content': {
           type: 'select',
           options: [
             {
@@ -136,7 +138,7 @@ export default function config() {
           label: 'Justify Content',
           helpText: 'The alignment of the grid along the inline (row) axis.',
         },
-        'align-content': {
+        '--grid-align-content': {
           type: 'select',
           options: [
             {

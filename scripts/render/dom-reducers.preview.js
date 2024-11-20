@@ -9,6 +9,7 @@ export const highlightTemplatePlaceholders = (tplVirtualDom) => {
     node.class.push('template-placeholder');
     return true;
   });
+  return tplVirtualDom;
 };
 
 export const noContentPlaceholder = (node) => {

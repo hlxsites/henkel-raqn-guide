@@ -1,12 +1,15 @@
 import { generateVirtualDom, renderVirtualDom } from './render/dom.js';
-import { pageManipulation, templateManipulation } from './render/dom-manipulations.js';
-import { getMeta, metaTags, runTasks, isTemplatePage, previewModule } from './libs.js';
+import {  pageManipulation, templateManipulation } from './render/dom-manipulations.js';
+import { getMeta, metaTags, runTasks, isTemplatePage, previewModule, isPreview } from './libs.js';
 import { subscribe } from './pubsub.js';
 
 await previewModule(import.meta);
 
 export default {
   init() {
+    if (isPreview() && window.location.search.includes('previewOf')) {
+      return runTasks.call(this, null, this.componentPreview);
+    }
     return runTasks.call(
       this, // all the tasks bellow will be bound to this object when called.
       null,
@@ -16,9 +19,11 @@ export default {
       this.renderPage,
     );
   },
-
+  componentPreview() {
+    import('./component-preview.js');
+  },
   generatePageVirtualDom() {
-    window.raqnVirtualDom = generateVirtualDom(document.body.childNodes);
+    window.raqnVirtualDom = generateVirtualDom(document.body);
     document.body.innerHTML = '';
   },
 
@@ -27,7 +32,7 @@ export default {
   },
 
   renderPage() {
-    const renderedDOM = renderVirtualDom(window.raqnVirtualDom);
+    const renderedDOM = window.raqnVirtualDom.children.map(n => renderVirtualDom(n));
 
     if (renderedDOM) {
       document.body.append(...renderedDOM);
@@ -93,3 +98,24 @@ export default {
 }.init().then(() => {
   subscribe('raqn:page:editor:load', () => import('./editor.js')); 
 });
+
+// // example of usage
+// const dom = document.createElement('raqn-section');
+
+// // consistency with virtual dom interface without the need to use createNode
+// /*
+//  *  createNode({
+//  *   tag: 'raqn-section',
+//  *   children: []
+//  *  })
+//  * 
+// */
+
+// // remove await from manipulate function
+// // use a subscription on async subjects to wait if needed.
+
+// // avoid N to N 
+
+// console.log(generateVirtualDom([dom]),await generalManipulation(generateVirtualDom([dom])));
+
+// console.log(renderVirtualDom(generalManipulation(generateVirtualDom([dom]))));

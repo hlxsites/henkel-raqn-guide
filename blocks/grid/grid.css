@@ -7,7 +7,7 @@ raqn-grid {
   --grid-align-items: initial;
   --grid-justify-content: initial;
   --grid-align-content: initial;
-  --grid-template-columns: initial;
+  --grid-template-columns: 1fr 1fr;
   --grid-template-rows: initial;
   --grid-background: var(--background, black);
   --grid-color: var(--text, white);

@@ -1,5 +1,6 @@
 import { previewModule, getMeta, metaTags } from '../libs.js';
 import { setPropsAndAttributes, getClassWithPrefix } from '../render/dom-utils.js';
+import { createNode } from '../render/dom.js';
 
 const forPreviewList = await previewModule(import.meta, 'componentList');
 
@@ -95,13 +96,16 @@ export const componentList = {
   },
   section: {
     tag: 'raqn-section',
+    queryLevel: 3,
     filterNode(node) {
-      if (node.tag === 'div' && ['main', 'virtualDom'].includes(node.parentNode.tag)) return true;
+      if (node.tag === 'div' && ['main', 'body'].includes(node.parentNode?.tag)
+      || node.tag === 'div' && node.parentNode?.isRoot) {
+        return true;
+      }
       return false;
     },
     transform(node) {
       node.tag = this.tag;
-
       // Handle sections with multiple grids
       const sectionGrids = node.queryAll((n) => n.hasClass('grid'), { queryLevel: 1 });
       if (sectionGrids.length > 1) {
@@ -110,7 +114,7 @@ export const componentList = {
         } else {
           node.remove();
         }
-        return;
+        return node;
       }
 
       // Set options from section metadata to section.
@@ -121,6 +125,7 @@ export const componentList = {
         setPropsAndAttributes(node);
         sectionMetaData.remove();
       }
+      return node;
     },
   },
   navigation: {
@@ -145,30 +150,37 @@ export const componentList = {
   },
   picture: {
     tag: 'raqn-image',
+    // replace the current with the new one
+    method: 'replaceWith',
     filterNode(node) {
-      if (node.tag === 'p' && node.hasOnlyChild('picture')) return true;
+      if (node.tag === 'picture') return true;
       return false;
     },
     transform(node) {
-      node.tag = this.tag;
-
+      const webComponent = createNode({ tag: 'raqn-image' });
       // Generate linked images based on html structure convention
-      const { nextSibling, firstChild: picture } = node;
-      if (nextSibling?.tag === 'p' && nextSibling.firstChild?.tag === 'em') {
-        const anchor = nextSibling?.firstChild?.firstChild;
-
-        if (anchor?.tag === 'a') {
-          anchor.attributes['aria-label'] = anchor.firstChild.text;
-          anchor.firstChild.remove();
-          picture.wrapWith(anchor);
-          nextSibling.remove();
+      const {  parentNode } = node;
+      if (parentNode?.nextSibling?.tag === 'p' && parentNode?.nextSibling?.firstChild?.tag === 'em') {
+        const link = parentNode?.nextSibling?.firstChild?.firstChild;
+        if (link?.tag === 'a') {
+          // crate a new link node and wrap the image with it
+          // so it's not reference on the old tree
+          const linkCopy = link.clone();
+          // wrap the picture with the link
+          node.wrapWith(linkCopy);
+          // wrap the link with webcomponent
+          linkCopy.wrapWith(webComponent);
+          // remove the original link and paragraphs
+          parentNode.nextSibling.remove();
+          return webComponent;
         }
       }
+      return webComponent;
     },
   },
   card: {
     tag: 'raqn-card',
-    method: 'replace',
+    method: 'replaceWith',
     module: {
       path: '/blocks/card/card',
       priority: 2,
@@ -188,7 +200,7 @@ export const componentList = {
     tag: 'raqn-button',
     method: 'replace',
     filterNode(node) {
-      if (node.tag === 'p' && node.hasOnlyChild('a')) return true;
+      if (node.tag === 'p' && node.children.length === 1 && node.children[0].tag === 'a') return true;
       return false;
     },
     module: {
@@ -199,41 +211,26 @@ export const componentList = {
   },
   'popup-trigger': {
     tag: 'raqn-popup-trigger',
-    method: 'replaceWith',
+    method: 'replace',
     filterNode(node) {
-      if (node.tag === 'a') {
-        if (node.parentNode.tag === 'raqn-button') {
-          const { href } = node.attributes;
-          const hash = href.substring(href.indexOf('#'));
-          if (['#popup-trigger', '#popup-close'].includes(hash)) return true;
-        }
+      if (node.tag === 'a' && node.attributes.href.includes('#popup-trigger')) {
+        console.log('popup-trigger', node.attributes.href);
+        return true;
       }
       return false;
     },
     transform(node) {
       const { href } = node.attributes;
-      const hash = href.substring(href.indexOf('#'));
-
-      return [
-        {
-          tag: 'raqn-popup-trigger',
-          attributes: {
-            'data-action': hash,
-          },
-          children: [
-            {
-              tag: 'button',
-              attributes: {
-                'aria-expanded': 'false',
-                'aria-haspopup': 'true',
-                type: 'button',
-              },
-              children: [...node.children],
-            },
-          ],
-        },
-        { processChildren: true },
-      ];
+      const hash = href.substring(href.indexOf('#popup-trigger'));
+      const popupTrigger = createNode({ tag: 'raqn-popup-trigger', attributes: { 'data-action': hash } });
+      const button = createNode({ tag: 'button', attributes: { 'aria-expanded': 'false', 'aria-haspopup': 'true', type: 'button' } });
+      // create a clone of the node
+      const clone = node.clone();
+      // wrap the clone with the popup trigger
+      clone.wrapWith(button);
+      button.wrapWith(popupTrigger);
+      // replace the original node with the clone
+      return popupTrigger;
     },
     module: {
       path: '/blocks/popup-trigger/popup-trigger',

@@ -289,8 +289,11 @@ export default class ComponentBase extends HTMLElement {
   }
 
   applyClass({ oldValue, newValue }) {
+    if (oldValue === newValue) return;
+    if (Array.isArray(newValue)) this.classList.add(...newValue);
+    if (typeof newValue === 'string' && newValue.includes(' ')) this.classList.add(...newValue.split(' '));
     if (oldValue?.length) this.classList.remove(...oldValue);
-    if (newValue?.length) this.classList.add(...newValue);
+    if (newValue?.length) this.classList.add(newValue);
   }
 
   applyAttribute({ oldValue, newValue }) {
@@ -386,16 +389,20 @@ export default class ComponentBase extends HTMLElement {
       this,
       null,
       function fragmentVirtualDom() {
-        const element = document.createElement('div');
-        element.innerHTML = this.fragmentContent;
-        return generateVirtualDom(element.childNodes);
+        const placeholder = document.createElement('div');
+        placeholder.innerHTML = this.fragmentContent;
+        const virtualDom = generateVirtualDom(placeholder);
+        virtualDom.isRoot = true;
+        this.innerHTML = '';
+        return virtualDom;
       },
       // eslint-disable-next-line prefer-arrow-callback
       async function fragmentVirtualDomManipulation({ fragmentVirtualDom }) {
         await generalManipulation(fragmentVirtualDom);
       },
       function renderFragment({ fragmentVirtualDom }) {
-        this.append(...renderVirtualDom(fragmentVirtualDom));
+        console.log(fragmentVirtualDom);
+        this.append(...fragmentVirtualDom.children.map(dom => renderVirtualDom(dom)));
       },
     );
   }

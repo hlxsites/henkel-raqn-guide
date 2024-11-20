@@ -1,8 +1,10 @@
 import { deepMerge, getBaseUrl, loadModule, runTasks } from './libs.js';
-import { publish } from './pubsub.js';
+import { publish, subscribe } from './pubsub.js';
 import { raqnComponents, raqnComponentsList } from './render/dom-reducers.js';
+import { raqnInstances } from './render/dom.js';
 
 window.raqnEditor = window.raqnEditor || {};
+
 let watcher = false;
 
 export const MessagesEvents = {
@@ -37,24 +39,29 @@ export default {
       });
       watcher = true;
     }
+    subscribe(MessagesEvents.select, this.updateIntance.bind(this));
   },
   // alias to get all components
   mods: () => Object.keys(raqnComponents),
   // get values from component and sizes
   getComponentValues (dialog, element) {
+    const {webComponentName} = element;
     const domRect = element.getBoundingClientRect();
     return {
       attributesValues: element.attributesValues,
+      webComponentName,
       uuid: element.uuid,
       domRect,
+      virtualNode: element.virtualNode?.toJSON(),
       dialog,
     };
   },
   // refresh all components
   refresh() {
-    this.mods().forEach((k) => {
-      this.refreshComponents(k);
-    });
+    // this.mods().filter(k => window.raqnEditor[k]).forEach((k) => {
+    //   this.refreshWebComponent(k);
+    // });
+    this.sendUpdatedRender();
   },
   // send updated to editor interface
   sendUpdatedRender(uuid) {
@@ -67,16 +74,16 @@ export default {
   },
   // refresh one type of web components
   refreshWebComponent(k) {
-    const instancesOrdered = Array.from(document.querySelectorAll(k));
-    window.raqnComponents[k].instances = instancesOrdered;
-    window.raqnEditor[k].instances = instancesOrdered.map((item) =>
+    console.log('refreshWebComponent', k);
+    window.raqnEditor[k].instances = raqnInstances[k].map((item) =>
       this.getComponentValues(window.raqnEditor[k].dialog, item),
     );
   },
   // refresh one instance of web component
   updateIntance(component) {
     const { webComponentName, uuid } = component;
-    const instance = window.raqnComponents[webComponentName].instances.find((element) => element.uuid === uuid);
+    const instance = raqnInstances[webComponentName].find((element) => element.uuid === uuid);
+    console.log('updateIntance', component, instance);
     if (!instance) return;
     instance.attributesValues = deepMerge({}, instance.attributesValues, component.attributesValues);
     instance.runConfigsByViewport();
@@ -111,9 +118,9 @@ export default {
             const masterConfig = window.raqnComponentsMasterConfig;
             const variations = masterConfig[name];
             dialog.selection = variations;
-            window.raqnEditor[name] = { dialog, instances: [], name };
+            window.raqnEditor[k] = { dialog, instances: [], name };
             const instancesOrdered = Array.from(document.querySelectorAll(k));
-            window.raqnEditor[name].instances = instancesOrdered.map((item) =>
+            window.raqnEditor[k].instances = instancesOrdered.map((item) =>
               this.getComponentValues(dialog, item),
             );
           }
