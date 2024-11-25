@@ -311,4 +311,11 @@ export const componentList = {
   },
 };
 
-export const injectedComponents = [];
+export const injectedComponents = [
+  {
+    tag: 'div',
+    class: ['theming'],
+    children: [],
+    attributes: [],
+  },
+];

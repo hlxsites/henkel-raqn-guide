@@ -9,26 +9,6 @@
     metaName: 'header',
     fallback: '/header',
     extension: 'plain.html',
-  },{
-    metaName: 'components-config',
-    folder: '/configs/',
-    fallback: 'components-config',
-    extension: 'json',
-  },{
-    metaName: 'theme-config-font',
-    folder: '/configs/',
-    fallback: 'font',
-    extension: 'json',
-  },{
-    metaName: 'theme-config-color',
-    folder: '/configs/',
-    fallback: 'color',
-    extension: 'json',
-  },{
-    metaName: 'theme-config-layout',
-    folder: '/configs/',
-    fallback: 'layout',
-    extension: 'json',
   }].forEach(({ metaName, folder, fallback, extension }) => {
     const meta = metaName && document.querySelector(`meta[name="${metaName}"]`);
     let metaUrl = meta?.content.trim();
