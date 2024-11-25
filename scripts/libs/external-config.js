@@ -1,4 +1,4 @@
-import { getMeta, metaTags, readValue, deepMerge, getBaseUrl } from '../libs.js';
+import { getMeta, metaTags, readValue, deepMerge, getBaseUrl, unFlat } from '../libs.js';
 
 window.raqnComponentsMasterConfig = window.raqnComponentsMasterConfig || null;
 
@@ -8,17 +8,19 @@ export const externalConfig = {
     const configNameFallback = configName || 'default';
     window.raqnComponentsMasterConfig ??= await this.loadConfig();
     const componentConfig = window.raqnComponentsMasterConfig?.[componentName];
-    const parsedConfig = componentConfig?.[configNameFallback];
+    if (componentConfig?.[configNameFallback]) {
+      componentConfig[configNameFallback] = unFlat(componentConfig?.[configNameFallback]);
+      // return copy of object to prevent mutation of raqnComponentsMasterConfig;
+      return deepMerge({}, componentConfig[configNameFallback]);
+    }
 
-    // return copy of object to prevent mutation of raqnComponentsMasterConfig;
-    if (parsedConfig) return deepMerge({}, parsedConfig);
     return {};
   },
 
   async loadConfig(rawConfig) {
     window.raqnComponentsConfig ??= (async () => {
       const {
-        themeConfigComponent: { metaName },
+        componentsConfig: { metaName },
         themeConfig,
       } = metaTags;
       const metaConfigPath = getMeta(metaName);
@@ -40,6 +42,7 @@ export const externalConfig = {
       } catch (error) {
         // eslint-disable-next-line no-console
         console.error(error);
+        return {};
       }
       return result;
     })();
@@ -57,7 +60,7 @@ export const externalConfig = {
         if (!window.raqnComponentsConfig[key]) return;
         const { data } = window.raqnComponentsConfig[key];
         if (data?.length) {
-          window.raqnParsedConfigs[key] = window.raqnParsedConfigs[key] || {};
+          window.raqnParsedConfigs[key] ??= {};
           window.raqnParsedConfigs[key] = readValue(data, window.raqnParsedConfigs[key]);
         }
       });

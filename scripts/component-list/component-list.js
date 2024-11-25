@@ -184,10 +184,24 @@ export const componentList = {
   },
   button: {
     tag: 'raqn-button',
-    method: 'replace',
     filterNode(node) {
       if (node.tag === 'p' && node.hasOnlyChild('a')) return true;
       return false;
+    },
+    transform(node) {
+      node.tag = this.tag;
+
+      const [textNode] = node.firstChild.queryAll((n) => n.tag === 'textNode', { queryLevel: 2 });
+      const [ariaLabel] = node.firstChild.queryAll(
+        (n) => n.tag === 'strong' && [n.nextSibling?.tag, n.previousSibling?.tag].includes('raqn-icon'),
+        { queryLevel: 1 },
+      );
+      if (!ariaLabel && textNode) {
+        textNode.tag = 'span';
+      } else if (ariaLabel && textNode) {
+        node.firstChild.attributes['aria-label'] = textNode.text;
+        ariaLabel.remove();
+      }
     },
     module: {
       path: '/blocks/button/button',
@@ -197,37 +211,36 @@ export const componentList = {
   'popup-trigger': {
     tag: 'raqn-popup-trigger',
     method: 'replaceWith',
+    popupHash: '#popup-trigger',
+    closeHash: '#popup-close',
     filterNode(node) {
       if (node.tag === 'a') {
         if (node.parentNode.tag === 'raqn-button') {
           const { href } = node.attributes;
-          const hash = href.substring(href.indexOf('#'));
-          if (['#popup-trigger', '#popup-close'].includes(hash)) return true;
+          const [, hash] = href.split(/(?=#)/g);
+          if ([this.popupHash, this.closeHash].some((item) => hash?.startsWith(item))) {
+            return true;
+          }
         }
       }
       return false;
     },
     transform(node) {
-      const { href } = node.attributes;
-      const hash = href.substring(href.indexOf('#'));
+      let { href } = node.attributes;
+      const [, hash] = href.split(/(?=#)/g);
+      href = hash.startsWith(this.closeHash) ? this.closeHash : href;
+      node.tag = 'button';
+      node.attributes['aria-expanded'] = 'false';
+      node.attributes['aria-haspopup'] = 'false';
+      delete node.attributes.href;
 
       return [
         {
-          tag: 'raqn-popup-trigger',
+          tag: this.tag,
           attributes: {
-            'data-action': hash,
+            'data-action': href,
           },
-          children: [
-            {
-              tag: 'button',
-              attributes: {
-                'aria-expanded': 'false',
-                'aria-haspopup': 'true',
-                type: 'button',
-              },
-              children: [...node.children],
-            },
-          ],
+          children: [node],
         },
         { processChildren: true },
       ];
@@ -298,11 +311,4 @@ export const componentList = {
   },
 };
 
-export const injectedComponents = [
-  {
-    tag: 'div',
-    class: ['theming'],
-    children: [],
-    attributes: [],
-  },
-];
+export const injectedComponents = [];

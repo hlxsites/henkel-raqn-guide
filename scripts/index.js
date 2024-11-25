@@ -1,6 +1,6 @@
 import { generateVirtualDom, renderVirtualDom } from './render/dom.js';
 import { pageManipulation, templateManipulation } from './render/dom-manipulations.js';
-import { getMeta, metaTags, runTasks, isTemplatePage, previewModule } from './libs.js';
+import { getMeta, metaTags, runTasks, isTemplatePage, previewModule, loadAndDefine } from './libs.js';
 
 await previewModule(import.meta);
 
@@ -9,11 +9,20 @@ export default {
     runTasks.call(
       this, // all the tasks bellow will be bound to this object when called.
       null,
+      this.addTheming,
       this.generatePageVirtualDom,
       this.pageVirtualDomManipulation,
       this.loadAndProcessTemplate,
       this.renderPage,
     );
+  },
+
+  // add theming early
+  addTheming() {
+    document.head.append(document.createElement('raqn-theming'));
+    setTimeout(() => {
+      loadAndDefine({ tag: 'raqn-theming', module: { path: '/blocks/theming/theming' } });
+    }, 0);
   },
 
   generatePageVirtualDom() {

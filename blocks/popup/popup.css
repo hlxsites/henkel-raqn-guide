@@ -14,6 +14,7 @@ raqn-popup {
 }
 
 raqn-popup:has(.popup__base--flyout) {
+  --popup-grid-area-size: 6;
   --popup-grid-area-start: calc(13 - var(--popup-grid-area-size));
   --popup-close-btn-area-size: calc(var(--popup-close-btn-padding) * 2);
   --popup-close-btn-icon-size: calc(var(--popup-close-btn-padding));

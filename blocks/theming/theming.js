@@ -11,7 +11,6 @@ import {
   getBaseUrl,
   runTasks,
 } from '../../scripts/libs.js';
-import { externalConfig } from '../../scripts/libs/external-config.js';
 
 const k = Object.keys;
 
@@ -189,10 +188,7 @@ ${k(f)
               return {};
             }
 
-            const response =
-              name === 'component'
-                ? externalConfig.loadConfig(true) // use the loader to prevent duplicated calls
-                : await fetch(`${name !== 'fontface' ? base : ''}${content}.json`);
+            const response = await fetch(`${name !== 'fontface' ? base : ''}${content}.json`);
             return this.processFragment(response, name);
           }),
         );

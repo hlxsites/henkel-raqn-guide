@@ -1,35 +1,51 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 <meta http-equiv="X-UA-Compatible" content="IE=edge" />
 <script>
-  /* Preload header */
-  const headerMeta = document.querySelector('meta[name="header"]');
-  const headerUrl = headerMeta?.content.trim();
-  if (headerUrl?.toLowerCase() !== 'false') {
+  [{
+    metaName: 'template',
+    folder: '/page-templates/',
+    extension: 'plain.html',
+  },{
+    metaName: 'header',
+    fallback: '/header',
+    extension: 'plain.html',
+  },{
+    metaName: 'components-config',
+    folder: '/configs/',
+    fallback: 'components-config',
+    extension: 'json',
+  },{
+    metaName: 'theme-config-font',
+    folder: '/configs/',
+    fallback: 'font',
+    extension: 'json',
+  },{
+    metaName: 'theme-config-color',
+    folder: '/configs/',
+    fallback: 'color',
+    extension: 'json',
+  },{
+    metaName: 'theme-config-layout',
+    folder: '/configs/',
+    fallback: 'layout',
+    extension: 'json',
+  }].forEach(({ metaName, folder, fallback, extension }) => {
+    const meta = metaName && document.querySelector(`meta[name="${metaName}"]`);
+    let metaUrl = meta?.content.trim();
+    if (metaUrl?.toLowerCase() === 'false') return;
+    if (folder && metaUrl !== undefined && !metaUrl.includes('/')) metaUrl = `${folder}${metaUrl}`;
+    if (fallback && metaUrl === undefined)  metaUrl = `${folder?.length ? folder : '' }${fallback}`;
+    if (folder && !metaUrl?.includes(folder)) return;
+    if (metaUrl === undefined) return;
+    
     const link = document.createElement('link');
     link.setAttribute('rel', 'preload');
     link.setAttribute('as', 'fetch');
     link.setAttribute('crossorigin', 'anonymous');
-    link.href = headerUrl ? `${headerUrl}.plain.html` : '/header.plain.html';
+    link.href = `${metaUrl}.${extension}`;
     document.head.appendChild(link);
-  }
+  });
 
-  /* Preload template */
-  const templateMeta = document.querySelector('meta[name="template"]');
-  const tplUrl = templateMeta?.content.trim();
-  if (typeof tplUrl !== 'undefined') {
-    const tplFolder = `/page-templates/`;
-    if (!tplUrl.includes('/')) {
-      tplUrl = `${tplFolder}${tplUrl}`;
-    }
-    if (tplUrl.includes(tplFolder)) {
-      const link = document.createElement('link');
-      link.setAttribute('rel', 'preload');
-      link.setAttribute('as', 'fetch');
-      link.setAttribute('crossorigin', 'anonymous');
-      link.href = `${tplUrl}.plain.html`;
-      document.head.appendChild(link);
-    }
-  }
 </script>
 <style>
   body {
@@ -37,11 +53,12 @@
   }
 </style>
 <link rel="stylesheet" href="/styles/styles.css" />
+<script src="/scripts/index.js" type="module"></script>
 <script src="/scripts/libs.js" type="module"></script>
 <script src="/scripts/render/dom.js" type="module"></script>
+<script src="/scripts/render/dom-utils.js" type="module"></script>
 <script src="/scripts/render/dom-manipulations.js" type="module"></script>
 <script src="/scripts/render/dom-reducers.js" type="module"></script>
-<script src="/scripts/render/dom-utils.js" type="module"></script>
 <script src="/scripts/component-list/component-list.js" type="module"></script>
-<script src="/scripts/index.js" type="module"></script>
 <script src="/scripts/component-base.js" type="module"></script>
+<script src="/scripts/libs/external-config.js" type="module"></script>
