@@ -48,16 +48,10 @@ export default class Icon extends ComponentBase {
   async onAttributeIconChanged({ oldValue, newValue }) {
     if (oldValue === newValue) return;
 
-    // ! The initial and active icon names are separated with a double underline
-    // ! The active icon is optional;
     if (!newValue) return;
-    const [initial, active] = newValue.split('__');
+    const { initial, active, loadActiveIcon, loadInitialIcon } = this.getIcons(newValue);
     this.#initialIcon = initial;
     this.#activeIcon = active || null;
-
-    // Start loading both icons;
-    const loadInitialIcon = this.loadIcon(this.#initialIcon);
-    const loadActiveIcon = this.#activeIcon ? this.loadIcon(this.#activeIcon) : null;
 
     const isActiveWithIcon = this.isActive && this.#activeIcon;
     // Wait only for the current icon
@@ -79,6 +73,19 @@ export default class Icon extends ComponentBase {
 
   displayIcon(iconName) {
     this.innerHTML = this.template(iconName);
+  }
+
+  getIcons(icon) {
+    // ! The initial and active icon names are separated with a double underline
+    // ! The active icon is optional;
+    const [initial, active] = icon.split('__');
+
+    return {
+      initial,
+      active,
+      loadInitialIcon: this.loadIcon(initial),
+      loadActiveIcon: active ? this.loadIcon(active) : null,
+    };
   }
 
   // Load icon can be used externally to load additional icons in the cache

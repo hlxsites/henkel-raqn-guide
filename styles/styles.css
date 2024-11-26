@@ -199,10 +199,29 @@ img {
 }
 
 /* Set default block style to all raqn web components 
-   Use :where() to give lower specificity in order to not overwrite any display option set on the web component tag 
+   Use :where() to give lower specificity in order to not overwrite any styles set on the web component tag 
 */
 :where([raqnwebcomponent]) {
   display: block;
+
+  /* Add defaults to initial to prevent inheritance */
+  --margin-block-start: initial;
+  --margin-block-end: initial;
+  --margin-inline-start: initial;
+  --margin-inline-end: initial;
+  --padding-block-start: initial;
+  --padding-block-end: initial;
+  --padding-inline-start: initial;
+  --padding-inline-end: initial;
+
+  margin-block-start: var(--margin-block-start);
+  margin-block-end: var(--margin-block-end);
+  margin-inline-start: var(--margin-inline-start);
+  margin-inline-end: var(--margin-inline-end);
+  padding-block-start: var(--padding-block-start);
+  padding-block-end: var(--padding-block-end);
+  padding-inline-start: var(--padding-inline-start);
+  padding-inline-end: var(--padding-inline-end);
 }
 
 /* Container: make all content act as a container where background of the container is limited to the content area */

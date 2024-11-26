@@ -7,11 +7,11 @@ import {
   isObject,
   deepMerge,
   deepMergeByType,
-  unFlat,
   stringToArray,
   mergeUniqueArrays,
   stringToJsVal,
   runTasks,
+  loadAndDefine,
 } from './libs.js';
 import { componentList } from './component-list/component-list.js';
 import { externalConfig } from './libs/external-config.js';
@@ -23,8 +23,7 @@ export default class ComponentBase extends HTMLElement {
   // The order of observedAttributes is the order in which the values from config are added.
   static observedAttributes = [];
 
-  // dependencies must to be added and checked locally for cases when components are created inside other components
-  static dependencies = componentList[this.componentName]?.module?.dependencies || [];
+  static dependencies; // dynamically added to each constructor in `loadDependencies()`
 
   initialization; // set as promise in constructor();
 
@@ -60,6 +59,9 @@ export default class ComponentBase extends HTMLElement {
   // All settings which are not in `attributesValues` which might require extension in extended components should be in the config.
   // Use the `extendConfig()` method to extend the config
   config = {
+    addFragmentContentOnInit: true,
+    hideOnInitError: true,
+    listenBreakpoints: false,
     selectors: {},
     classes: {
       showLoader: 'show-loader',
@@ -69,18 +71,20 @@ export default class ComponentBase extends HTMLElement {
     dispatches: {
       initialized: (uuid) => `initialized:${uuid}`,
     },
-    listenBreakpoints: false,
-    hideOnInitError: true,
     // All the component attributes which are not in the `observedAttributes`
     knownAttributes: {
       configId: 'config-id',
       isLoading: 'isloading',
       raqnwebcomponent: 'raqnwebcomponent',
     },
+  };
+
+  mergeMethods = {
     // Merge options for non object values in `attributesValues`
-    attributesMergeMethods: {
+    forAttributesValues: {
       '**.class': (a, b) => mergeUniqueArrays(a, b),
     },
+    forConfig: null,
   };
 
   dataAttributesKeys = this.constructor.observedAttributes.flatMap((data) => {
@@ -95,9 +99,12 @@ export default class ComponentBase extends HTMLElement {
 
   constructor() {
     super();
+    this.constructor.instancesRef ??= [];
+    this.constructor.instancesRef.push(this);
     this.setInitializationPromise();
     this.setDefaults();
     this.setBinds();
+    this.loadDependencies();
   }
 
   /**
@@ -117,6 +124,19 @@ export default class ComponentBase extends HTMLElement {
    * Use this to bind any method to the class */
   setBinds() {
     this.onBreakpointChange = this.onBreakpointChange.bind(this);
+  }
+
+  loadDependencies() {
+    if (this.constructor.dependencies) return;
+
+    this.constructor.dependencies = componentList[this.componentName]?.module?.dependencies || [];
+    this.constructor.dependencies.forEach((dependency) => {
+      if (!componentList[dependency]?.module?.path) return;
+      if (window.raqnComponents[this.webComponentName]) return;
+      setTimeout(() => {
+        loadAndDefine(componentList[dependency]);
+      }, 0);
+    });
   }
 
   // Build-in method called after the element is added to the DOM.
@@ -150,22 +170,37 @@ export default class ComponentBase extends HTMLElement {
   /**
    * Do not overwrite this method unless absolutely needed. */
   async onConnected() {
-    await this.initSettings();
-    await this.loadFragment(this.fragmentPath);
-    await this.init();
+    await runTasks.call(
+      this,
+      null,
+      this.initSettings,
+      async function loadFragment() {
+        await this.loadFragment(this.fragmentPath);
+      },
+      this.init,
+    );
   }
 
   /**
-   * Use this method to add the component's functionality */
+   * Use this method to add the component's functionality
+   * If the functionality can generate long blocking tasks consider using runTasks() */
   async init() {
+    this.queryElements();
     await this.addListeners();
   }
 
   async initSettings() {
-    this.extendConfigRunner({ field: 'config', method: 'extendConfig' });
-    this.setInitialAttributesValues();
-    await this.buildExternalConfig();
-    this.runConfigsByViewport(); // set the values for current breakpoint
+    await runTasks.call(
+      this,
+      null,
+      function extendConfig() {
+        this.extendConfigRunner({ field: 'mergeMethods', method: 'extendMergeMethods' });
+        this.extendConfigRunner({ field: 'config', method: 'extendConfig' });
+      },
+      this.setInitialAttributesValues,
+      this.buildExternalConfig,
+      this.runConfigsByViewport, // set the values for current breakpoint
+    );
   }
 
   // Using the `method` which returns an array of objects it's easier to extend
@@ -173,7 +208,11 @@ export default class ComponentBase extends HTMLElement {
   extendConfigRunner({ field, method }) {
     const conf = this[method]?.();
     if (conf.length <= 1) return;
-    this[field] = deepMerge({}, ...conf);
+    this[field] = deepMergeByType(this.mergeMethods.forConfig, {}, ...conf);
+  }
+
+  extendMergeMethods() {
+    return [...(super.mergeMethods?.() || []), this.mergeMethods];
   }
 
   extendConfig() {
@@ -217,7 +256,7 @@ export default class ComponentBase extends HTMLElement {
     });
 
     this.attributesValues = deepMergeByType(
-      this.config.attributesMergeMethods,
+      this.mergeMethods.forAttributesValues,
       {},
       this.attributesValues,
       initialAttributesValues,
@@ -225,26 +264,28 @@ export default class ComponentBase extends HTMLElement {
   }
 
   async buildExternalConfig() {
-    const unFlatConfig = unFlat(await externalConfig.getConfig(this.componentName, this.configId));
+    const extConfig = await externalConfig.getConfig(this.componentName, this.configId);
+    /**
+     * Any options which are not required to use `attributeChangedCallback`
+     * with different values per breakpoint should be added to this.config */
+    const configExternal = extConfig.config;
+    if (configExternal) {
+      delete extConfig.config;
+      deepMergeByType(this.mergeMethods.forConfig, {}, this.config, configExternal);
+    }
 
     // turn classes to array
-    Object.values(unFlatConfig).forEach((value) => {
+    Object.values(extConfig).forEach((value) => {
       if (typeof value.class === 'string') {
         value.class = stringToArray(value.class, { divider: ' ' });
       }
     });
 
-    const toMerge = [this.attributesValues, unFlatConfig];
+    const toMerge = [this.attributesValues, extConfig];
 
     if (this.overrideExternalConfig) toMerge.reverse();
 
     this.attributesValues = deepMergeByType(this.config.attributesMergeMethods, {}, ...toMerge);
-  }
-
-  onBreakpointChange(e) {
-    if (e.matches) {
-      this.runConfigsByViewport();
-    }
   }
 
   currentAttributesValues() {
@@ -319,13 +360,6 @@ export default class ComponentBase extends HTMLElement {
     });
   }
 
-  // TODO handle this part
-  applySetting(config) {
-    // delete the setting to run only once on init
-    delete this.attributesValues.all.setting;
-    deepMerge(this.config, config);
-  }
-
   /**
    * Attributes are assigned before the `connectedCallback` is triggered.
    * In some cases a check for `this.initialized` inside `onAttribute${capitalizedAttr}Changed` might be required
@@ -358,12 +392,6 @@ export default class ComponentBase extends HTMLElement {
     return attribute?.[activeBrName] ?? attribute?.all;
   }
 
-  addListeners() {
-    if (Object.keys(this.attributesValues).length >= 1) {
-      listenBreakpointChange(this.onBreakpointChange);
-    }
-  }
-
   async loadFragment(path) {
     if (typeof path !== 'string') return;
     const response = await this.getFragment(path);
@@ -377,27 +405,46 @@ export default class ComponentBase extends HTMLElement {
   async processFragment(response) {
     if (response.ok) {
       this.fragmentContent = await response.text();
-      await this.addFragmentContent();
+      await runTasks.call(
+        this,
+        null,
+        this.fragmentVirtualDom,
+        this.fragmentVirtualDomManipulation,
+        this.renderFragment,
+        this.addFragmentContent,
+      );
     }
   }
 
-  async addFragmentContent() {
-    await runTasks.call(
-      this,
-      null,
-      function fragmentVirtualDom() {
-        const element = document.createElement('div');
-        element.innerHTML = this.fragmentContent;
-        return generateVirtualDom(element.childNodes);
-      },
-      // eslint-disable-next-line prefer-arrow-callback
-      async function fragmentVirtualDomManipulation({ fragmentVirtualDom }) {
-        await generalManipulation(fragmentVirtualDom);
-      },
-      function renderFragment({ fragmentVirtualDom }) {
-        this.append(...renderVirtualDom(fragmentVirtualDom));
-      },
-    );
+  fragmentVirtualDom() {
+    const element = document.createElement('div');
+    element.innerHTML = this.fragmentContent;
+    return generateVirtualDom(element.childNodes);
+  }
+
+  async fragmentVirtualDomManipulation({ fragmentVirtualDom }) {
+    await generalManipulation(fragmentVirtualDom);
+  }
+
+  renderFragment({ fragmentVirtualDom }) {
+    this.fragmentContent = renderVirtualDom(fragmentVirtualDom);
+    return { stopTaskRun: !this.config.addFragmentContentOnInit };
+  }
+
+  addFragmentContent() {
+    this.append(...this.fragmentContent);
+  }
+
+  addListeners() {
+    if (Object.keys(this.attributesValues).length >= 1) {
+      listenBreakpointChange(this.onBreakpointChange);
+    }
+  }
+
+  onBreakpointChange(e) {
+    if (e.matches) {
+      this.runConfigsByViewport();
+    }
   }
 
   queryElements() {

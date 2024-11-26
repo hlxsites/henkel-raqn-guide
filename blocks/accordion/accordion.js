@@ -1,9 +1,6 @@
 import ComponentBase from '../../scripts/component-base.js';
-import { componentList } from '../../scripts/component-list/component-list.js';
 
 export default class Accordion extends ComponentBase {
-  dependencies = componentList.accordion.module.dependencies;
-
   init() {
     super.init();
     this.setAttribute('role', 'navigation');
