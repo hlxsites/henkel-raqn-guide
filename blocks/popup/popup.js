@@ -116,13 +116,6 @@ export default class Popup extends ComponentBase {
     if (this.isActive) return;
 
     this.openPopup();
-    /* popupState.closeActivePopup();
-    popupState.activePopup = this;
-
-    blockBodyScroll(true);
-    this.showPopup(true);
-    this.toggleCloseOnEsc(true);
-    focusFirstElementInContainer(this.elements.popupContainer); */
   }
 
   async addFragmentContent() {
