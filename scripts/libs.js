@@ -92,8 +92,8 @@ export const metaTags = {
     fallbackContent: '/configs/layout',
     // contentType: 'path without extension',
   },
-  componentsConfig: {
-    metaName: 'components-config',
+  componentsConfigs: {
+    metaName: 'config-component',
     fallbackContent: '/configs/components-config',
     // contentType: 'path without extension',
   },
@@ -474,8 +474,13 @@ export function loadModule(urlWithoutExtension, { loadCSS = true, loadJS = true 
 export async function loadAndDefine(componentConfig) {
   const { tag, module: { path, loadJS, loadCSS } = {} } = componentConfig;
   if (window.raqnComponents[tag]) {
-    return { tag, module: window.raqnComponents[tag] };
+    // fix 
+    return { tag, module: await window.raqnComponents[tag] };
   }
+  let resolveModule;
+  window.raqnComponents[tag] = new Promise((resolve) => {
+    resolveModule = resolve;
+  });
 
   const { js } = loadModule(path, { loadJS, loadCSS });
 
@@ -484,7 +489,7 @@ export async function loadAndDefine(componentConfig) {
   if (module?.default?.prototype instanceof HTMLElement) {
     if (!window.customElements.get(tag)) {
       window.customElements.define(tag, module.default);
-      window.raqnComponents[tag] = module.default;
+      resolveModule(module.default);
     }
   }
   return { tag, module };
@@ -705,6 +710,8 @@ export const previewModule = async (path, name) => {
   const module = await import(newPath);
   return name ? module[name] : module;
 };
+
+/* Yield to the main thread */
 
 export function yieldToMain() {
   return new Promise((resolve) => {

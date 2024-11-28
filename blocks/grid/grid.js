@@ -5,6 +5,26 @@ export default class Grid extends ComponentBase {
   // only one attribute is observed rest is set as css variables directly
   static observedAttributes = ['data-reverse'];
 
+  dependencies = componentList.grid.module.dependencies;
+
+  attributesValues = {
+    all :{
+      style: {
+        '--grid-gap': 'initial',
+        '--grid-height': 'initial',
+        '--grid-width': 'initial',
+        '--grid-justify-items':' initial',
+        '--grid-align-items':' initial',
+        '--grid-justify-content':' initial',
+        '--grid-align-content':' initial',
+        '--grid-template-columns':' 1fr 1fr',
+        '--grid-template-rows':' initial',
+        '--grid-background': 'var(--background, black)',
+        '--grid-color': 'var(--text, white)',
+      },
+    },
+  };
+
   async onAttributeReverseChanged({ oldValue, newValue }) {
     await this.initialization;
 

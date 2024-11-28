@@ -1,8 +1,10 @@
-import { deepMerge, flat, getBaseUrl, loadModule } from './libs.js';
-import { publish } from './pubsub.js';
-import { generateVirtualDom } from './render/dom.js';
+import { deepMerge, getBaseUrl, loadModule, runTasks } from './libs.js';
+import { publish, subscribe } from './pubsub.js';
+import { raqnComponents, raqnComponentsList } from './render/dom-reducers.js';
+import { raqnInstances } from './render/dom.js';
 
 window.raqnEditor = window.raqnEditor || {};
+
 let watcher = false;
 
 export const MessagesEvents = {
@@ -17,105 +19,80 @@ export const MessagesEvents = {
   themeUpdate: 'raqn:editor:theme:update',
 };
 
-export function refresh(id) {
-  Object.keys(window.raqnEditor).forEach((webComponentName) => {
-    const instancesOrdered = Array.from(document.querySelectorAll(webComponentName));
-    window.raqnComponents[webComponentName].instances = instancesOrdered;
-    window.raqnEditor[webComponentName].instances = instancesOrdered.map((item) =>
-      // eslint-disable-next-line no-use-before-define
-      getComponentValues(window.raqnEditor[webComponentName].dialog, item),
+export default {
+  async init() {
+    // no mods no party
+    if (!this.mods().length) return;
+    // inicial run tasks
+    await runTasks.call(
+      this,
+      null,
+      this.loadEditorModules,
+      this.publishInit,
     );
-  });
-  const bodyRect = window.document.body.getBoundingClientRect();
-  publish(
-    MessagesEvents.render,
-    { components: window.raqnEditor, bodyRect, uuid: id },
-    { usePostMessage: true, targetOrigin: '*' },
-  );
-}
 
-export function updateComponent(component) {
-  const { webComponentName, uuid } = component;
-  const instance = window.raqnComponents[webComponentName].instances.find((element) => element.uuid === uuid);
-  if (!instance) return;
-  instance.attributesValues = deepMerge({}, instance.attributesValues, component.attributesValues);
-  instance.runConfigsByViewport();
-  refresh(uuid);
-}
-
-export function getComponentValues(dialog, element) {
-  const html = element.innerHTML;
-  window.document.body.style.height = 'auto';
-
-  const domRect = element.getBoundingClientRect();
-  let { variables = {}, attributes = {} } = dialog;
-  variables = Object.keys(variables).reduce((data, variable) => {
-    const value = getComputedStyle(element).getPropertyValue(variable);
-    data[variable] = { ...variables[variable], value };
-    return data;
-  }, {});
-  attributes = Object.keys(attributes).reduce((data, attribute) => {
-    if (attribute === 'data') {
-      const flatData = flat(element.dataset);
-      Object.keys(flatData).forEach((key) => {
-        const value = flatData[key];
-        if (attributes[attribute] && attributes[attribute][key]) {
-          if (data[attribute]) {
-            const extend = { ...attributes[attribute][key], value };
-            data[attribute][key] = extend;
-          } else {
-            data[attribute] = { [key]: { ...attributes[attribute][key], value } };
-          }
-        }
+    // update on resize
+    if (!watcher) {
+      window.addEventListener('resize', () => {
+        this.refresh();
+        this.sendUpdatedRender();
       });
-      return data;
+      watcher = true;
     }
-
-    const value = element.getAttribute(attribute);
-    data[attribute] = { ...attributes[attribute], value };
-    return data;
-  }, {});
-  const cleanData = Object.fromEntries(Object.entries(element));
-  const { attributesValues, webComponentName, componentName, uuid } = cleanData;
-  const children = generateVirtualDom(element.children, false);
-  const editor = { ...dialog, attributes };
-  return { attributesValues, webComponentName, componentName, uuid, domRect, dialog, editor, html, children };
-}
-
-export default function initEditor(listeners = true) {
-  Promise.all(
-    Object.keys(window.raqnComponents).map(
-      (componentName) =>
-        new Promise((resolve) => {
-          setTimeout(async () => {
-            try {
-              const fn = window.raqnComponents[componentName];
-              const name = fn.name.toLowerCase();
-              const component = loadModule(`/blocks/${name}/${name}.editor`, { loadCSS: false });
-              const mod = await component.js;
-              if (mod && mod.default) {
-                const dialog = await mod.default();
-
-                const masterConfig = window.raqnComponentsMasterConfig;
-                const variations = masterConfig[componentName];
-                dialog.selection = variations;
-                window.raqnEditor[componentName] = { dialog, instances: [], name: componentName };
-                const { webComponentName } = window.raqnInstances[componentName][0];
-                const instancesOrdered = Array.from(document.querySelectorAll(webComponentName));
-                window.raqnEditor[componentName].instances = instancesOrdered.map((item) =>
-                  getComponentValues(dialog, item),
-                );
-              }
-              resolve();
-            } catch (error) {
-              resolve();
-            }
-          });
-        }),
-    ),
-  ).finally(() => {
+    subscribe(MessagesEvents.select, this.updateIntance.bind(this));
+  },
+  // alias to get all components
+  mods: () => Object.keys(raqnComponents),
+  // get values from component and sizes
+  getComponentValues (dialog, element) {
+    const {webComponentName} = element;
+    const domRect = element.getBoundingClientRect();
+    return {
+      attributesValues: element.attributesValues,
+      webComponentName,
+      uuid: element.uuid,
+      domRect,
+      virtualNode: element.virtualNode?.toJSON(),
+      dialog,
+    };
+  },
+  // refresh all components
+  refresh() {
+    // this.mods().filter(k => window.raqnEditor[k]).forEach((k) => {
+    //   this.refreshWebComponent(k);
+    // });
+    this.sendUpdatedRender();
+  },
+  // send updated to editor interface
+  sendUpdatedRender(uuid) {
     const bodyRect = window.document.body.getBoundingClientRect();
-
+    publish(
+      MessagesEvents.render,
+      { components: window.raqnEditor, bodyRect, uuid },
+      { usePostMessage: true, targetOrigin: '*' },
+    );
+  },
+  // refresh one type of web components
+  refreshWebComponent(k) {
+    console.log('refreshWebComponent', k);
+    window.raqnEditor[k].instances = raqnInstances[k].map((item) =>
+      this.getComponentValues(window.raqnEditor[k].dialog, item),
+    );
+  },
+  // refresh one instance of web component
+  updateIntance(component) {
+    const { webComponentName, uuid } = component;
+    const instance = raqnInstances[webComponentName].find((element) => element.uuid === uuid);
+    console.log('updateIntance', component, instance);
+    if (!instance) return;
+    instance.attributesValues = deepMerge({}, instance.attributesValues, component.attributesValues);
+    instance.runConfigsByViewport();
+    this.refresh();
+    this.sendUpdatedRender(uuid);
+  },
+  // publish update to editor
+  publishInit() {
+    const bodyRect = window.document.body.getBoundingClientRect();
     publish(
       MessagesEvents.loaded,
       {
@@ -126,32 +103,30 @@ export default function initEditor(listeners = true) {
       },
       { usePostMessage: true, targetOrigin: '*' },
     );
-
-    if (!watcher) {
-      window.addEventListener('resize', () => {
-        refresh();
-      });
-      watcher = true;
-    }
-  });
-  if (listeners) {
-    // init editor if message from parent
-    window.addEventListener('message', async (e) => {
-      if (e && e.data) {
-        const { message, params } = e.data;
-        switch (message) {
-          case MessagesEvents.select:
-            updateComponent(params);
-            break;
-
-          case MessagesEvents.updateComponent:
-            updateComponent(params);
-            break;
-
-          default:
-            break;
+  },
+  /* load all editor modules */
+  async loadEditorModules() {
+    // check if all components are loaded and then init the editor
+    await Promise.allSettled(this.mods().map((k) => new Promise((resolve) => {
+      raqnComponents[k].then(async (contructor) => {
+        const name = contructor.name.replace('raqn-', '').toLowerCase();
+        if (raqnComponentsList[name] && raqnComponentsList[name].module && raqnComponentsList[name].module.editor) {
+          const component = loadModule(`/blocks/${name}/${name}.editor`, { loadCSS: false });
+          const mod = await component.js;
+          if (mod && mod.default) {
+            const dialog = await mod.default();
+            const masterConfig = window.raqnComponentsMasterConfig;
+            const variations = masterConfig[name];
+            dialog.selection = variations;
+            window.raqnEditor[k] = { dialog, instances: [], name };
+            const instancesOrdered = Array.from(document.querySelectorAll(k));
+            window.raqnEditor[k].instances = instancesOrdered.map((item) =>
+              this.getComponentValues(dialog, item),
+            );
+          }
         }
-      }
-    });
-  }
-}
+        resolve();
+      });
+  })));
+  },
+}.init();

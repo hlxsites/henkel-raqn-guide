@@ -10,12 +10,18 @@ import {
   unFlat,
   getBaseUrl,
   runTasks,
+  isPreview,
 } from '../../scripts/libs.js';
+import { publish } from '../../scripts/pubsub.js';
 
 const k = Object.keys;
 
 export default class Theming extends ComponentBase {
   variations = {};
+
+  themeJson = {};
+  
+  fonts = '';
 
   setDefaults() {
     super.setDefaults();
@@ -32,7 +38,6 @@ export default class Theming extends ComponentBase {
 
   fontFaceTemplate(data) {
     const names = Object.keys(data);
-
     this.fontFace = names
       .map((key) => {
         // files
@@ -56,6 +61,17 @@ export default class Theming extends ComponentBase {
       .join('');
   }
 
+  get fontFace() {
+    if (!this.fonts) {
+      this.fontFaceTemplate(this.themeJson.fontface);
+    }
+    return this.fonts;
+  }
+
+  set fontFace(value) {
+    this.fonts = value;
+  }
+
   escapeHtml(unsafe) {
     this.scapeDiv.textContent = unsafe;
     return this.scapeDiv.innerHTML;
@@ -72,7 +88,8 @@ export default class Theming extends ComponentBase {
           return `
 @media ${query} {
     ${callback(obj[bp], options.byName[bp])}
-}`;
+}
+`;
         }
         // regular
         return callback(obj[bp], 'all');
@@ -93,21 +110,9 @@ export default class Theming extends ComponentBase {
 
   async processFragment(response, type = 'color') {
     if (response.ok) {
-      const isComponent = type === 'component';
-
-      const responseData = await (isComponent ? response : response.json());
+      const responseData = await response.json();
       this.themeJson[type] = responseData;
-      if (type === 'fontface') {
-        this.fontFaceTemplate(responseData);
-      } else if (isComponent) {
-        Object.keys(responseData).forEach((key) => {
-          if (key.indexOf(':') === 0 || responseData[key].data.length === 0) return;
-          this.componentsConfig[key] ??= {};
-          this.componentsConfig[key] = readValue(responseData[key].data, this.componentsConfig[key]);
-        });
-      } else {
-        this.variations = readValue(responseData.data, this.variations);
-      }
+      this.variations = readValue(responseData.data, this.variations);
       return this.themeJson[type];
     }
     return false;
@@ -172,6 +177,7 @@ ${k(f)
 
   async loadFragment() {
     const { themeConfig } = metaTags;
+    // no component config required in this file only color font layout and fontface
     const themeConfigs = getMetaGroup(themeConfig.metaNamePrefix);
     const base = getBaseUrl();
     await runTasks.call(
@@ -197,8 +203,13 @@ ${k(f)
       this.styles,
     );
 
-    setTimeout(() => {
-      document.body.style.display = 'block';
-    });
+    setTimeout(() => this.finish());
+  }
+
+  finish() {
+    document.body.style.display = 'block';
+    if (isPreview() && !window.location.search.includes('previewOf')) {
+      publish('raqn:page:load', {}, { usePostMessage: true, targetOrigin: '*' });
+    }
   }
 }

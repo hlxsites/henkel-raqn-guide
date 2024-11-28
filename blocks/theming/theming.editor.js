@@ -10,7 +10,8 @@ export default function config() {
   if (!listener) {
     const name = 'raqn-theming';
     [themeInstance] = window.raqnInstances[name];
-
+    themeInstance.finish = () => {};
+    
     publish(
       MessagesEvents.theme,
       { name: 'theme', data: themeInstance.themeJson },
@@ -26,7 +27,7 @@ export default function config() {
           const { data } = params;
           const row = Object.keys(data).map((key) => data[key]);
           readValue(row, themeInstance.variations);
-          themeInstance.defineVariations(readValue(row, themeInstance.variations));
+          themeInstance.defineVariations();
           themeInstance.styles();
         }
       }

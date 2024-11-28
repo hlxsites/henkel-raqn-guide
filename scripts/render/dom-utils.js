@@ -16,8 +16,9 @@ export const recursive =
   };
 
 export const queryAllNodes = (nodes, fn, settings) => {
-  const { currentLevel = 1, queryLevel } = settings || {};
+  const { currentLevel = 1, queryLevel = 1 } = settings || {};
   return nodes.reduce((acc, node) => {
+    console.log('node', node);
     const hasParent = node.hasParentNode;
     const match = fn(node);
     const wasRemoved = !node.hasParentNode && hasParent;
@@ -87,15 +88,15 @@ export const curryManipulation =
     return virtualDom;
   };
 
-export const tplPlaceholderCheck = (tag, node) =>
-  tag === node.tag && node.hasOnlyChild('textNode') && node.firstChild.text.match(/\$\{tpl-content-[a-zA-Z1-9-]+\}/g);
+export const tplPlaceholderCheck = (node) =>
+  node.text?.match(/\$\{tpl-content-[a-zA-Z1-9-]+\}/g);
 
-export const getTplPlaceholder = (node) => node.firstChild.text.trim().replace(/^\$\{|\}$/g, '');
+export const getTplPlaceholder = (node) => node.text.trim().replace(/^\$\{|\}$/g, '');
 
 export const queryTemplatePlaceholders = (tplVirtualDom) => {
   const placeholders = [];
   const placeholdersNodes = tplVirtualDom.queryAll((n) => {
-    if (!tplPlaceholderCheck('p', n)) return false;
+    if (!tplPlaceholderCheck(n)) return false;
     const placeholder = getTplPlaceholder(n);
     placeholders.push(placeholder);
     return true;

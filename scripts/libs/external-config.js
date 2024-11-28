@@ -20,14 +20,14 @@ export const externalConfig = {
   async loadConfig(rawConfig) {
     window.raqnComponentsConfig ??= (async () => {
       const {
-        componentsConfig: { metaName },
-        themeConfig,
+        componentsConfigs: { metaName },
+        componentsConfigs,
       } = metaTags;
       const metaConfigPath = getMeta(metaName);
-      if (!metaConfigPath.includes(`${themeConfig.fallbackContent}`)) {
+      if (!metaConfigPath.includes(`${componentsConfigs.fallbackContent}`)) {
         // eslint-disable-next-line no-console
         console.error(
-          `The configured "${metaName}" config url is not containing a "${themeConfig.fallbackContent}" folder.`,
+          `The configured "${metaName}" config url is not containing a "${componentsConfigs.fallbackContent}" folder.`,
         );
         return {};
       }
