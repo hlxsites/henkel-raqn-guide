@@ -7,9 +7,13 @@ export default class PopupTrigger extends ComponentBase {
 
   isClosePopupTrigger = false;
 
-  ariaLabel = null;
-
   popupSourceUrl = null;
+
+  popupConfigId = null;
+
+  elements = {
+    popup: null,
+  };
 
   get isActive() {
     return this.dataset.active === 'true';
@@ -24,27 +28,40 @@ export default class PopupTrigger extends ComponentBase {
           triggerIcon: 'raqn-icon',
         },
         closePopupIdentifier: '#popup-close',
+        triggerPopupIdentifier: '#popup-trigger',
       },
     ];
   }
 
   init() {
-    this.setAction();
-    this.queryElements();
-    this.addListeners();
+    this.setAction(this.dataset.action);
+    super.init();
   }
 
-  setAction() {
-    const { closePopupIdentifier } = this.config;
-    const anchorUrl = new URL(this.dataset.action, window.location.origin);
-
-    if (anchorUrl.hash === closePopupIdentifier) {
-      this.isClosePopupTrigger = true;
-      this.dataset.action = anchorUrl.hash;
+  setAction(action) {
+    const sourceUrl = URL.parse(action, window.location.origin);
+    if (!sourceUrl) {
+      // eslint-disable-next-line no-console
+      console.warn(`The value provided is not a valid path: ${action}`);
+      return;
     }
+
+    const { closePopupIdentifier, triggerPopupIdentifier } = this.config;
+
+    if (sourceUrl.hash === closePopupIdentifier) {
+      this.isClosePopupTrigger = true;
+      return;
+    }
+
+    this.popupSourceUrl = sourceUrl.pathname;
+
+    const [, configId] = sourceUrl.hash.split(`${triggerPopupIdentifier}-`);
+
+    if (configId) this.popupConfigId = configId;
   }
 
   addListeners() {
+    super.addListeners();
     this.elements.popupBtn.addEventListener('click', (e) => {
       e.preventDefault();
       this.dataset.active = !this.isActive;
@@ -52,21 +69,11 @@ export default class PopupTrigger extends ComponentBase {
   }
 
   onAttributeActionChanged({ oldValue, newValue }) {
-    if (this.isClosePopupTrigger) {
-      return;
-    }
+    if (!this.initialized) return;
+    if (this.isClosePopupTrigger) return;
     if (oldValue === newValue) return;
-    let sourceUrl;
 
-    try {
-      sourceUrl = new URL(newValue, window.location.origin);
-    } catch (error) {
-      // eslint-disable-next-line no-console
-      console.warn('The value provided is not a valid path', error);
-      return;
-    }
-
-    this.popupSourceUrl = sourceUrl.pathname;
+    this.setAction(newValue);
 
     if (this.popup) {
       this.popup.dataset.url = this.popupSourceUrl;
@@ -92,10 +99,8 @@ export default class PopupTrigger extends ComponentBase {
     if (this.isClosePopupTrigger) return;
     if (!this.isActive) return;
 
-    this.popup = await this.createPopup();
+    await this.createPopup();
     this.addPopupToPage();
-    // the icon is initialize async by page loader
-    // this.triggerIcon = this.querySelector('raqn-icon');
 
     // Reassign to just toggle after the popup is created;
     this.loadPopup = this.togglePopup;
@@ -103,18 +108,20 @@ export default class PopupTrigger extends ComponentBase {
   }
 
   async createPopup() {
-    loadAndDefine(componentList.popup);
+    await loadAndDefine(componentList.popup);
 
     const popupEl = document.createElement('raqn-popup');
-    popupEl.dataset.action = this.popupSourceUrl;
+    popupEl.dataset.url = this.popupSourceUrl;
     popupEl.dataset.active = true;
-    // Set the popupTrigger property of the popup component to this trigger instance
-    popupEl.popupTrigger = this;
-    return popupEl;
+    // link popup with popup-trigger
+    popupEl.elements.popupTrigger = this;
+    if (this.popupConfigId) popupEl.setAttribute('config-id', this.popupConfigId);
+
+    this.elements.popup = popupEl;
   }
 
   togglePopup() {
-    this.popup.dataset.active = this.isActive;
+    this.elements.popup.dataset.active = this.isActive;
     this.elements.popupBtn.setAttribute('aria-expanded', this.isActive);
     if (this.elements.triggerIcon) {
       this.elements.triggerIcon.dataset.active = this.isActive;
@@ -125,7 +132,7 @@ export default class PopupTrigger extends ComponentBase {
   }
 
   addPopupToPage() {
-    if (!this.popup) return;
-    document.body.append(this.popup);
+    if (!this.elements.popup) return;
+    document.body.append(this.elements.popup);
   }
 }

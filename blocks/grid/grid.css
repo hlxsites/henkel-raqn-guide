@@ -12,6 +12,17 @@ raqn-grid {
   --grid-background: var(--background, black);
   --grid-color: var(--text, white);
 
+  /* Option to add margins/paddings for grid to grid-items 
+     Values are set to initial prevent unwanted inheritance. */
+  --grid-item-margin-block-start: initial;
+  --grid-item-margin-block-end: initial;
+  --grid-item-margin-inline-start: initial;
+  --grid-item-margin-inline-end: initial;
+  --grid-item-padding-block-start: initial;
+  --grid-item-padding-block-end: initial;
+  --grid-item-padding-inline-start: initial;
+  --grid-item-padding-inline-end: initial;
+
   display: grid;
 
   /* defaults to 2 columns */

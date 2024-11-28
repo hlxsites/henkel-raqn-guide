@@ -366,13 +366,14 @@ export function deepMerge(origin, ...toMerge) {
 export function deepMergeByType(keyPathMethods, origin, ...toMerge) {
   if (!toMerge.length) return origin;
   const merge = toMerge.shift();
+  const keyPathMethodsCopy = keyPathMethods || {};
   const pathsArrays =
-    keyPathMethods?.pathsArrays ||
-    Object.entries(keyPathMethods).flatMap(([key, method]) => {
+    keyPathMethodsCopy?.pathsArrays ||
+    Object.entries(keyPathMethodsCopy).flatMap(([key, method]) => {
       if (key === 'currentPath') return [];
       return [[key.split('.').map((k) => k.split('|')), method]];
     });
-  const { currentPath = [] } = keyPathMethods;
+  const { currentPath = [] } = keyPathMethodsCopy;
 
   if (isOnlyObject(origin) && isOnlyObject(merge)) {
     Object.keys(merge).forEach((key) => {
@@ -462,6 +463,14 @@ export function loadModule(urlWithoutExtension, { loadCSS = true, loadJS = true 
   return modules;
 }
 
+/**
+ * When creating elements that require properties to be set on them
+ * either await for this method when loading the component
+ * or use `await customElements.whenDefined('component-tag');`
+ * Otherwise properties set on the element before it was defined will be overwritten
+ * with the defaults from the class.
+ * This is not required for attributes.
+ */
 export async function loadAndDefine(componentConfig) {
   const { tag, module: { path, loadJS, loadCSS } = {} } = componentConfig;
   if (window.raqnComponents[tag]) {

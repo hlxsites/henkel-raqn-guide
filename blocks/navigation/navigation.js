@@ -9,7 +9,7 @@ export default class Navigation extends ComponentBase {
 
   isActive = false;
 
-  #navContentInit = false;
+  navContentInit = false;
 
   navCompactedContentInit = false;
 
@@ -39,9 +39,9 @@ export default class Navigation extends ComponentBase {
 
   async init() {
     super.init();
-    this.navContent = this.querySelector('ul');
+    this.elements.navContent = this.querySelector('ul');
     this.innerHTML = '';
-    this.navCompactedContent = this.navContent.cloneNode(true); // the clone need to be done before `this.navContent` is modified
+    this.elements.navCompactedContent = this.elements.navContent.cloneNode(true); // the clone need to be done before `this.navContent` is modified
     this.nav = document.createElement('nav');
     this.isCompact = this.dataset.compact === 'true';
     this.append(this.nav);
@@ -56,24 +56,24 @@ export default class Navigation extends ComponentBase {
   }
 
   setupNav() {
-    if (!this.#navContentInit) {
-      this.#navContentInit = true;
-      this.setupClasses(this.navContent);
+    if (!this.navContentInit) {
+      this.navContentInit = true;
+      this.setupClasses(this.elements.navContent);
     }
-    this.navButton?.remove();
-    this.nav.append(this.navContent);
+    this.nav.append(this.elements.navContent);
   }
 
   async setupCompactedNav() {
+    const { navCompactedContent } = this.elements;
+
     if (!this.navCompactedContentInit) {
       loadAndDefine(componentList.accordion);
       this.navCompactedContentInit = true;
-      this.setupClasses(this.navCompactedContent, true);
-      this.navCompactedContent.addEventListener('click', (e) => this.activate(e));
+      this.setupClasses(navCompactedContent, true);
     }
-
     this.prepend(this.createButton());
-    this.nav.append(this.navCompactedContent);
+    this.nav.append(navCompactedContent);
+    this.addCompactedListeners();
   }
 
   onAttributeCompactChanged({ oldValue, newValue }) {
@@ -85,13 +85,7 @@ export default class Navigation extends ComponentBase {
     if (this.isCompact) {
       this.setupCompactedNav();
     } else {
-      if (this.navButton) {
-        this.isActive = false;
-        this.classList.remove('active');
-        this.navButton.removeAttribute('aria-expanded');
-        this.navIcon.dataset.active = this.isActive;
-        this.closeAllLevels();
-      }
+      this.cleanCompactedNav();
       this.setupNav();
     }
   }
@@ -103,25 +97,16 @@ export default class Navigation extends ComponentBase {
   }
 
   createButton() {
-    this.navButton = document.createElement('button');
-    this.navButton.setAttribute('aria-label', 'Menu');
-    this.navButton.setAttribute('aria-expanded', 'false');
-    this.navButton.setAttribute('aria-controls', 'navigation');
-    this.navButton.setAttribute('aria-haspopup', 'true');
-    this.navButton.setAttribute('type', 'button');
-    this.navButton.innerHTML = `<raqn-icon data-icon=${this.dataset.menuIcon}></raqn-icon>`;
-    this.navIcon = this.navButton.querySelector('raqn-icon');
-
-    this.navButton.addEventListener('click', () => {
-      this.isActive = !this.isActive;
-      this.classList.toggle('active');
-      this.navButton.setAttribute('aria-expanded', this.isActive);
-      this.navIcon.dataset.active = this.isActive;
-      blockBodyScroll(this.isActive);
-      this.closeAllLevels();
-    });
-
-    return this.navButton;
+    this.elements.navButton = document.createElement('button');
+    const { navButton } = this.elements;
+    navButton.setAttribute('aria-label', 'Menu');
+    navButton.setAttribute('aria-expanded', 'false');
+    navButton.setAttribute('aria-controls', 'navigation');
+    navButton.setAttribute('aria-haspopup', 'true');
+    navButton.setAttribute('type', 'button');
+    navButton.innerHTML = `<raqn-icon data-icon=${this.dataset.menuIcon}></raqn-icon>`;
+    this.elements.navIcon = navButton.querySelector('raqn-icon');
+    return navButton;
   }
 
   addIcon(elem) {
@@ -156,6 +141,34 @@ export default class Navigation extends ComponentBase {
         this.setupClasses(hasChildren, isCompact, level + 1);
       }
     });
+  }
+
+  addCompactedListeners() {
+    const { navCompactedContent, navButton } = this.elements;
+    navCompactedContent.addEventListener('click', (e) => this.activate(e));
+    navButton.addEventListener('click', (e) => this.toggleNav(e));
+  }
+
+  toggleNav() {
+    const { navIcon, navButton } = this.elements;
+    this.isActive = !this.isActive;
+    this.classList.toggle('active');
+    navButton.setAttribute('aria-expanded', this.isActive);
+    navIcon.dataset.active = this.isActive;
+    blockBodyScroll(this.isActive);
+    this.closeAllLevels();
+  }
+
+  cleanCompactedNav() {
+    if (!this.navCompactedContentInit) return;
+    const { navIcon, navButton } = this.elements;
+
+    this.isActive = false;
+    this.classList.remove('active');
+    navButton.removeAttribute('aria-expanded');
+    navIcon.dataset.active = this.isActive;
+    this.closeAllLevels();
+    navButton.remove();
   }
 
   activate(e) {

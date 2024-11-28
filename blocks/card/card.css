@@ -28,7 +28,7 @@ raqn-card > div img {
 }
 
 /* Make entire item clickable */
-raqn-card div > div:first-child > em:first-child > a:only-child {
+raqn-card div > div:first-child > p:first-child > em:only-child > a:only-child {
   position: absolute;
   inset-block-end: 0;
   inset-inline-end: 0;

@@ -4,6 +4,7 @@ import mermaid from './libs/mermaid.esm.min.mjs';
 
 mermaid.initialize({
   logLevel: 'warn',
+  startOnLoad: false,
 });
 
 export default class Mermaid extends ComponentBase {

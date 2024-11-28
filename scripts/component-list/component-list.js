@@ -199,10 +199,24 @@ export const componentList = {
   },
   button: {
     tag: 'raqn-button',
-    method: 'replace',
     filterNode(node) {
       if (node.tag === 'p' && node.children.length === 1 && node.children[0].tag === 'a') return true;
       return false;
+    },
+    transform(node) {
+      node.tag = this.tag;
+
+      const [textNode] = node.firstChild.queryAll((n) => n.tag === 'textNode', { queryLevel: 2 });
+      const [ariaLabel] = node.firstChild.queryAll(
+        (n) => n.tag === 'strong' && [n.nextSibling?.tag, n.previousSibling?.tag].includes('raqn-icon'),
+        { queryLevel: 1 },
+      );
+      if (!ariaLabel && textNode) {
+        textNode.tag = 'span';
+      } else if (ariaLabel && textNode) {
+        node.firstChild.attributes['aria-label'] = textNode.text;
+        ariaLabel.remove();
+      }
     },
     module: {
       path: '/blocks/button/button',
@@ -212,26 +226,40 @@ export const componentList = {
   },
   'popup-trigger': {
     tag: 'raqn-popup-trigger',
-    method: 'replace',
+    method: 'replaceWith',
+    popupHash: '#popup-trigger',
+    closeHash: '#popup-close',
     filterNode(node) {
-      if (node.tag === 'a' && node.attributes.href.includes('#popup-trigger')) {
-        console.log('popup-trigger', node.attributes.href);
-        return true;
+      if (node.tag === 'a') {
+        if (node.parentNode.tag === 'raqn-button') {
+          const { href } = node.attributes;
+          const [, hash] = href.split(/(?=#)/g);
+          if ([this.popupHash, this.closeHash].some((item) => hash?.startsWith(item))) {
+            return true;
+          }
+        }
       }
       return false;
     },
     transform(node) {
-      const { href } = node.attributes;
-      const hash = href.substring(href.indexOf('#popup-trigger'));
-      const popupTrigger = createNode({ tag: 'raqn-popup-trigger', attributes: { 'data-action': hash } });
-      const button = createNode({ tag: 'button', attributes: { 'aria-expanded': 'false', 'aria-haspopup': 'true', type: 'button' } });
-      // create a clone of the node
-      const clone = node.clone();
-      // wrap the clone with the popup trigger
-      clone.wrapWith(button);
-      button.wrapWith(popupTrigger);
-      // replace the original node with the clone
-      return popupTrigger;
+      let { href } = node.attributes;
+      const [, hash] = href.split(/(?=#)/g);
+      href = hash.startsWith(this.closeHash) ? this.closeHash : href;
+      node.tag = 'button';
+      node.attributes['aria-expanded'] = 'false';
+      node.attributes['aria-haspopup'] = 'false';
+      delete node.attributes.href;
+
+      return [
+        {
+          tag: this.tag,
+          attributes: {
+            'data-action': href,
+          },
+          children: [node],
+        },
+        { processChildren: true },
+      ];
     },
     module: {
       path: '/blocks/popup-trigger/popup-trigger',
