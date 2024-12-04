@@ -139,22 +139,36 @@ export const inject = (nodes) => {
 
 // clear empty text nodes or nodes with only text breaklines and spaces
 export const cleanEmptyTextNodes = (node) => {
-  if (node.tag === 'textNode') {
-    const text = node.text.replace(/ /g, '').replace(/\n/g, '');
-    if (text === '') node.remove();
-  }
+  if (node.tag !== 'textNode') return;
+  const text = node.text.replace(/ /g, '').replace(/\n/g, '');
+  if (text === '') node.remove();
 };
 
 // clear empty nodes that are not necessary to avoid rendering
 export const cleanBrNodes = (node) => {
-  if (node.tag === 'br') {
-    node.remove();
-  }
+  if (node.tag !== 'br') return;
+  node.remove();
 };
 
+// Any manipulation where the node will be removed
 export const cleanEmptyNodes = (node) => {
   cleanEmptyTextNodes(node);
   cleanBrNodes(node);
+};
+
+// Because of the base path use, the anchored links must contain the pathname to work properly.
+export const anchorLinks = (node) => {
+  if (node.tag !== 'a' || !node.attributes.href.startsWith('#')) return;
+  node.attributes.href = `${window.location.pathname}${node.attributes.href}`;
+};
+
+export const pageManipulationBundle = (node) => {
+  eagerImage(node);
+  anchorLinks(node);
+};
+
+export const generalManipulationBundle = (node) => {
+  anchorLinks(node);
 };
 
 // in some cases when the placeholder is the only content in a block row the text is not placed in a <p>

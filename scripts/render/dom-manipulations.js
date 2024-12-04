@@ -4,7 +4,8 @@ import {
   inject,
   loadModules,
   toWebComponent,
-  eagerImage,
+  pageManipulationBundle,
+  generalManipulationBundle,
   replaceTemplatePlaceholders,
   buildTplPlaceholder,
   forPreviewManipulation,
@@ -18,7 +19,7 @@ const { tplPageDuplicatedPlaceholder, highlightTemplatePlaceholders } = await fo
 // preset manipulation for main page
 export const pageManipulation = curryManipulation([
   recursive(cleanEmptyNodes),
-  recursive(eagerImage),
+  recursive(pageManipulationBundle),
   isPreview() && recursive(buildTplPlaceholder),
   inject,
   toWebComponent,
@@ -31,6 +32,7 @@ export const pageManipulation = curryManipulation([
 // preset manipulation for fragments and external HTML
 export const generalManipulation = curryManipulation([
   recursive(cleanEmptyNodes),
+  recursive(generalManipulationBundle),
   toWebComponent,
   recursive(prepareGrid),
   loadModules,
@@ -38,6 +40,7 @@ export const generalManipulation = curryManipulation([
 
 export const templateManipulation = curryManipulation([
   recursive(cleanEmptyNodes),
+  recursive(generalManipulationBundle),
   recursive(buildTplPlaceholder),
   toWebComponent,
   recursive(prepareGrid),

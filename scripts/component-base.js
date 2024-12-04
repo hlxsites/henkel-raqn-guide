@@ -62,7 +62,8 @@ export default class ComponentBase extends HTMLElement {
     addFragmentContentOnInit: true,
     hideOnInitError: true,
     listenBreakpoints: false,
-    selectors: {},
+    selectors: {}, // css selectors for elements inside the component.
+    pageSelectors: {}, // css selectors for elements on the page.
     classes: {
       showLoader: 'show-loader',
     },
@@ -148,7 +149,7 @@ export default class ComponentBase extends HTMLElement {
     try {
       this.initSubscriptions(); // must subscribe each type the element is added to the document
       if (!this.initialized) {
-        this.setAttribute('id', this.uuid);
+        this.id ||= this.uuid;
         await this.onConnected();
         this.initialized = true;
         this.initResolvers.resolve(this);
@@ -449,6 +450,10 @@ export default class ComponentBase extends HTMLElement {
 
   queryElements() {
     this.queryElemFromConfig(this.config.selectors, this);
+  }
+
+  queryPageElements() {
+    this.queryElemFromConfig(this.config.pageSelectors, document);
   }
 
   queryElemFromConfig(selectorsObj, sourceElem) {
