@@ -7,7 +7,6 @@ raqn-page-navigation {
   --page-nav-active-item-background: transparent;
   --page-nav-active-item-color: var(--highlight);
   --page-nav-active-item-font-weight: bold;
-
 }
 
 raqn-page-navigation a {
@@ -18,13 +17,7 @@ raqn-page-navigation a {
   margin-inline: var(--page-nav-item-margin-inline);
 }
 
-raqn-page-navigation a.active {
-  font-weight: var(--page-nav-active-item-font-weight);
-  background: var(--page-nav-active-item-background);
-  color: var(--page-nav-active-item-color);
-}
-
-raqn-page-navigation a:hover {
+raqn-page-navigation a:is(.active, :hover) {
   font-weight: var(--page-nav-active-item-font-weight);
   background: var(--page-nav-active-item-background);
   color: var(--page-nav-active-item-color);
