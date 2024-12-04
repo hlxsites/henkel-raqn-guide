@@ -1,26 +1,31 @@
 raqn-page-navigation {
   --page-nav-level-padding: 25px;
-  --page-nav-active-item-background: transparent;
-  --page-nav-active-item-color: var(--highlight);
   --page-nav-item-padding-block: 0px;
   --page-nav-item-padding-inline: 0px;
+  --page-nav-item-margin-block: 0.5rem;
+  --page-nav-item-margin-inline: 0px;
+  --page-nav-active-item-background: transparent;
+  --page-nav-active-item-color: var(--highlight);
+  --page-nav-active-item-font-weight: bold;
+
 }
 
 raqn-page-navigation a {
-  --a-margin-block: 0.5rem;
-  --a-font-size: 1rem;
-  --a-font-weight: normal;
-  --a-font-style: normal;
-  --a-line-height: 1.5;
-
   display: inline-block;
+  padding-block: var(--page-nav-item-padding-block);
   padding-inline: var(--page-nav-item-padding-inline);
-  padding-block: var(--page-nav-item-padding-inline);
+  margin-block: var(--page-nav-item-margin-block);
+  margin-inline: var(--page-nav-item-margin-inline);
 }
 
 raqn-page-navigation a.active {
-  --a-font-weight: bold;
+  font-weight: var(--page-nav-active-item-font-weight);
+  background: var(--page-nav-active-item-background);
+  color: var(--page-nav-active-item-color);
+}
 
+raqn-page-navigation a:hover {
+  font-weight: var(--page-nav-active-item-font-weight);
   background: var(--page-nav-active-item-background);
   color: var(--page-nav-active-item-color);
 }
