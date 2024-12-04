@@ -3,7 +3,8 @@
   --padding-container: 20px;
   --header-height: 110px;
   --container-width: max(calc((100% - var(--max-width)) / 2), var(--padding-container));
-  /* Any top fixed elements should update the value of scroll offset variable and set it on the html element*/
+
+  /* Any top fixed elements should update the value of scroll offset variable and set it on the html element */
   --page-scroll-top-offset: calc(var(--header-height) + 15px);
 }
 
@@ -285,7 +286,7 @@ main > div > *:not(.full-width) {
 [isloading]:not(.show-loader),
 .hide-with-error,
 .hide {
-  content-visibility: hidden
+  content-visibility: hidden;
 }
 
 #franklin-svg-sprite {

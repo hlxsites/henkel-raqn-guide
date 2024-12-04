@@ -12,12 +12,15 @@ raqn-page-navigation a {
   --a-font-weight: normal;
   --a-font-style: normal;
   --a-line-height: 1.5;
+
   display: inline-block;
   padding-inline: var(--page-nav-item-padding-inline);
   padding-block: var(--page-nav-item-padding-inline);
 }
+
 raqn-page-navigation a.active {
   --a-font-weight: bold;
+
   background: var(--page-nav-active-item-background);
   color: var(--page-nav-active-item-color);
 }
