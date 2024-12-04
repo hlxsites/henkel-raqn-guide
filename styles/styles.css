@@ -3,6 +3,9 @@
   --padding-container: 20px;
   --header-height: 110px;
   --container-width: max(calc((100% - var(--max-width)) / 2), var(--padding-container));
+
+  /* Any top fixed elements should update the value of scroll offset variable and set it on the html element */
+  --page-scroll-top-offset: calc(var(--header-height) + 15px);
 }
 
 @media screen and (max-width: 768px) {
@@ -52,7 +55,11 @@ caption {
 }
 
 html {
+  --page-scroll-top-offset: var(--header-height); /* Any top fixed elements should update the value of this variable */
+
   font-size: 100%;
+  scroll-behavior: smooth;
+  scroll-padding-top: var(--page-scroll-top-offset);
 }
 
 html,
@@ -69,8 +76,6 @@ body {
   padding: 0;
   margin: 0;
   width: 100%;
-
-  /* padding-top: var(--header-height, 110px); */
 }
 
 body.no-scroll {
@@ -123,6 +128,29 @@ main {
   min-height: 100%;
 }
 
+a {
+  align-items: center;
+  color: var(--highlight, inherit);
+  text-decoration: none;
+  font-family: var(--a-font-family, system-ui);
+  font-size: var(--a-font-size, 1rem);
+  font-weight: var(--a-font-weight, normal);
+  font-style: var(--a-font-style, normal);
+  line-height: var(--a-line-height, 1.2);
+}
+
+:is(h1, h2, h3, h4, h5, h6) a {
+  font-family: inherit;
+  font-size: inherit;
+  font-weight: inherit;
+  font-style: inherit;
+  line-height: inherit;
+}
+
+a:hover {
+  color: var(--text, inherit);
+}
+
 h1,
 h2,
 h3,
@@ -154,20 +182,20 @@ h3 {
   line-height: var(--h3-line-height, 1.3);
 }
 
-h5 {
-  font-family: var(--h5-font-family, system-ui);
-  font-size: var(--h5-font-size, 1rem);
-  font-weight: var(--h5-font-weight, normal);
-  font-style: var(--h5-font-style, normal);
-  line-height: var(--h5-line-height, 1.5);
-}
-
 h4 {
   font-family: var(--h4-font-family, system-ui);
   font-size: var(--h4-font-size, 1rem);
   font-weight: var(--h4-font-weight, normal);
   font-style: var(--h4-font-style, normal);
   line-height: var(--h4-line-height, 1.4);
+}
+
+h5 {
+  font-family: var(--h5-font-family, system-ui);
+  font-size: var(--h5-font-size, 1rem);
+  font-weight: var(--h5-font-weight, normal);
+  font-style: var(--h5-font-style, normal);
+  line-height: var(--h5-line-height, 1.5);
 }
 
 h6 {
@@ -184,6 +212,20 @@ label {
   font-weight: var(--label-font-weight, normal);
   font-style: var(--label-font-style, normal);
   line-height: var(--label-line-height, 1.6);
+}
+
+button {
+  border: none;
+  appearance: none;
+  background-color: transparent;
+  display: inline-flex;
+  align-items: center;
+  text-decoration: none;
+  font-family: var(--button-font-family, system-ui);
+  font-size: var(--button-font-size, 1rem);
+  font-weight: var(--button-font-weight, normal);
+  font-style: var(--button-font-style, normal);
+  line-height: var(--button-line-height, 1.2);
 }
 
 img {
@@ -240,41 +282,11 @@ main > div > *:not(.full-width) {
   margin-inline: auto;
 }
 
-a {
-  align-items: center;
-  color: var(--highlight, inherit);
-  text-decoration: none;
-  font-family: var(--a-font-family, system-ui);
-  font-size: var(--a-font-size, 1rem);
-  font-weight: var(--a-font-weight, normal);
-  font-style: var(--a-font-style, normal);
-  line-height: var(--a-line-height, 1.2);
-}
-
-a:hover {
-  color: var(--text, inherit);
-}
-
-button {
-  border: none;
-  appearance: none;
-  background-color: transparent;
-  display: inline-flex;
-  align-items: center;
-  text-decoration: none;
-  font-family: var(--button-font-family, system-ui);
-  font-size: var(--button-font-size, 1rem);
-  font-weight: var(--button-font-weight, normal);
-  font-style: var(--button-font-style, normal);
-  line-height: var(--button-line-height, 1.2);
-}
-
 /* Hide raqn web components based on different states */
 [isloading]:not(.show-loader),
 .hide-with-error,
 .hide {
-  display: none;
-  pointer-events: none;
+  content-visibility: hidden;
 }
 
 #franklin-svg-sprite {

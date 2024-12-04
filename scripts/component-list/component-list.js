@@ -131,6 +131,14 @@ export const componentList = {
       dependencies: ['icon'],
     },
   },
+  'page-navigation': {
+    tag: 'raqn-page-navigation',
+    method: 'replace',
+    module: {
+      path: '/blocks/page-navigation/page-navigation',
+      priority: 2,
+    },
+  },
   icon: {
     tag: 'raqn-icon',
     module: {

@@ -23,6 +23,9 @@ raqn-grid-item {
 raqn-grid-item[data-sticky='true' i] {
   position: sticky;
   top: var(--header-height);
+  height: fit-content;
+  max-height: calc(100dvh - var(--header-height));
+  overflow-y: auto;
 }
 
 /* End */
