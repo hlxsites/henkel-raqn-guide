@@ -274,7 +274,7 @@ export const componentList = {
       node.tag = this.tag;
       setPropsAndAttributes(node);
       node.addClass('raqn-grid');
-      [...node.children].forEach((n) => n.addClass('raqn-grid-item') || n.unWrap());
+      [...node.children].forEach((n) => n.unWrap());
 
       node.children.forEach((n) => n.addClass('raqn-grid-item'));
     },
