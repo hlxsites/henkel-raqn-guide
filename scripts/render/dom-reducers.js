@@ -75,7 +75,7 @@ export const toWebComponent = (virtualDom) => {
   // Simple and fast in place tag replacement
   recursive((node) => {
     replaceBlocks.forEach(([blockName, config]) => {
-      if (node?.class?.includes?.(blockName) || config.filterNode?.(node)) {
+      if (node?.hasClass?.(blockName) || config.filterNode?.(node)) {
         node.tag = config.tag;
         setPropsAndAttributes(node);
         addToLoadComponents(blockName, config);
@@ -85,8 +85,7 @@ export const toWebComponent = (virtualDom) => {
 
   // More complex transformation need to be done in order based on a separate query for each component.
   queryBlocks.forEach(([blockName, config]) => {
-    const filter =
-      config.filterNode?.bind(config) || ((node) => node?.class?.includes?.(blockName) || node.tag === blockName);
+    const filter = config.filterNode?.bind(config) || ((node) => node?.hasClass?.(blockName) || node.tag === blockName);
     const nodes = virtualDom.queryAll(filter, { queryLevel: config.queryLevel });
 
     nodes.forEach((node) => {

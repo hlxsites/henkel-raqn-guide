@@ -267,6 +267,23 @@ export const componentList = {
       priority: 4,
     },
   },
+  columns: {
+    tag: 'raqn-columns',
+    // method: 'replace',
+    transform(node) {
+      node.tag = this.tag;
+      setPropsAndAttributes(node);
+      node.addClass('raqn-grid');
+      [...node.children].forEach((n) => n.addClass('raqn-grid-item') || n.unWrap());
+
+      node.children.forEach((n) => n.addClass('raqn-grid-item'));
+    },
+    module: {
+      path: '/blocks/columns/columns',
+      loadCSS: false,
+      dependencies: ['grid', 'grid-item'],
+    },
+  },
   grid: {
     tag: 'raqn-grid',
     method: 'replace',

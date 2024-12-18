@@ -1,4 +1,4 @@
-raqn-grid {
+:where(raqn-grid, .raqn-grid) {
   /* Set to initial to prevent inheritance for nested grids */
   --grid-gap: initial;
   --grid-height: initial;
