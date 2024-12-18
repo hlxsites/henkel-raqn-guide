@@ -6,13 +6,13 @@ import { isTemplatePage } from '../libs.js';
 export const highlightTemplatePlaceholders = (tplVirtualDom) => {
   tplVirtualDom.queryAll((node) => {
     if (!tplPlaceholderCheck('p', node)) return false;
-    node.class.push('template-placeholder');
+    node.addClass('template-placeholder');
     return true;
   });
 };
 
 export const noContentPlaceholder = (node) => {
-  node.class.push('template-placeholder');
+  node.addClass('template-placeholder');
   node.append({
     tag: 'span',
     class: ['error-message-box'],
@@ -40,7 +40,7 @@ export const duplicatedPlaceholder = (placeholdersNodes, placeholders, markAll =
   }
 
   duplicatesNodes.forEach((node) => {
-    node.class.push('template-placeholder');
+    node.addClass('template-placeholder');
     node.append({
       tag: 'span',
       class: ['error-message-box'],

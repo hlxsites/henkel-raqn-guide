@@ -28,9 +28,9 @@ export default class Grid extends ComponentBase {
 
     items.forEach((item, index) => {
       if (reverse) {
-        item.dataset.order = index + 1;
+        item.style.setProperty('--grid-item-order', index + 1);
       } else {
-        delete item.dataset.order;
+        item.style.removeProperty('--grid-item-order');
       }
     });
   }

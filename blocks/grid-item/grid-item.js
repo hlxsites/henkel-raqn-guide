@@ -13,27 +13,6 @@ export default class GridItem extends ComponentBase {
 
   gridParent = null;
 
-  get siblingsItems() {
-    return this.gridParent.gridItems.filter((x) => x !== this);
-  }
-
-  get logicalOrder() {
-    return this.gridParent.gridItems.indexOf(this) + 1;
-  }
-
-  get areaName() {
-    return `item-${this.logicalOrder}`;
-  }
-
-  // This method is called by the gridParent when a grid-template-areas is set.
-  setAutoAreaName(add = true) {
-    if (add) {
-      this.dataset.area = this.areaName;
-    } else {
-      delete this.dataset.area;
-    }
-  }
-
   init() {
     super.init();
     this.gridParent ??= this.parentElement;

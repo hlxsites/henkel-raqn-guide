@@ -81,9 +81,19 @@ export function nodeProxy(rawNode) {
         return (...classes) => classes.every((cls) => target.class.includes(cls));
       }
 
+      if (prop === 'addClass') {
+        return (cls) => {
+          if (!target.class.includes(cls)) target.class.push(cls);
+        };
+      }
+
       // mehod
       if (prop === 'removeClass') {
-        return (cls) => target.class.splice(target.class.indexOf(cls), 1);
+        return (cls) => {
+          while (target.class.indexOf(cls) !== -1) {
+            target.class.splice(target.class.indexOf(cls), 1);
+          }
+        };
       }
 
       // mehod
@@ -129,6 +139,13 @@ export function nodeProxy(rawNode) {
         return (node) => {
           node.children = [proxyNode];
           proxyNode.replaceWith(node);
+        };
+      }
+
+      // mehod
+      if (prop === 'unWrap') {
+        return () => {
+          proxyNode.replaceWith(...proxyNode.children);
         };
       }
 

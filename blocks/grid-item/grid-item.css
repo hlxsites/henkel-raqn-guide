@@ -1,4 +1,4 @@
-raqn-grid-item {
+:where(raqn-grid-item, .raqn-grid-item) {
   --grid-item-justify: initial;
   --grid-item-align: initial;
   --grid-item-order: initial;
@@ -20,7 +20,7 @@ raqn-grid-item {
 }
 
 /* Make grid item sticky */
-raqn-grid-item[data-sticky='true' i] {
+:where(raqn-grid-item, .raqn-grid-item)[data-sticky='true' i] {
   position: sticky;
   top: var(--header-height);
   height: fit-content;
@@ -33,11 +33,11 @@ raqn-grid-item[data-sticky='true' i] {
 /* Start Make entire item clickable 
  * if the first anchor in the grid item is italic
  */
-raqn-grid-item:has(> p:first-child > em:only-child > a:only-child) {
+:where(raqn-grid-item, .raqn-grid-item):has(> p:first-child > em:only-child > a:only-child) {
   position: relative;
 }
 
-raqn-grid-item:has(> p:first-child > em:only-child > a:only-child) > p:first-child a {
+:where(raqn-grid-item, .raqn-grid-item):has(> p:first-child > em:only-child > a:only-child) > p:first-child a {
   position: absolute;
   inset-block-end: 0;
   inset-inline-end: 0;
@@ -49,27 +49,27 @@ raqn-grid-item:has(> p:first-child > em:only-child > a:only-child) > p:first-chi
 }
 
 /* Make other anchor or buttons in the grid item still accessible */
-raqn-grid-item:has(> p:first-child > em:only-child > a:only-child) :where(a, button) {
+:where(raqn-grid-item, .raqn-grid-item):has(> p:first-child > em:only-child > a:only-child) :where(a, button) {
   position: relative;
   z-index: 2;
 }
 
-raqn-grid-item > p:first-child:has(> em:only-child > a:only-child) {
+:where(raqn-grid-item, .raqn-grid-item) > p:first-child:has(> em:only-child > a:only-child) {
   margin: 0;
 }
 
 /* End */
 
 /* Start Remove unwanted spacing from elements inside grid item */
-raqn-grid-item > :first-child {
+:where(raqn-grid-item, .raqn-grid-item) > :first-child {
   margin-block-start: 0;
 }
 
-raqn-grid-item > :last-child {
+:where(raqn-grid-item, .raqn-grid-item) > :last-child {
   margin-block-end: 0;
 }
 
-raqn-grid-item > p:first-child:has(> em:only-child > a:only-child) + * {
+:where(raqn-grid-item, .raqn-grid-item) > p:first-child:has(> em:only-child > a:only-child) + * {
   margin-block-start: 0;
 }
 
