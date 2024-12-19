@@ -1,18 +1,12 @@
 import ComponentBase from '../../scripts/component-base.js';
 
-const prefixPath = '/api-definitions';
+export const prefixPath = '/api-definitions';
+export const apiSwitchEvent = 'swaggerUI:apiSwitch';
 
 export default class SwaggerUI extends ComponentBase {
 
   switchAPI(hash) {
     const currentEnvironment = hash.length > 0 ? hash.substring(1).replace(/--.+$/, '') : false;
-    this.querySelectorAll('.swagger-ui-selection > ul > li').forEach((item) => {
-      if(item.dataset.environment === currentEnvironment) {
-        item.classList.remove('closed');
-      } else {
-        item.classList.add('closed');
-      }
-    });
     const currentAPI = currentEnvironment && (() => {
       const index = hash.indexOf('--');
       return index !== -1 ? hash.substring(index + 2) : false;
@@ -30,71 +24,12 @@ export default class SwaggerUI extends ComponentBase {
     }
   }
 
-  navigationClick(e, hash) {
-    e.preventDefault();
-    if(!window.location.hash.startsWith(hash)) {
-      window.location.hash = hash;
-      this.switchAPI(hash);
-    }
-  }
-
-  async generateAPISelection(selectionElement) {
-    const response = await fetch(`${prefixPath}/environments.json`);
-    const environments = await response.json();
-    const environmentElements = await Promise.all(environments.map(async (environment) => {
-      const item = document.createElement('li');
-      item.dataset.environment = environment.folder;
-      const anchor = document.createElement('a');
-      const url = new URL(window.location.href);
-      url.hash = environment.folder;
-      anchor.addEventListener('click', (e) => this.navigationClick(e, url.hash));
-      anchor.href = url.toString();
-      anchor.textContent = environment.label;
-      item.appendChild(anchor);
-      const filter = document.createElement('input');
-      filter.placeholder = 'Search';
-      item.appendChild(filter);
-      const apiResponse = await fetch(`${prefixPath}/${environment.folder}/index.json`);
-      const apis = await apiResponse.json();
-      const definitionsElement = document.createElement('ul');
-      apis.sort((a, b) => a.label.localeCompare(b.label)).forEach((api) => {
-        const apiItem = document.createElement('li');
-        const apiAnchor = document.createElement('a');
-        const apiUrl = new URL(window.location.href);
-        apiUrl.hash = `${environment.folder}--${api.id}`;
-        apiAnchor.addEventListener('click', (e) => this.navigationClick(e, apiUrl.hash));
-        apiAnchor.href = apiUrl.toString();
-        apiAnchor.textContent = `${api.label}${api.version ? ` (${api.version})` : ''}`;
-        apiItem.appendChild(apiAnchor);
-        definitionsElement.appendChild(apiItem);
-      });
-      item.appendChild(definitionsElement);
-      filter.addEventListener('input', () => {
-        definitionsElement.querySelectorAll('li').forEach((apiItem) => {
-          if (apiItem.textContent.toLowerCase().includes(filter.value.toLowerCase())) {
-            apiItem.style.display = 'block';
-          } else {
-            apiItem.style.display = 'none';
-          }
-        });
-      });
-      return item;
-    }));
-    const environmentsElement = selectionElement.querySelector(':scope > ul');
-    environmentElements.forEach((option) => environmentsElement.appendChild(option));
-  }
-
   async loadAPIs(apiFilter) {
-    const selectionElement = this.querySelector('.swagger-ui-selection');
-    if(apiFilter.length === 0) {
-      await this.generateAPISelection(selectionElement);
-    }
-
     const hashes = apiFilter.length > 0 ? apiFilter : [window.location.hash];
     hashes.forEach((hash) => {
       const wrapper = document.createElement('div');
       wrapper.classList.add('swagger-ui-wrapper');
-      this.insertBefore(wrapper, selectionElement.nextSibling);
+      this.append(wrapper);
       this.switchAPI(hash);
     });
     
@@ -103,15 +38,15 @@ export default class SwaggerUI extends ComponentBase {
 
   async init() {
     super.init();
+
+    document.addEventListener(apiSwitchEvent, (e) => this.switchAPI(e.detail.hash));
+    
     const apiFilter = [...this.querySelectorAll('a')]
       .map((a) => new URL(a.href).hash)
       .filter((hash) => hash.length > 0 && hash.indexOf('--') > 0);
 
-    this.innerHTML = `
-      <div class="swagger-ui-selection">
-        <ul></ul>
-      </div>`;
-    
+    this.innerHTML = '';
+
     const loadCSS = async (href) => new Promise((resolve, reject) => {
       const link = document.createElement('link');
       link.rel = 'stylesheet';

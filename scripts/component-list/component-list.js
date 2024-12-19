@@ -317,6 +317,14 @@ export const componentList = {
       priority: 4,
     },
   },
+  swaggeruinavigation: {
+    tag: 'raqn-swaggerui-navigation',
+    method: 'replace',
+    module: {
+      path: '/blocks/swaggeruinavigation/swaggeruinavigation',
+      priority: 2,
+    },
+  },
   swaggerui: {
     tag: 'raqn-swaggerui',
     method: 'replace',

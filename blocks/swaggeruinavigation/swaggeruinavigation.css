@@ -1,0 +1,14 @@
+raqn-swaggerui-navigation > input {
+  margin: auto 10px;
+}
+
+raqn-swaggerui-navigation > ul {
+  height: calc(100vh - var(--header-height, 110px) - 250px);
+  overflow-y: auto;
+}
+
+raqn-swaggerui-navigation > ul.closed {
+  height: 0;
+  padding: 0;
+  margin: 0;
+}
